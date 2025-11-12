@@ -1,0 +1,1343 @@
+/* Tailwind CSS v4 - Disable CSS linting for Tailwind directives */
+/* stylelint-disable at-rule-no-unknown */
+/* stylelint-disable function-no-unknown */
+/* stylelint-disable property-no-unknown */
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "../styles/video-player-animations.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Color system */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* Radius system */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Sidebar colors */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  /* Base radius */
+  --radius: 0.625rem;
+
+  /* Color system */
+  --background: oklch(0.05 0.01 240);
+  --foreground: oklch(0.95 0.01 240);
+  --card: oklch(0.08 0.01 240);
+  --card-foreground: oklch(0.95 0.01 240);
+  --popover: oklch(0.08 0.01 240);
+  --popover-foreground: oklch(0.95 0.01 240);
+  --primary: oklch(0.65 0.25 350);
+  --primary-foreground: oklch(0.98 0.01 350);
+  --secondary: oklch(0.15 0.01 240);
+  --secondary-foreground: oklch(0.95 0.01 240);
+  --muted: oklch(0.12 0.01 240);
+  --muted-foreground: oklch(0.65 0.01 240);
+  --accent: oklch(0.18 0.01 240);
+  --accent-foreground: oklch(0.95 0.01 240);
+  --destructive: oklch(0.65 0.25 25);
+  --border: oklch(0.18 0.01 240);
+  --input: oklch(0.18 0.01 240);
+  --ring: oklch(0.65 0.25 350);
+
+  /* Sidebar colors */
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240, 2%, 24%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+
+  /* Responsive Breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* Container Max Widths */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+  --container-max: 1920px;
+}
+
+.dark {
+  --background: oklch(0.05 0.01 240);
+  --foreground: oklch(0.95 0.01 240);
+  --card: oklch(0.08 0.01 240);
+  --card-foreground: oklch(0.95 0.01 240);
+  --popover: oklch(0.08 0.01 240);
+  --popover-foreground: oklch(0.95 0.01 240);
+  --primary: oklch(0.65 0.25 350);
+  --primary-foreground: oklch(0.98 0.01 350);
+  --secondary: oklch(0.15 0.01 240);
+  --secondary-foreground: oklch(0.95 0.01 240);
+  --muted: oklch(0.12 0.01 240);
+  --muted-foreground: oklch(0.65 0.01 240);
+  --accent: oklch(0.18 0.01 240);
+  --accent-foreground: oklch(0.95 0.01 240);
+  --destructive: oklch(0.65 0.25 25);
+  --border: oklch(0.18 0.01 240);
+  --input: oklch(0.18 0.01 240);
+  --ring: oklch(0.65 0.25 350);
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+@layer utilities {
+
+  /* Responsive Visibility Utilities */
+  .show-mobile {
+    @apply block sm:hidden;
+  }
+
+  .show-tablet {
+    @apply hidden sm:block md:hidden;
+  }
+
+  .show-desktop {
+    @apply hidden md:block;
+  }
+
+  .hide-mobile {
+    @apply hidden sm:block;
+  }
+
+  .hide-tablet {
+    @apply block sm:hidden md:block;
+  }
+
+  .hide-desktop {
+    @apply block md:hidden;
+  }
+
+  /* Enhanced Responsive Flex Utilities */
+  .flex-responsive-col {
+    @apply flex flex-col md:flex-row;
+  }
+
+  .flex-responsive-row {
+    @apply flex flex-row md:flex-col;
+  }
+
+  .flex-responsive-wrap {
+    @apply flex flex-wrap;
+  }
+
+  .flex-responsive-nowrap {
+    @apply flex flex-nowrap sm:flex-wrap;
+  }
+
+  .flex-responsive-center {
+    @apply flex items-center justify-center;
+  }
+
+  .flex-responsive-between {
+    @apply flex items-center justify-between;
+  }
+
+  .flex-responsive-start {
+    @apply flex items-start justify-start sm:items-center sm:justify-between;
+  }
+
+  /* Responsive Alignment Utilities */
+  .items-responsive-center {
+    @apply items-start sm:items-center;
+  }
+
+  .items-responsive-start {
+    @apply items-center sm:items-start;
+  }
+
+  .justify-responsive-center {
+    @apply justify-start sm:justify-center;
+  }
+
+  .justify-responsive-between {
+    @apply justify-center sm:justify-between;
+  }
+
+  /* Responsive Position Utilities */
+  .position-responsive-static {
+    @apply static sm:relative;
+  }
+
+  .position-responsive-relative {
+    @apply relative;
+  }
+
+  .position-responsive-absolute {
+    @apply absolute sm:relative;
+  }
+
+  .position-responsive-fixed {
+    @apply fixed sm:absolute;
+  }
+
+  /* Enhanced Responsive Width Utilities */
+  .w-responsive-full {
+    @apply w-full md:w-auto;
+  }
+
+  .w-responsive-auto {
+    @apply w-auto md:w-full;
+  }
+
+  .w-responsive-fit {
+    @apply w-full sm:w-auto;
+  }
+
+  .w-responsive-screen {
+    @apply w-screen sm:w-full;
+  }
+
+  /* Responsive Height Utilities */
+  .h-responsive-auto {
+    @apply h-auto;
+  }
+
+  .h-responsive-screen {
+    @apply h-screen sm:h-auto;
+  }
+
+  .h-responsive-fit {
+    @apply h-full sm:h-auto;
+  }
+
+  /* Responsive Max Width Utilities */
+  .max-w-responsive {
+    @apply max-w-full sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl;
+  }
+
+  .max-w-responsive-content {
+    @apply max-w-full sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl;
+  }
+
+  .max-w-responsive-text {
+    @apply max-w-full sm:max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg;
+  }
+
+  /* Responsive Margin Utilities */
+  .mx-responsive {
+    @apply mx-2 sm:mx-4 md:mx-6 lg:mx-8 xl:mx-12 2xl:mx-16;
+  }
+
+  .my-responsive {
+    @apply my-2 sm:my-4 md:my-6 lg:my-8 xl:my-12 2xl:my-16;
+  }
+
+  /* Responsive Padding Utilities */
+  .px-responsive {
+    @apply px-2 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16;
+  }
+
+  .py-responsive {
+    @apply py-2 sm:py-4 md:py-6 lg:py-8 xl:py-12 2xl:py-16;
+  }
+
+  /* Responsive Border Radius */
+  .rounded-responsive {
+    @apply rounded sm:rounded-md md:rounded-lg lg:rounded-xl;
+  }
+
+  /* Responsive Shadow */
+  .shadow-responsive {
+    @apply shadow-sm sm:shadow md:shadow-lg lg:shadow-xl xl:shadow-2xl;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    /* Smooth scroll behavior for better UX */
+    scroll-behavior: smooth;
+  }
+
+  /* Disable smooth scroll for users who prefer reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: oklch(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: oklch(var(--muted-foreground));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(var(--primary));
+  }
+}
+
+@layer components {
+
+  /* Responsive Container System */
+  .responsive-container {
+    @apply container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20;
+    max-width: 1920px;
+    /* Prevent excessive stretching on ultra-wide */
+  }
+
+  .responsive-container-tight {
+    @apply container mx-auto px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 2xl:px-16;
+    max-width: 1600px;
+  }
+
+  .responsive-container-wide {
+    @apply container mx-auto px-2 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16;
+    max-width: 2400px;
+  }
+
+  /* Responsive Typography Scale */
+  .heading-hero {
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl;
+    @apply font-bold leading-tight tracking-tight;
+  }
+
+  .heading-section {
+    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl;
+    @apply font-semibold leading-tight;
+  }
+
+  .heading-subsection {
+    @apply text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl;
+    @apply font-semibold leading-snug;
+  }
+
+  .heading-card {
+    @apply text-base sm:text-lg md:text-xl lg:text-2xl;
+    @apply font-medium leading-snug;
+  }
+
+  .body-large {
+    @apply text-base sm:text-lg md:text-xl lg:text-2xl;
+    @apply leading-relaxed;
+  }
+
+  .body-text {
+    @apply text-sm sm:text-base md:text-lg lg:text-xl;
+    @apply leading-relaxed;
+  }
+
+  .body-small {
+    @apply text-xs sm:text-sm md:text-base lg:text-lg;
+    @apply leading-normal;
+  }
+
+  .caption-text {
+    @apply text-xs sm:text-sm md:text-base;
+    @apply leading-normal;
+  }
+
+  .micro-text {
+    @apply text-xs sm:text-xs md:text-sm;
+    @apply leading-tight;
+  }
+
+  /* Responsive Grid System */
+  .grid-responsive-1 {
+    @apply grid grid-cols-1;
+  }
+
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 sm:grid-cols-2;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .grid-responsive-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+  }
+
+  .grid-responsive-5 {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5;
+  }
+
+  .grid-responsive-6 {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6;
+  }
+
+  /* Movie Card Grid System */
+  .movie-grid {
+    @apply grid gap-4 sm:gap-6 md:gap-8;
+    @apply grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6;
+  }
+
+  .movie-grid-compact {
+    @apply grid gap-2 sm:gap-3 md:gap-4;
+    @apply grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7;
+  }
+
+  .movie-grid-featured {
+    @apply grid gap-6 sm:gap-8 md:gap-10;
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  /* Enhanced Responsive Spacing Utilities */
+
+  /* Vertical Spacing (Padding Y) */
+  .spacing-section {
+    @apply py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24 2xl:py-28;
+  }
+
+  .spacing-section-compact {
+    @apply py-6 sm:py-8 md:py-12 lg:py-16 xl:py-20 2xl:py-24;
+  }
+
+  .spacing-component {
+    @apply py-4 sm:py-6 md:py-8 lg:py-10 xl:py-12;
+  }
+
+  .spacing-component-compact {
+    @apply py-3 sm:py-4 md:py-6 lg:py-8 xl:py-10;
+  }
+
+  .spacing-element {
+    @apply py-2 sm:py-3 md:py-4 lg:py-5 xl:py-6;
+  }
+
+  .spacing-element-compact {
+    @apply py-1 sm:py-2 md:py-3 lg:py-4 xl:py-5;
+  }
+
+  /* Horizontal Spacing (Padding X) */
+  .spacing-x-section {
+    @apply px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20;
+  }
+
+  .spacing-x-component {
+    @apply px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10;
+  }
+
+  .spacing-x-element {
+    @apply px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6;
+  }
+
+  /* Margin Utilities */
+  .margin-section {
+    @apply my-8 sm:my-12 md:my-16 lg:my-20 xl:my-24 2xl:my-28;
+  }
+
+  .margin-component {
+    @apply my-4 sm:my-6 md:my-8 lg:my-10 xl:my-12;
+  }
+
+  .margin-element {
+    @apply my-2 sm:my-3 md:my-4 lg:my-5 xl:my-6;
+  }
+
+  /* Gap Utilities */
+  .gap-responsive {
+    @apply gap-2 sm:gap-3 md:gap-4 lg:gap-5 xl:gap-6 2xl:gap-8;
+  }
+
+  .gap-responsive-large {
+    @apply gap-4 sm:gap-6 md:gap-8 lg:gap-10 xl:gap-12 2xl:gap-16;
+  }
+
+  .gap-responsive-compact {
+    @apply gap-1 sm:gap-2 md:gap-3 lg:gap-4 xl:gap-5 2xl:gap-6;
+  }
+
+  /* Space Between Utilities */
+  .space-responsive>*+* {
+    @apply mt-2 sm:mt-3 md:mt-4 lg:mt-5 xl:mt-6;
+  }
+
+  .space-responsive-large>*+* {
+    @apply mt-4 sm:mt-6 md:mt-8 lg:mt-10 xl:mt-12;
+  }
+
+  .space-responsive-compact>*+* {
+    @apply mt-1 sm:mt-2 md:mt-3 lg:mt-4 xl:mt-5;
+  }
+
+  /* Responsive Form Elements */
+  .form-input-responsive {
+    @apply h-10 sm:h-11 md:h-12 lg:h-13 xl:h-14;
+    @apply text-sm sm:text-base md:text-lg lg:text-base;
+    @apply px-3 sm:px-4 md:px-5 lg:px-4;
+  }
+
+  .button-responsive {
+    @apply h-10 sm:h-11 md:h-12 lg:h-11 xl:h-12;
+    @apply px-4 sm:px-5 md:px-6 lg:px-5 xl:px-6;
+    @apply text-sm sm:text-base md:text-lg lg:text-base;
+  }
+
+  .button-responsive-large {
+    @apply h-12 sm:h-13 md:h-14 lg:h-15 xl:h-16;
+    @apply px-6 sm:px-7 md:px-8 lg:px-7 xl:px-8;
+    @apply text-base sm:text-lg md:text-xl lg:text-lg;
+  }
+
+  /* Touch Target Utilities */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  .touch-target-large {
+    @apply min-h-[48px] min-w-[48px];
+  }
+
+  /* Screen Reader Only Utility */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Screen Reader Only Focusable - becomes visible when focused */
+  .sr-only-focusable:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: inherit;
+    margin: inherit;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  /* Responsive Hero Heights */
+  .hero-height {
+    @apply h-[90vh] sm:h-[90vh] md:h-[90vh] lg:h-[90vh] xl:h-screen;
+  }
+
+  .hero-height-compact {
+    @apply h-[40vh] sm:h-[50vh] md:h-[60vh] lg:h-[70vh] xl:h-[80vh];
+  }
+
+  /* Responsive Image Utilities */
+  .image-responsive {
+    @apply w-full h-auto;
+    @apply object-cover;
+  }
+
+  .image-aspect-video {
+    @apply aspect-video w-full;
+  }
+
+  .image-aspect-square {
+    @apply aspect-square w-full;
+  }
+
+  .image-aspect-portrait {
+    @apply aspect-[3/4] w-full;
+  }
+
+  /* Responsive Navigation Utilities */
+  .nav-mobile {
+    @apply flex lg:hidden;
+  }
+
+  .nav-desktop {
+    @apply hidden lg:flex;
+  }
+
+  .nav-hamburger {
+    @apply flex lg:hidden;
+  }
+
+  .nav-overlay {
+    @apply fixed inset-0 lg:relative lg:inset-auto;
+    @apply bg-background/95 backdrop-blur-sm lg:bg-transparent lg:backdrop-blur-none;
+    @apply z-50 lg:z-auto;
+  }
+
+  /* Responsive Text Utilities */
+  .text-responsive {
+    @apply text-sm sm:text-base md:text-lg;
+  }
+
+  .text-responsive-small {
+    @apply text-xs sm:text-sm md:text-base;
+  }
+
+  .text-responsive-large {
+    @apply text-base sm:text-lg md:text-xl lg:text-2xl;
+  }
+
+  /* Enhanced Responsive Overflow Utilities */
+  .overflow-responsive {
+    @apply overflow-hidden;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+
+  .overflow-responsive-x {
+    @apply overflow-x-auto overflow-y-hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  }
+
+  .overflow-responsive-y {
+    @apply overflow-y-auto overflow-x-hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  }
+
+  .overflow-text-responsive {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+    line-break: auto;
+  }
+
+  .overflow-ellipsis-responsive {
+    @apply truncate;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Multi-line text truncation */
+  .overflow-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-clamp: 2;
+  }
+
+  .overflow-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-clamp: 3;
+  }
+
+  .overflow-clamp-responsive {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-clamp: 2;
+  }
+
+  @media (min-width: 640px) {
+    .overflow-clamp-responsive {
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+    }
+  }
+
+  /* Content wrapping utilities */
+  .wrap-responsive {
+    @apply flex-wrap;
+  }
+
+  .wrap-responsive-reverse {
+    @apply flex-wrap-reverse;
+  }
+
+  .nowrap-responsive {
+    @apply flex-nowrap;
+  }
+
+  @media (max-width: 767px) {
+    .nowrap-responsive {
+      @apply flex-wrap;
+    }
+  }
+
+  /* Video player styles */
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%;
+    /* 16:9 aspect ratio */
+  }
+
+  .video-container video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Content carousel styles */
+  .carousel-container {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .carousel-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Scrollbar hide utility */
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Full-width layout with minimal padding */
+  .full-width-minimal {
+    width: 100%;
+    padding-left: 0.5vw;
+    padding-right: 0.5vw;
+  }
+
+  /* Responsive carousel card widths for specific cards per slide */
+  .carousel-card-width {
+    /* Mobile: 1 card visible, full width minus padding */
+   width: calc((99vw - 2vw - (2 * 1.5rem)) / 2);
+  }
+
+  @media (min-width: 640px) {
+    .carousel-card-width {
+      /* sm: 3 cards visible - (viewport - padding - gaps) / cards */
+      width: calc((99vw - 1vw - (2 * 1.5rem)) / 3);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .carousel-card-width {
+      /* md: 4 cards visible - (viewport - padding - gaps) / cards */
+      width: calc((99vw - 1vw - (3 * 1.5rem)) / 4);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .carousel-card-width {
+      /* lg: 5 cards visible - (viewport - padding - gaps) / cards */
+      width: calc((99vw - 1vw - (4 * 1.5rem)) / 5);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .carousel-card-width {
+      /* xl: 6 cards visible - (viewport - padding - gaps) / cards */
+      width: calc((99vw - 1vw - (5 * 1.5rem)) / 6);
+    }
+  }
+
+  /* Enhanced shadow utilities */
+  .shadow-3xl {
+    box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+
+  .shadow-4xl {
+    box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 0 50px rgba(239, 68, 68, 0.1);
+  }
+
+  /* Section-specific styles */
+
+  .watchlist-section .content-card {
+    border: 2px solid transparent;
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05));
+  }
+
+  .watchlist-section .content-card:hover {
+    border-color: rgba(236, 72, 153, 0.3);
+    box-shadow: 0 0 30px rgba(236, 72, 153, 0.2);
+  }
+
+  /* Enhanced hover effects for content cards */
+  .content-card {
+    transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .content-card:hover {
+    transform: scale(1.1) translateY(-8px);
+    box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 0 80px rgba(239, 68, 68, 0.15);
+  }
+
+  /* Glassmorphism effects */
+  .glass-card {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-card-hover {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Header overlay styles */
+  .header-overlay {
+    background: linear-gradient(to bottom,
+        rgba(0, 0, 0, 0.8) 0%,
+        rgba(0, 0, 0, 0.4) 50%,
+        transparent 100%);
+  }
+
+  /* Text truncation utilities */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Enhanced gradient overlays */
+  .gradient-overlay {
+    background: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.3) 50%,
+        rgba(0, 0, 0, 0.8) 100%);
+  }
+
+  .gradient-overlay-top {
+    background: linear-gradient(to bottom,
+        rgba(0, 0, 0, 0.8) 0%,
+        transparent 100%);
+  }
+
+  .gradient-overlay-radial {
+    background: radial-gradient(circle at center,
+        transparent 0%,
+        rgba(0, 0, 0, 0.3) 50%,
+        rgba(0, 0, 0, 0.8) 100%);
+  }
+
+  /* Responsive Animation Utilities */
+  .animate-responsive-fade {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @media (width >=768px) {
+    .animate-responsive-fade {
+      animation-duration: 0.5s;
+    }
+  }
+
+  .animate-responsive-slide {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  @media (width >=768px) {
+    .animate-responsive-slide {
+      animation-duration: 0.6s;
+    }
+  }
+
+  /* Smooth animations */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Progress bar animations */
+  .progress-bar {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent);
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      left: -100%;
+    }
+
+    100% {
+      left: 100%;
+    }
+  }
+
+  /* Responsive skeleton animations */
+  @keyframes shimmerSkeleton {
+    0% {
+      background-position: -200% 0;
+    }
+
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  @keyframes wave {
+
+    0%,
+    60%,
+    100% {
+      transform: initial;
+    }
+
+    30% {
+      transform: translateY(-15px);
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmerSkeleton 2s infinite linear;
+  }
+
+  .animate-wave {
+    animation: wave 2s infinite ease-in-out;
+  }
+}
+
+.fullscreen-video video {
+  transition: opacity 0.3s ease;
+  opacity: 1;
+}
+
+.fullscreen-active video {
+  width: 100vw !important;
+  height: 100vh !important;
+  object-fit: contain;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+/* Responsive Media Query Mixins */
+@media (width >=640px) {
+  .responsive-sm-only {
+    display: block;
+  }
+}
+
+@media (width >=768px) {
+  .responsive-md-only {
+    display: block;
+  }
+}
+
+@media (width >=1024px) {
+  .responsive-lg-only {
+    display: block;
+  }
+}
+
+@media (width >=1280px) {
+  .responsive-xl-only {
+    display: block;
+  }
+}
+
+@media (width >=1536px) {
+  .responsive-2xl-only {
+    display: block;
+  }
+}
+
+/* Responsive Container Queries for Modern Browsers */
+@container (width >=320px) {
+  .container-responsive-sm {
+    padding: 1rem;
+  }
+}
+
+@container (width >=640px) {
+  .container-responsive-md {
+    padding: 1.5rem;
+  }
+}
+
+@container (width >=1024px) {
+  .container-responsive-lg {
+    padding: 2rem;
+  }
+}
+
+/* Responsive Print Styles */
+@media print {
+  .print-hidden {
+    display: none !important;
+  }
+
+  .print-visible {
+    display: block !important;
+  }
+
+  .responsive-container,
+  .responsive-container-tight,
+  .responsive-container-wide {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+}
+
+/* Responsive Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+
+  .animate-responsive-fade,
+  .animate-responsive-slide,
+  .animate-fade-in,
+  .animate-slide-up {
+    animation: none !important;
+  }
+
+  .content-card {
+    transition: none !important;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+/* Enhanced Fullscreen video styles */
+.fullscreen-video video {
+  transition: opacity 0.3s ease;
+  opacity: 1;
+}
+
+.fullscreen-active video {
+  width: 100vw !important;
+  height: 100vh !important;
+  object-fit: contain;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+/* Fullscreen overlay z-index management */
+.fullscreen-active .skip-intro-button {
+  z-index: 10000 !important;
+}
+
+.fullscreen-active .next-episode-overlay {
+  z-index: 10001 !important;
+}
+
+/* Enhanced z-index utilities for video overlays */
+.z-video-controls {
+  z-index: 50;
+}
+
+.z-video-overlays {
+  z-index: 60;
+}
+
+.z-video-modals {
+  z-index: 70;
+}
+
+.z-fullscreen-base {
+  z-index: 9999;
+}
+
+.z-fullscreen-controls {
+  z-index: 10000;
+}
+
+.z-fullscreen-overlays {
+  z-index: 10001;
+}
+
+.z-fullscreen-modals {
+  z-index: 10002;
+}
+
+/* Netflix-style video overlay animations */
+@keyframes netflix-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes netflix-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.netflix-fade-in {
+  animation: netflix-fade-in 0.3s ease-out;
+}
+
+.netflix-slide-in {
+  animation: netflix-slide-in 0.3s ease-out;
+}
+
+/* Responsive video overlay positioning */
+@media (max-width: 640px) {
+  .video-overlay-mobile {
+    bottom: 60px;
+    right: 12px;
+    left: 12px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .video-overlay-tablet {
+    bottom: 24px;
+    right: 24px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .video-overlay-desktop {
+    bottom: 32px;
+    right: 32px;
+  }
+}
+
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Accessibility: Enhanced Focus Visible Styles for Profile Page */
+@layer base {
+  /* Focus visible styles for interactive elements */
+  *:focus-visible {
+    outline: 2px solid oklch(var(--ring));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Button focus styles */
+  button:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid oklch(var(--ring));
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px oklch(var(--ring) / 0.2);
+  }
+
+  /* Link focus styles */
+  a:focus-visible {
+    outline: 2px solid oklch(var(--ring));
+    outline-offset: 2px;
+    text-decoration: underline;
+  }
+
+  /* Input focus styles */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid oklch(var(--ring));
+    outline-offset: 0;
+    border-color: oklch(var(--ring));
+  }
+
+  /* Card focus styles for keyboard navigation */
+  [tabindex]:focus-visible {
+    outline: 2px solid oklch(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Remove default focus outline when focus-visible is supported */
+  *:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+/* Profile-specific accessibility enhancements */
+@layer components {
+  /* Enhanced focus for profile photo edit button */
+  .profile-photo-edit:focus-visible {
+    outline: 3px solid oklch(var(--ring));
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px oklch(var(--ring) / 0.2);
+  }
+
+  /* Status badge focus enhancement */
+  [role="status"]:focus-visible {
+    outline: 2px solid oklch(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Table row focus for keyboard navigation */
+  [role="row"]:focus-within {
+    background-color: oklch(var(--accent) / 0.5);
+    transition: background-color 0.2s ease;
+  }
+
+  /* Ensure sufficient color contrast for text */
+  .text-muted-foreground {
+    /* WCAG AA compliant: 4.5:1 contrast ratio */
+    color: oklch(0.65 0.01 240);
+  }
+
+  /* Enhanced contrast for status badges */
+  .status-badge-success {
+    background-color: oklch(0.3 0.15 145 / 0.2);
+    color: oklch(0.75 0.15 145);
+    border-color: oklch(0.3 0.15 145 / 0.3);
+  }
+
+  .status-badge-info {
+    background-color: oklch(0.3 0.15 240 / 0.2);
+    color: oklch(0.75 0.15 240);
+    border-color: oklch(0.3 0.15 240 / 0.3);
+  }
+
+  .status-badge-warning {
+    background-color: oklch(0.4 0.15 85 / 0.2);
+    color: oklch(0.8 0.15 85);
+    border-color: oklch(0.4 0.15 85 / 0.3);
+  }
+
+  /* Skip to content link for keyboard users */
+  .skip-to-content {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: oklch(var(--primary));
+    color: oklch(var(--primary-foreground));
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 100;
+    border-radius: 0 0 4px 0;
+  }
+
+  .skip-to-content:focus {
+    top: 0;
+  }
+}

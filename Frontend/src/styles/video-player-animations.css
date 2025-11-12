@@ -1,0 +1,572 @@
+/* Netflix-like Video Player Animations */
+
+/* Enhanced Skip Intro Button Animations */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(100%) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToBottom {
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%) scale(0.9);
+    opacity: 0;
+  }
+}
+
+.skip-intro-enter {
+  animation: slideInFromRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.skip-intro-exit {
+  animation: slideOutToRight 0.3s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+/* Mobile-specific animations */
+@media (max-width: 640px) {
+  .skip-intro-enter {
+    animation: slideInFromBottom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  
+  .skip-intro-exit {
+    animation: slideOutToBottom 0.3s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+  }
+}
+
+/* Enhanced Next Episode Overlay Animations */
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+
+@keyframes scaleInContent {
+  from {
+    transform: scale(0.85) translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInContent {
+  from {
+    transform: translateY(50px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.next-episode-overlay-enter {
+  animation: fadeInOverlay 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.next-episode-content-enter {
+  animation: scaleInContent 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+/* Mobile content animation */
+@media (max-width: 640px) {
+  .next-episode-content-enter {
+    animation: slideInContent 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+  }
+}
+
+/* Enhanced Countdown Animations */
+@keyframes countdownPulse {
+  0% {
+    transform: scale(1);
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    transform: scale(1.15);
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+  }
+}
+
+@keyframes countdownUrgent {
+  0% {
+    transform: scale(1);
+    color: #ef4444;
+    text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+  }
+  25% {
+    transform: scale(1.2);
+    color: #dc2626;
+    text-shadow: 0 0 25px rgba(239, 68, 68, 0.8);
+  }
+  50% {
+    transform: scale(1.1);
+    color: #ef4444;
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+  }
+  75% {
+    transform: scale(1.25);
+    color: #dc2626;
+    text-shadow: 0 0 30px rgba(239, 68, 68, 0.9);
+  }
+  100% {
+    transform: scale(1);
+    color: #ef4444;
+    text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+  }
+}
+
+.countdown-number {
+  animation: countdownPulse 1s ease-in-out;
+}
+
+.countdown-urgent {
+  animation: countdownUrgent 0.8s ease-in-out;
+}
+
+/* Enhanced Progress Bar Animations */
+@keyframes progressFill {
+  from {
+    width: 0%;
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+  }
+  to {
+    width: 100%;
+    background: linear-gradient(90deg, #dc2626, #b91c1c);
+  }
+}
+
+@keyframes progressPulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+  }
+}
+
+.progress-bar-fill {
+  animation: progressFill 10s linear forwards, progressPulse 2s ease-in-out infinite;
+}
+
+/* Enhanced Button Animations */
+.netflix-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.netflix-button:hover {
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.netflix-button:active {
+  transform: scale(0.95) translateY(0);
+  transition-duration: 0.1s;
+}
+
+.netflix-button:focus {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+}
+
+/* Icon animations within buttons */
+.netflix-button svg {
+  transition: transform 0.2s ease;
+}
+
+.netflix-button:hover svg {
+  transform: scale(1.1);
+}
+
+/* Glassmorphism enhancements */
+@keyframes glassShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.glass-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-effect::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: glassShimmer 3s infinite;
+}
+
+/* Responsive Animations and Adjustments */
+@media (max-width: 640px) {
+  /* Skip Intro Button Mobile Styles */
+  .skip-intro-button {
+    bottom: 80px;
+    right: 12px;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+  
+  /* Next Episode Overlay Mobile Styles */
+  .next-episode-overlay {
+    padding: 12px;
+  }
+  
+  .next-episode-content {
+    max-width: 95vw;
+    margin: 0 auto;
+    border-radius: 16px;
+  }
+  
+  /* Reduce animation intensity on mobile */
+  .netflix-button:hover {
+    transform: scale(1.02) translateY(-1px);
+  }
+  
+  .countdown-number {
+    animation-duration: 0.8s;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  /* Tablet-specific adjustments */
+  .skip-intro-button {
+    bottom: 60px;
+    right: 16px;
+    font-size: 14px;
+    padding: 8px 14px;
+  }
+  
+  .next-episode-content {
+    max-width: 85vw;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Desktop small adjustments */
+  .skip-intro-button {
+    bottom: 24px;
+    right: 24px;
+    font-size: 15px;
+    padding: 10px 16px;
+  }
+  
+  .next-episode-content {
+    max-width: 75vw;
+  }
+}
+
+@media (min-width: 1025px) {
+  /* Large desktop enhancements */
+  .skip-intro-button {
+    bottom: 32px;
+    right: 32px;
+    font-size: 16px;
+    padding: 12px 20px;
+  }
+  
+  .next-episode-content {
+    max-width: 65vw;
+  }
+  
+  /* Enhanced hover effects for larger screens */
+  .netflix-button:hover {
+    transform: scale(1.08) translateY(-3px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Fullscreen Mode Adjustments */
+.fullscreen .skip-intro-button {
+  z-index: 9999;
+  bottom: 80px;
+  right: 24px;
+}
+
+.fullscreen .next-episode-overlay {
+  z-index: 9999;
+}
+
+.fullscreen .next-episode-content {
+  max-width: 600px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .skip-intro-button {
+    border: 2px solid white;
+    background: black;
+  }
+  
+  .next-episode-content {
+    border: 2px solid white;
+  }
+  
+  .netflix-button {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Cross-browser Animation Prefixes */
+@-webkit-keyframes slideInFromRight {
+  from {
+    -webkit-transform: translateX(100%) scale(0.8);
+    transform: translateX(100%) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    -webkit-transform: translateX(0) scale(1);
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+    -webkit-backdrop-filter: blur(0px);
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+}
+
+@-webkit-keyframes countdownPulse {
+  0% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    -webkit-transform: scale(1.15);
+    transform: scale(1.15);
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+  }
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+  }
+}
+
+/* Enhanced Cross-browser Support */
+.skip-intro-enter {
+  -webkit-animation: slideInFromRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: slideInFromRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.next-episode-overlay-enter {
+  -webkit-animation: fadeInOverlay 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeInOverlay 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.countdown-number {
+  -webkit-animation: countdownPulse 1s ease-in-out;
+  animation: countdownPulse 1s ease-in-out;
+}
+
+.netflix-button {
+  -webkit-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -moz-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-transform-origin: center;
+  -moz-transform-origin: center;
+  transform-origin: center;
+}
+
+.netflix-button:hover {
+  -webkit-transform: scale(1.05) translateY(-2px);
+  -moz-transform: scale(1.05) translateY(-2px);
+  transform: scale(1.05) translateY(-2px);
+  -webkit-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Browser-specific Fixes */
+.safari-browser .glass-effect {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.firefox-browser .glass-effect {
+  background: rgba(17, 24, 39, 0.95);
+}
+
+.edge-legacy .netflix-button {
+  -ms-transform: scale(1);
+  transform: scale(1);
+}
+
+/* Reduced Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  .skip-intro-enter,
+  .skip-intro-exit,
+  .next-episode-overlay-enter,
+  .next-episode-content-enter {
+    -webkit-animation: none;
+    animation: none;
+  }
+  
+  .countdown-number,
+  .countdown-urgent {
+    -webkit-animation: none;
+    animation: none;
+  }
+  
+  .progress-bar-fill {
+    -webkit-animation: progressFill 10s linear forwards;
+    animation: progressFill 10s linear forwards;
+  }
+  
+  .netflix-button {
+    -webkit-transition: none;
+    -moz-transition: none;
+    transition: none;
+  }
+  
+  .netflix-button:hover {
+    -webkit-transform: none;
+    -moz-transform: none;
+    transform: none;
+  }
+}
+
+/* Dark Mode Enhancements */
+@media (prefers-color-scheme: dark) {
+  .skip-intro-button {
+    background: rgba(0, 0, 0, 0.9);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  .next-episode-content {
+    background: rgba(17, 24, 39, 0.95);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* Print Styles (hide video overlays) */
+@media print {
+  .skip-intro-button,
+  .next-episode-overlay {
+    display: none !important;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .netflix-button:hover {
+    transform: none;
+  }
+  
+  .netflix-button:active {
+    transform: scale(0.95);
+    background-color: rgba(239, 68, 68, 0.8);
+  }
+  
+  /* Larger touch targets */
+  .skip-intro-button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+}
+
+/* Ultra-wide Screen Adjustments */
+@media (min-width: 1920px) {
+  .skip-intro-button {
+    bottom: 40px;
+    right: 40px;
+    font-size: 18px;
+    padding: 14px 24px;
+  }
+  
+  .next-episode-content {
+    max-width: 800px;
+  }
+}
+
+/* Custom CSS Variables for Dynamic Theming */
+:root {
+  --skip-intro-z-index: 60;
+  --overlay-z-index: 70;
+  --fullscreen-z-index: 9999;
+  
+  --animation-duration-fast: 0.2s;
+  --animation-duration-normal: 0.3s;
+  --animation-duration-slow: 0.5s;
+  
+  --easing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-sharp: cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* Utility Classes for Dynamic Animations */
+.animate-bounce-in {
+  animation: scaleInContent var(--animation-duration-slow) var(--easing-bounce) both;
+}
+
+.animate-slide-in {
+  animation: slideInFromRight var(--animation-duration-normal) var(--easing-smooth) both;
+}
+
+.animate-fade-in {
+  animation: fadeInOverlay var(--animation-duration-slow) var(--easing-smooth) both;
+}

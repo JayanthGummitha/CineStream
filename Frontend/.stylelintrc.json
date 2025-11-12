@@ -1,0 +1,50 @@
+{
+  "extends": [
+    "stylelint-config-standard"
+  ],
+  "rules": {
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": [
+          "tailwind",
+          "apply",
+          "variants",
+          "responsive",
+          "screen",
+          "theme",
+          "layer",
+          "import",
+          "keyframes",
+          "media",
+          "container"
+        ]
+      }
+    ],
+    "function-no-unknown": [
+      true,
+      {
+        "ignoreFunctions": [
+          "theme",
+          "screen",
+          "oklch",
+          "hsl",
+          "calc",
+          "var"
+        ]
+      }
+    ],
+    "property-no-unknown": [
+      true,
+      {
+        "ignoreProperties": [
+          "scrollbar-width",
+          "-ms-overflow-style",
+          "-webkit-line-clamp",
+          "-webkit-box-orient",
+          "font-feature-settings"
+        ]
+      }
+    ]
+  }
+}

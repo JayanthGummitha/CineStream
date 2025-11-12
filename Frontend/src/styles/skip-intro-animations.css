@@ -1,0 +1,85 @@
+/**
+ * Skip Intro Button Animations
+ * Custom CSS animations for smooth entrance and exit transitions
+ */
+
+/* Entrance animation for Skip Intro button */
+.skip-intro-enter {
+  animation: skipIntroFadeIn 0.3s ease-out forwards;
+}
+
+/* Exit animation for Skip Intro button */
+.skip-intro-exit {
+  animation: skipIntroFadeOut 0.3s ease-out forwards;
+}
+
+/* Keyframe animations */
+@keyframes skipIntroFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes skipIntroFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+}
+
+/* Touch target enhancement for mobile devices */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Custom CSS variables for z-index management */
+:root {
+  --skip-intro-z-index: 60;
+}
+
+/* Fullscreen mode z-index override */
+:fullscreen {
+  --skip-intro-z-index: 9999;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .skip-intro-enter,
+  .skip-intro-exit {
+    animation: none;
+  }
+  
+  .skip-intro-enter {
+    opacity: 1;
+    transform: none;
+  }
+  
+  .skip-intro-exit {
+    opacity: 0;
+    transform: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .skip-intro-button {
+    border: 2px solid white;
+    background: black;
+  }
+}
+
+/* Focus visible enhancement for keyboard navigation */
+.skip-intro-button:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}

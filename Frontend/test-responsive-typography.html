@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Typography Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Responsive Typography Scale */
+        .heading-hero {
+            @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl;
+            @apply font-bold leading-tight tracking-tight;
+        }
+
+        .heading-section {
+            @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl;
+            @apply font-semibold leading-tight;
+        }
+
+        .heading-subsection {
+            @apply text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl;
+            @apply font-semibold leading-snug;
+        }
+
+        .heading-card {
+            @apply text-base sm:text-lg md:text-xl lg:text-2xl;
+            @apply font-medium leading-snug;
+        }
+
+        .body-large {
+            @apply text-base sm:text-lg md:text-xl lg:text-2xl;
+            @apply leading-relaxed;
+        }
+
+        .body-text {
+            @apply text-sm sm:text-base md:text-lg lg:text-xl;
+            @apply leading-relaxed;
+        }
+
+        .body-small {
+            @apply text-xs sm:text-sm md:text-base lg:text-lg;
+            @apply leading-normal;
+        }
+
+        .caption-text {
+            @apply text-xs sm:text-sm md:text-base;
+            @apply leading-normal;
+        }
+
+        .micro-text {
+            @apply text-xs sm:text-xs md:text-sm;
+            @apply leading-tight;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white p-8">
+    <div class="max-w-4xl mx-auto space-y-8">
+        <h1 class="heading-hero text-center">Responsive Typography Test</h1>
+        
+        <div class="space-y-6">
+            <div>
+                <h2 class="heading-section mb-2">Heading Section</h2>
+                <p class="body-text">This is body text that should scale responsively across different screen sizes. It uses the body-text class which applies different font sizes at different breakpoints.</p>
+            </div>
+
+            <div>
+                <h3 class="heading-subsection mb-2">Heading Subsection</h3>
+                <p class="body-small">This is smaller body text using the body-small class. It's perfect for secondary content and descriptions.</p>
+            </div>
+
+            <div>
+                <h4 class="heading-card mb-2">Heading Card</h4>
+                <p class="caption-text">This is caption text using the caption-text class. It's ideal for metadata, labels, and small descriptive text.</p>
+            </div>
+
+            <div>
+                <h5 class="body-large mb-2">Body Large</h5>
+                <p class="micro-text">This is micro text using the micro-text class. It's the smallest text size and should be used sparingly for fine print or very small labels.</p>
+            </div>
+        </div>
+
+        <div class="mt-12 p-6 bg-gray-800 rounded-lg">
+            <h2 class="heading-section mb-4">Movie Card Example</h2>
+            <div class="space-y-3">
+                <h3 class="heading-card">Movie Title</h3>
+                <div class="flex items-center space-x-2">
+                    <span class="caption-text text-yellow-400">8.5</span>
+                    <span class="caption-text text-gray-400">Action • Drama • 2024</span>
+                </div>
+                <p class="body-small text-gray-300">This is a movie description that demonstrates how our responsive typography scales across different screen sizes.</p>
+                <div class="flex space-x-2">
+                    <span class="micro-text bg-gray-700 px-2 py-1 rounded">PG-13</span>
+                    <span class="micro-text bg-gray-700 px-2 py-1 rounded">2h 15m</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center">
+            <p class="caption-text text-gray-400">Resize your browser window to see the responsive typography in action!</p>
+        </div>
+    </div>
+</body>
+</html>
