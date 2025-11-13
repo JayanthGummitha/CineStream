@@ -72,7 +72,7 @@ export function MovieCard({
             <MovieThumbnailImage
               src={movie.thumbnail}
               alt={movie.title}
-              className="transition-all duration-300 group-hover:brightness-110"
+              className="transition-all duration-300 group-hover:brightness-110 object-center"
               priority={false}
               quality={85}
               placeholder="empty"

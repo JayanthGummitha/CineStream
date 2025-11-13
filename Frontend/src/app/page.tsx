@@ -6,7 +6,7 @@ import { ContentCarousel } from '@/components/content/content-carousel';
 import { ContinueWatchingSection } from '@/components/home/continue-watching-section';
 import { PopularWeekSection } from '@/components/home/popular-week-section';
 import { JustReleaseSection } from '@/components/home/just-release-section';
-import { YourWatchlistSection } from '@/components/home/your-watchlist-section';
+// import { YourWatchlistSection } from '@/components/home/your-watchlist-section';
 import { YourLikesSection } from '@/components/home/your-likes-section';
 import { MyListSection } from '@/components/home/my-list-section';
 import { Button } from '@/components/ui/button';
@@ -72,12 +72,12 @@ export default async function Home() {
             )}
 
             {/* Your Watchlist */}
-            {isAuthenticated && (
+            {/* {isAuthenticated && (
               <YourWatchlistSection
                 items={featuredContent.slice(2, 8)}
                 isAuthenticated={isAuthenticated}
               />
-            )}
+            )} */}
 
             {/* Your Likes */}
             {isAuthenticated && topRatedCollection && topRatedCollection.items && topRatedCollection.items.length > 0 && (

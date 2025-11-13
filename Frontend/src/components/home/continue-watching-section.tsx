@@ -112,16 +112,10 @@ function ContinueWatchingCard({ progressData, onRemove }: ContinueWatchingCardPr
   const isMovie = progressData.contentType === 'movie';
   const isTVShow = progressData.contentType === 'tv-show';
   
-  // Use progress data directly - thumbnail should be saved correctly now
+  // For consistency with other sections, we should use backdrop if available
+  // Since progressData only has thumbnail, we'll use it as backdrop for aspect-video display
   const displayTitle = progressData.title;
-  const displayThumbnail = progressData.thumbnail || '/placeholder-movie.jpg';
-  
-  console.log('🖼️ Card data:', {
-    videoId: progressData.videoId,
-    title: displayTitle,
-    thumbnail: displayThumbnail,
-    hasThumbnail: !!progressData.thumbnail
-  });
+  const displayImage = progressData.thumbnail || '/placeholder-movie.jpg';
 
   // Handle remove with undo toast
   const handleRemove = (e: React.MouseEvent) => {
@@ -201,11 +195,11 @@ function ContinueWatchingCard({ progressData, onRemove }: ContinueWatchingCardPr
           {/* Main Image */}
           <div className="relative aspect-video">
             <Image
-              src={displayThumbnail}
+              src={displayImage}
               alt={displayTitle}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover transition-all duration-300 group-hover:brightness-110"
+              className="object-cover object-center transition-all duration-300 group-hover:brightness-110"
             />
 
             {/* Minimal gradient overlay only at bottom for text readability */}

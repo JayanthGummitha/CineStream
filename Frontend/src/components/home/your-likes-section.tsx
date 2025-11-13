@@ -100,7 +100,7 @@ function LikesCard({ item }: LikesCardProps) {
               alt={item.title}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover transition-all duration-300 group-hover:brightness-110"
+              className="object-cover object-center transition-all duration-300 group-hover:brightness-110"
             />
           </div>
         </div>
