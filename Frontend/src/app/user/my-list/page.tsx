@@ -98,11 +98,9 @@ export default function MyListPage() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
             {myList.map((movie) => (
-              // <Card
-              //   key={movie.id}
-              //   className=" m-0 group h-[55vh] relative overflow-hidden border-white/10 hover:border-white/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-red-500/20 bg-card/50 backdrop-blur-sm flex flex-col"
-              // >
-                    <Card className="m-0 group h-[55vh] relative   @container/card bg-gradient-to-b p-1 from-neutral-800 to-neutral-900/90 border-neutral-900/50  shadow-lg border-4 transition-all duration-300 hover:shadow-xl overflow-hidden">
+                    <Card 
+                      key={movie.id}
+                      className="m-0 group h-[55vh] relative   @container/card bg-gradient-to-b p-1 from-neutral-800 to-neutral-900/90 border-neutral-900/50  shadow-lg border-4 transition-all duration-300 hover:shadow-xl overflow-hidden">
               
                 {/* Movie Poster - Takes 70% of card height */}
                 <Link href={createDetailUrl('movie', movie.id, movie.title)} className="flex-[0_0_60%]">

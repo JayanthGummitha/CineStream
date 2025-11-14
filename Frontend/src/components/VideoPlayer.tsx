@@ -49,6 +49,7 @@ import {
   validateEpisodeIdConsistency
 } from '@/utils/episode-id-resolver';
 import { VideoPlayerDebugger } from './VideoPlayerDebugger';
+import { getVidstackLogLevel } from '@/lib/vidstack-logger-config';
 // VTT file URLs - using public URLs instead of imports
 const thumbnailpreview = '/assets/thumbnailpreview.vtt';
 
@@ -166,6 +167,19 @@ export function VideoPlayerContent({
     console.log('🎬 MovieInfo updated:', info);
     return info;
   }, [currentTitle]);
+
+  /**
+   * Configure Vidstack logging to prevent state serialization errors in development.
+   * 
+   * Issue: Next.js dev server attempts to stringify Vidstack's reactive state proxies
+   * when logging, which causes "this.$state[prop2] is not a function" errors.
+   * 
+   * Solution: Use 'warn' level in development to suppress verbose info logs that
+   * trigger serialization, while preserving visibility of actual errors.
+   * 
+   * See: .kiro/specs/vidstack-logging-error-fix/requirements.md
+   */
+  const vidstackLogLevel = useMemo(() => getVidstackLogLevel(), []);
 
   // Debug logging for title changes
   useEffect(() => {
@@ -2856,6 +2870,7 @@ export function VideoPlayerContent({
           title={title}
           className={playerClasses}
           autoPlay={autoPlay}
+          logLevel={vidstackLogLevel}
           onLoadStart={handleLoadStart}
           onCanPlay={handleCanPlay}
           onError={handleError}

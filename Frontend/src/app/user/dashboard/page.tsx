@@ -13,9 +13,9 @@ export default function DashboardPage() {
 
       <SectionCards />
 
-      <div className="mt-4">
+      {/* <div className="mt-4">
         <ChartAreaInteractive />
-      </div>
+      </div> */}
     </div>
   )
 }
