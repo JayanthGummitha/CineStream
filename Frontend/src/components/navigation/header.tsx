@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, Bell, User, Menu, X, LogOutIcon, Settings, CreditCard, LayoutDashboard } from 'lucide-react';
+import { Search, User, Menu, X, LogOutIcon, Settings, CreditCard, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSearch } from '@/components/ui/responsive-search';
 import {
@@ -18,6 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { AuthModal } from '@/components/auth/auth-modal';
+import { NotificationDropdown } from '@/components/navigation/notification-dropdown';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
@@ -162,15 +163,7 @@ export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }:
               ? (
                 <div className='flex flex-row relative w-25 justify-between justify-items-stretch'>
                   {/* Notifications */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="touch-target text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 rounded-lg p-2 sm:p-2.5 md:p-3 lg:p-2 xl:p-2.5 relative"
-                    aria-label="Notifications"
-                  >
-                    <Bell className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-5 lg:w-5 xl:h-5 xl:w-5" />
-                    <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-red-500 rounded-full animate-pulse"></div>
-                  </Button>
+                  <NotificationDropdown className="touch-target text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 rounded-lg" />
 
                   {/* User Profile */}
                   <ProfileMenu className=''>
