@@ -148,7 +148,7 @@ export function VideoPlayerContent({
   useEffect(() => {
     if (title && (!episodes || episodes.length === 0)) {
       setCurrentTitle(title);
-      console.log('🎬 Title updated from props:', title);
+      
     }
   }, [title, episodes]);
 
@@ -156,7 +156,6 @@ export function VideoPlayerContent({
   useEffect(() => {
     if (poster && (!episodes || episodes.length === 0)) {
       setCurrentPoster(poster);
-      console.log('🎬 Poster updated from props:', poster);
     }
   }, [poster, episodes]);
 
@@ -164,7 +163,6 @@ export function VideoPlayerContent({
     const info = {
       title: currentTitle
     };
-    console.log('🎬 MovieInfo updated:', info);
     return info;
   }, [currentTitle]);
 
@@ -183,7 +181,6 @@ export function VideoPlayerContent({
 
   // Debug logging for title changes
   useEffect(() => {
-    console.log('🎬 Current title changed:', currentTitle);
     console.trace('🎬 Title change stack trace');
   }, [currentTitle]);
   const playerRef = useRef<MediaPlayerInstance>(null);
@@ -261,19 +258,6 @@ export function VideoPlayerContent({
   );
 
   // Debug logging for watch progress initialization
-  useEffect(() => {
-    console.log('🎬 Watch Progress Hook Initialized:', {
-      contentId: contentId || 'unknown',
-      contentType: contentType === 'episode' ? 'tv-show' : contentType === 'movie' ? 'movie' : 'trailer',
-      title: currentTitle,
-      thumbnail: currentPoster,
-      posterProp: poster,
-      hasPoster: !!poster,
-      hasCurrentPoster: !!currentPoster,
-      resumePoint,
-      isProgressLoading
-    });
-  }, [contentId, contentType, currentTitle, currentPoster, poster, resumePoint, isProgressLoading]);
 
   // Track if we've already resumed to avoid multiple resume attempts
   const hasResumedRef = useRef(false);
@@ -310,7 +294,6 @@ export function VideoPlayerContent({
 
     // Only resume if resumePoint is meaningful (> 30 seconds)
     if (resumePoint > 30) {
-      console.log('🎬 Resuming from saved position:', resumePoint);
       
       // Seek to resume point
       playerRef.current.currentTime = resumePoint;
@@ -382,7 +365,6 @@ export function VideoPlayerContent({
 
     // Clear progress if 95% or more complete
     if (percentage >= 95) {
-      console.log('🎬 Video 95% complete - clearing progress');
       clearWatchProgress();
       return;
     }
@@ -392,13 +374,7 @@ export function VideoPlayerContent({
     const timeSinceLastSave = now - lastProgressSaveRef.current;
     
     if (timeSinceLastSave >= SAVE_INTERVAL) {
-      console.log('✅ 🎬 SAVING progress (throttled):', {
-        currentTime: currentTime.toFixed(2),
-        duration: duration.toFixed(2),
-        percentage: percentage.toFixed(2) + '%',
-        contentId: contentId || 'unknown',
-        timeSinceLastSave: (timeSinceLastSave / 1000).toFixed(1) + 's'
-      });
+      
       
       saveWatchProgress(currentTime, duration);
       lastProgressSaveRef.current = now;
@@ -408,7 +384,6 @@ export function VideoPlayerContent({
   // Handle video ended event to clear progress
   useEffect(() => {
     if (hasVideoEnded) {
-      console.log('🎬 Video ended - clearing progress');
       clearWatchProgress();
     }
   }, [hasVideoEnded, clearWatchProgress]);
@@ -498,7 +473,6 @@ export function VideoPlayerContent({
     season: number,
     series: string
   ): EpisodeMetadata => {
-    console.log('🎬 Mapping episode to metadata:', episode.title);
 
     return mapEpisodeToMetadata(episode, season, series, {
       defaultVideoSource: 'https://files.vidstack.io/sprite-fight/1080p.mp4',
@@ -510,34 +484,20 @@ export function VideoPlayerContent({
 
   // Process episode props and update internal state
   useEffect(() => {
-    console.log('🎬 Episode processing useEffect triggered', {
-      isTransitioningEpisode,
-      hasEpisodes: !!episodes,
-      episodeCount: episodes?.length,
-      currentEpisodeIndex,
-      seasonNumber,
-      seriesId
-    });
+    
 
     // Skip processing if we're in the middle of an episode transition
     if (isTransitioningEpisode) {
-      console.log('🎬 Skipping episode props processing during transition');
       return;
     }
 
-    console.log('🎬 Processing episode props:', {
-      hasEpisodes: !!episodes,
-      episodeCount: episodes?.length,
-      currentIndex: currentEpisodeIndex,
-      season: seasonNumber
-    });
+   
 
     // Validate episode data
     const validation = validateEpisodeDataForPlayer(episodes, currentEpisodeIndex, seasonNumber);
 
     if (!validation.hasEpisodeData) {
       // No episode data provided - clear episode state and use existing metadata service
-      console.log('🎬 No episode data - clearing episode state');
       setCurrentEpisode(null);
       setEpisodeList([]);
       setInternalEpisodeIndex(0);
@@ -601,20 +561,13 @@ export function VideoPlayerContent({
 
       if (shouldUpdateTitle) {
         setCurrentTitle(currentEpisodeData.title);
-        console.log('🎬 Episode title updated from props:', currentEpisodeData.title);
 
         // If we're updating the title and it matches the last transitioned episode, clear the tracking
         if (lastTransitionedEpisodeId === currentEpisodeData.id) {
           setLastTransitionedEpisodeId(null);
-          console.log('🎬 Cleared last transitioned episode ID - props now match');
         }
       } else {
-        console.log('🎬 Skipping title update - transitioning or would overwrite recent transition', {
-          isTransitioning: isTransitioningEpisode,
-          lastTransitionedId: lastTransitionedEpisodeId,
-          currentEpisodeId: currentEpisodeData.id,
-          wouldOverwrite: lastTransitionedEpisodeId !== null && lastTransitionedEpisodeId !== currentEpisodeData.id
-        });
+       
       }
 
       // Update poster from episode thumbnail (only if not transitioning and not overwriting a recent transition)
@@ -623,25 +576,15 @@ export function VideoPlayerContent({
 
       if (currentEpisodeData.thumbnail && shouldUpdatePoster) {
         setCurrentPoster(currentEpisodeData.thumbnail);
-        console.log('🎬 Episode poster updated:', currentEpisodeData.thumbnail);
       } else {
-        console.log('🎬 Skipping poster update - transitioning or would overwrite recent transition', {
-          isTransitioning: isTransitioningEpisode,
-          lastTransitionedId: lastTransitionedEpisodeId,
-          currentEpisodeId: currentEpisodeData.id,
-          hasThumbnail: !!currentEpisodeData.thumbnail
-        });
+        
       }
 
       // Update video source - use episode src or fallback to default
       const episodeSrc = currentEpisodeData.src || 'https://files.vidstack.io/sprite-fight/1080p.mp4';
       const sourceValidation = validateVideoSource(episodeSrc);
       setCurrentVideoSrc(sourceValidation.src);
-      console.log('🎬 Episode video source updated:', {
-        originalSrc: currentEpisodeData.src,
-        finalSrc: sourceValidation.src,
-        usingFallback: sourceValidation.usingFallback || !currentEpisodeData.src
-      });
+     
       if (sourceValidation.usingFallback || !currentEpisodeData.src) {
         console.warn('🎬 Using fallback/default source for episode:', currentEpisodeData.title);
       }
@@ -660,16 +603,10 @@ export function VideoPlayerContent({
         );
         setNextEpisodeData(nextEpisodeMetadata);
 
-        console.log('🎬 Next episode set:', {
-          title: nextEpisodeFromArray.title,
-          index: nextEpisodeIndex,
-          id: nextEpisodeFromArray.id,
-          src: nextEpisodeMetadata.src
-        });
+       
       } else {
         setNextEpisode(null);
         setNextEpisodeData(null);
-        console.log('🎬 No next episode available - reached end of series');
       }
 
       // Ensure next episode data is set if we have multiple episodes
@@ -682,7 +619,6 @@ export function VideoPlayerContent({
             seriesId || `season-${season}`
           );
           setNextEpisodeData(nextEpisodeMetadata);
-          console.log('🎬 Next episode data set from episode array:', nextEpisodeFromArray.title);
         }
       }
 
@@ -698,14 +634,8 @@ export function VideoPlayerContent({
         start: 0,
         end: 30
       });
-      console.log('🎬 Intro data set to default 30 seconds for episode:', currentEpisodeData.title);
 
-      console.log('🎬 Episode state updated successfully:', {
-        currentEpisode: currentEpisodeData.title,
-        nextEpisode: nextEpisodeIndex !== null ? episodeArray[nextEpisodeIndex].title : 'None',
-        totalEpisodes: episodeArray.length,
-        nextEpisodeDataSet: !!nextEpisodeData
-      });
+     
 
       // Clear any previous errors
       setError(null);
@@ -744,7 +674,6 @@ export function VideoPlayerContent({
   useEffect(() => {
     // Skip metadata service loading if we have episode data from props
     if (currentEpisode && episodeList.length > 0) {
-      console.log('🎬 Using episode data from props, skipping metadata service');
       return;
     }
 
@@ -1043,7 +972,6 @@ export function VideoPlayerContent({
 
   // STEP 1: Replace your existing handleCaptionChange method
   const handleCaptionChange = (captionLanguage: string): void => {
-    console.log(`[CAPTIONS] Caption change requested: "${captionLanguage}"`);
     setActiveCaption(captionLanguage);
 
     if (!playerRef.current) {
@@ -1055,20 +983,17 @@ export function VideoPlayerContent({
       const player = playerRef.current;
 
       if (captionLanguage === 'off') {
-        console.log('[CAPTIONS] Turning captions OFF.');
 
         if (player.textTracks) {
           for (let i = 0; i < player.textTracks.length; i++) {
             const track = player.textTracks[i];
             if (track && track.mode === 'showing') {
               track.mode = 'disabled';
-              console.log(`[CAPTIONS] Disabled track: ${track.language || i}`);
             }
           }
         }
         setCaptionsEnabled(false);
       } else {
-        console.log(`[CAPTIONS] Switching to language: ${captionLanguage}`);
 
         if (player.textTracks) {
           // First disable all tracks
@@ -1085,7 +1010,6 @@ export function VideoPlayerContent({
             if (track && track.language === captionLanguage) {
               track.mode = 'showing';
               setCaptionsEnabled(true);
-              console.log(`[CAPTIONS] Enabled track: ${track.language}`);
               return;
             }
           }
@@ -1120,13 +1044,7 @@ export function VideoPlayerContent({
     // Log intro detection state changes (throttled to avoid spam)
     const logThrottleKey = `intro-${Math.floor(currentTime / 5) * 5}`; // Log every 5 seconds
     if (isCurrentlyInIntro && !(window as any).lastIntroLog || (window as any).lastIntroLog !== logThrottleKey) {
-      // console.log('🎬 Intro detection active:', {
-      //   currentTime: currentTime.toFixed(1),
-      //   introRange: `${introData.start}s - ${introData.end}s`,
-      //   contentType,
-      //   contentId,
-      //   skipAvailable: isIntroSkipAvailable()
-      // });
+     
       (window as any).lastIntroLog = logThrottleKey;
     }
   }, [currentTime, introData, isInIntroRange, isIntroSkipAvailable, contentType, contentId]);
@@ -1134,12 +1052,7 @@ export function VideoPlayerContent({
   // Debug Skip Intro Button visibility
   useEffect(() => {
     const shouldShow = introData && isIntroSkipAvailable();
-    // console.log('🎬 Skip Intro Button visibility check:', {
-    //   introData: !!introData,
-    //   isIntroSkipAvailable: isIntroSkipAvailable(),
-    //   shouldShow,
-    //   currentTime: currentTime || 0
-    // });
+    
   }, [introData, isIntroSkipAvailable, currentTime]);
 
   // Handle skip intro functionality
@@ -1177,19 +1090,12 @@ export function VideoPlayerContent({
         return;
       }
 
-      console.log('🎬 Skipping intro:', {
-        from: currentVideoTime,
-        to: introData.end,
-        contentType,
-        contentId
-      });
+     
 
       // Jump to the end of the intro
       playerRef.current.currentTime = introData.end;
 
-      console.log('🎬 Intro skipped successfully');
     } catch (error) {
-      console.error('🎬 Error skipping intro:', error);
     }
   }, [introData, currentTime, contentType, contentId, duration]);
 
@@ -1588,7 +1494,6 @@ export function VideoPlayerContent({
 
       if (connection) {
         const effectiveType = connection.effectiveType;
-        console.log('Connection type:', effectiveType);
 
         if (effectiveType === 'slow-2g' || effectiveType === '2g') {
           setConnectionSpeed('slow');
@@ -1617,23 +1522,19 @@ export function VideoPlayerContent({
     const player = playerRef.current;
 
     const handleWaiting = () => {
-      console.log('Video waiting - show buffering');
       setIsBuffering(true);
     };
 
     const handleStalled = () => {
-      console.log('Video stalled - show buffering');
       setIsBuffering(true);
     };
 
     // Use canplaythrough instead of canplay - it waits for enough data
     const handleCanPlayThrough = () => {
-      console.log('Video can play through - enough data loaded');
       // Still don't hide immediately - wait for actual playback
     };
 
     const handlePlaying = () => {
-      console.log('Video playing event - using adaptive timing');
 
       // Adjust delay based on connection speed
       const getDelay = () => {
@@ -1646,13 +1547,11 @@ export function VideoPlayerContent({
       };
 
       setTimeout(() => {
-        console.log('Adaptive delay complete - clearing buffering');
         setIsBuffering(false);
       }, getDelay());
     };
 
     const handleLoadStart = () => {
-      console.log('Video load started');
       setIsBuffering(true);
     };
 
@@ -1681,14 +1580,11 @@ export function VideoPlayerContent({
     const player = playerRef.current;
 
     const handleVideoEnded = () => {
-      console.log('🎬 Video ended');
       setHasVideoEnded(true);
 
       try {
         if (contentType === 'episode' && !nextEpisodeData) {
-          console.log('🎬 Episode ended but no next episode available');
         } else {
-          console.log('🎬 Video ended');
         }
       } catch (error) {
         console.error('🎬 Error handling video end:', error);
@@ -1764,16 +1660,13 @@ export function VideoPlayerContent({
         stuckCount = 0;
         if (!playingConfirmed) {
           playingConfirmed = true;
-          console.log('Video progress confirmed - clearing buffering');
           setIsBuffering(false);
         }
       } else if (isPlaying) {
         // Video should be playing but isn't progressing
         stuckCount++;
-        console.log(`Video stuck count: ${stuckCount}`);
 
         if (stuckCount >= 2) { // After 2 seconds of no progress
-          console.log('Video appears stuck - showing buffering');
           setIsBuffering(true);
           stuckCount = 0; // Reset to avoid spam
         }
@@ -1794,11 +1687,9 @@ export function VideoPlayerContent({
       const bufferedEnd = buffered.end(buffered.length - 1);
       const bufferAhead = bufferedEnd - currentVideoTime;
 
-      console.log(`Buffer health: ${bufferAhead.toFixed(2)}s ahead`);
 
       // Show buffering if buffer is critically low
       if (bufferAhead < 2 && isPlaying) {
-        console.log('Low buffer detected - showing buffering');
         setIsBuffering(true);
       } else if (bufferAhead > 5) {
         // Good buffer - can hide buffering
@@ -1821,11 +1712,9 @@ export function VideoPlayerContent({
       // Check if video time is actually progressing
       if (currentVideoTime > lastTime) {
         progressCheckCount++;
-        console.log('Video progressing normally, check count:', progressCheckCount);
 
         // After 3 successful progress checks, clear buffering
         if (progressCheckCount >= 3) {
-          console.log('Video confirmed playing smoothly - clearing buffering');
           setIsBuffering(false);
 
           clearInterval(progressInterval);
@@ -1885,7 +1774,6 @@ export function VideoPlayerContent({
     const sortedQualities = qualityOptions.slice(1).sort((a, b) => (b.height || 0) - (a.height || 0));
     setAvailableQualities([qualityOptions[0], ...sortedQualities]);
 
-    console.log('🎬 Available qualities from DASH:', qualityOptions);
   }, [qualities]);
 
   // Update selected quality when current quality changes
@@ -1900,71 +1788,12 @@ export function VideoPlayerContent({
     }
   }, [currentQuality, autoQuality, qualities]);
 
-  // Quality change handler using Vidstack's API
-  // const handleQualityChange = useCallback((qualityValue: string) => {
-  //   if (!playerRef.current || !canSetQuality) {
-  //     console.warn('🎬 Cannot set quality - player not ready or read-only');
-  //     return;
-  //   }
 
-  //   console.log('🎬 Changing quality to:', qualityValue);
-  //   setIsQualityChanging(true);
-
-  //   try {
-  //     if (qualityValue === 'auto') {
-  //       // Enable auto quality selection
-  //       playerRef.current.qualities.autoSelect();
-  //       setSelectedQualityValue('auto');
-  //     } else {
-  //       // Select specific quality by index
-  //       const qualityIndex = parseInt(qualityValue);
-  //       const targetQuality = playerRef.current.qualities[qualityIndex];
-
-  //       if (targetQuality) {
-  //         targetQuality.selected = true;
-  //         setSelectedQualityValue(qualityValue);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error('🎬 Quality change failed:', error);
-  //   }
-
-  //   // Reset loading state after a delay
-  //   // setTimeout(() => {
-  //   //   setIsQualityChanging(false);
-  //   // }, 1000);
-  // }, [canSetQuality]);
-  //   const handleQualityChange = useCallback((qualityValue: string) => {
-  //   if (!playerRef.current || !canSetQuality) {
-  //     return;
-  //   }
-
-  //   console.log('Changing quality to:', qualityValue);
-  //   setIsQualityChanging(true);
-
-  //   try {
-  //     if (qualityValue === 'auto') {
-  //       playerRef.current.qualities.autoSelect();
-  //       setSelectedQualityValue('auto');
-  //     } else {
-  //       const qualityIndex = parseInt(qualityValue);
-  //       const targetQuality = playerRef.current.qualities[qualityIndex];
-  //       if (targetQuality) {
-  //         targetQuality.selected = true;
-  //         setSelectedQualityValue(qualityValue);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error('Quality change failed:', error);
-  //     setIsQualityChanging(false);
-  //   }
-  // }, [canSetQuality]);
   const handleQualityChange = useCallback((qualityValue: string) => {
     if (!playerRef.current || !canSetQuality) {
       return;
     }
 
-    console.log('Changing quality to:', qualityValue);
     setIsQualityChanging(true);
     setIsBuffering(true); // Show buffering immediately
 
@@ -1988,7 +1817,6 @@ export function VideoPlayerContent({
 
     // Failsafe - force hide after 10 seconds
     setTimeout(() => {
-      console.log('Failsafe: Force hiding buffering');
       setIsQualityChanging(false);
       setIsBuffering(false);
     }, 10000);
@@ -2002,7 +1830,6 @@ export function VideoPlayerContent({
     const player = playerRef.current;
 
     const handleQualityChangeEvent = () => {
-      console.log('Quality change detected - starting verification');
 
       // Don't immediately clear - verify the change is complete
       let verificationAttempts = 0;
@@ -2013,12 +1840,10 @@ export function VideoPlayerContent({
 
         // Check if quality change is complete (simplified check)
         if (player.state.canPlay) {
-          console.log('Quality change verified - video ready');
           setIsQualityChanging(false);
         } else if (verificationAttempts < maxAttempts) {
           setTimeout(verifyQualityChange, 500);
         } else {
-          console.log('Quality change verification timeout');
           setIsQualityChanging(false);
         }
       };
@@ -2075,7 +1900,6 @@ export function VideoPlayerContent({
     if (isPlaying) {
       // Small delay to ensure video is actually playing smoothly
       const timeout = setTimeout(() => {
-        console.log('🎬 Video is playing - clearing buffering states');
         setIsBuffering(false);
 
         // Don't clear isQualityChanging here - let the quality events handle it
@@ -2214,11 +2038,9 @@ export function VideoPlayerContent({
         events.forEach(eventType => {
           // Note: We can't remove specific handlers without references, 
           // but Vidstack will handle cleanup when the component unmounts
-          console.log(`🎬 Component unmounting - ${eventType} listeners will be cleaned up by Vidstack`);
         });
       }
 
-      console.log('🎬 VideoPlayer component unmounted - all resources cleaned up');
     };
   }, []);
 
@@ -2236,7 +2058,6 @@ export function VideoPlayerContent({
 
   // SINGLE handleFullscreenChange function
   const handleFullscreenChange = (isFullscreenActive: boolean) => {
-    console.log('Fullscreen state changed:', isFullscreenActive);
 
     // Show controls when entering fullscreen
     if (isFullscreenActive) {
@@ -2498,7 +2319,6 @@ export function VideoPlayerContent({
     if (isYouTubeProvider(provider)) {
       // Configure YouTube provider for better performance and GDPR compliance
       provider.cookies = false; // GDPR-compliant by default
-      console.log('🎬 YouTube provider configured for trailer playback');
     }
   }, []);
 
@@ -2607,14 +2427,12 @@ export function VideoPlayerContent({
           if (track && track.mode === 'showing') {
             track.mode = 'disabled';
             disabledCount++;
-            console.log(`[CAPTIONS] Auto-disabled track: ${track.language || i}`);
           }
         }
 
         if (disabledCount > 0) {
           setActiveCaption('off');
           setCaptionsEnabled(false);
-          console.log(`[CAPTIONS] Disabled ${disabledCount} auto-enabled tracks`);
         }
       }
     } catch (error) {
@@ -2638,7 +2456,6 @@ export function VideoPlayerContent({
     if (pendingResume && playerRef.current) {
       const { time, wasPlaying, wasFullscreen } = pendingResume;
 
-      console.log('🎬 Restoring playback state:', { time, wasPlaying, wasFullscreen });
 
       // Wait for video to be ready
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -2651,7 +2468,6 @@ export function VideoPlayerContent({
 
         // Handle fullscreen restoration
         if (wasFullscreen && !isFullscreen) {
-          console.log('🎬 Restoring fullscreen after change');
           setIsFullscreenTransitioning(true);
 
           // Wait for time to be set
@@ -2697,14 +2513,12 @@ export function VideoPlayerContent({
     const player = playerRef.current;
 
     const handleLoadedMetadata = () => {
-      console.log('[CAPTIONS] Video metadata loaded - disabling auto captions');
       setTimeout(() => {
         disableAllCaptions();
       }, 100);
     };
 
     const handleTextTrackChange = () => {
-      console.log('[CAPTIONS] Text track change detected');
       // Only auto-disable if user hasn't explicitly selected a caption
       if (activeCaption === 'off') {
         setTimeout(() => {
@@ -2826,12 +2640,10 @@ export function VideoPlayerContent({
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        console.log('Episode navigation logs exported');
       };
 
       (window as any).clearEpisodeNavigationLogs = () => {
         logger.clearLogs();
-        console.log('Episode navigation logs cleared');
       };
 
       (window as any).getEpisodeNavigationState = () => {
@@ -2848,11 +2660,7 @@ export function VideoPlayerContent({
         };
       };
 
-      console.log('🎬 Episode Navigation Debug Functions Available:');
-      console.log('- window.exportEpisodeNavigationLogs() - Export logs to file');
-      console.log('- window.clearEpisodeNavigationLogs() - Clear all logs');
-      console.log('- window.getEpisodeNavigationState() - Get current state');
-    }
+       }
   }, [currentEpisode, episodeList.length, internalEpisodeIndex, nextEpisode, error, episodeError, retryCount, fallbackActive, isRetrying]);
 
   return (

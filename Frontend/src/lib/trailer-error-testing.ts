@@ -24,7 +24,6 @@ export async function testInvalidMovieIds(): Promise<ErrorTestResult[]> {
   for (const invalidId of invalidIds) {
     const startTime = Date.now();
     try {
-      console.log(`[Error Testing] Testing invalid movie ID: "${invalidId}"`);
       const result = await getMovieTrailer(invalidId);
       
       results.push({
@@ -56,7 +55,6 @@ export async function testNonExistentMovieIds(): Promise<ErrorTestResult[]> {
   for (const movieId of nonExistentIds) {
     const startTime = Date.now();
     try {
-      console.log(`[Error Testing] Testing non-existent movie ID: ${movieId}`);
       const result = await getMovieTrailer(movieId);
       
       results.push({
@@ -89,7 +87,6 @@ export async function testMoviesWithoutTrailers(): Promise<ErrorTestResult[]> {
   for (const movieId of movieIdsWithoutTrailers) {
     const startTime = Date.now();
     try {
-      console.log(`[Error Testing] Testing movie without trailer: ${movieId}`);
       const result = await getMovieTrailer(movieId);
       
       results.push({
@@ -121,7 +118,6 @@ export async function testVidstackTrailerErrors(): Promise<ErrorTestResult[]> {
   for (const movieId of testIds) {
     const startTime = Date.now();
     try {
-      console.log(`[Error Testing] Testing Vidstack trailer for ID: "${movieId}"`);
       const result = await getVidstackMovieTrailer(movieId);
       
       results.push({
@@ -154,7 +150,6 @@ export async function testNetworkFailures(): Promise<ErrorTestResult[]> {
   const startTime = Date.now();
   
   try {
-    console.log('[Error Testing] Testing potential network timeout scenario');
     
     // Create multiple concurrent requests to potentially trigger rate limiting
     const promises = Array(5).fill(null).map(() => getMovieTrailer(movieId));
@@ -194,7 +189,6 @@ export async function runAllErrorTests(): Promise<{
   };
   results: ErrorTestResult[];
 }> {
-  console.log('[Error Testing] Starting comprehensive trailer error testing...');
   
   const allResults: ErrorTestResult[] = [];
   
@@ -226,7 +220,6 @@ export async function runAllErrorTests(): Promise<{
     const failedTests = totalTests - passedTests;
     const averageDuration = allResults.reduce((sum, r) => sum + r.duration, 0) / totalTests;
 
-    console.log(`[Error Testing] Completed ${totalTests} tests: ${passedTests} passed, ${failedTests} failed`);
 
     return {
       summary: {
@@ -238,7 +231,6 @@ export async function runAllErrorTests(): Promise<{
       results: allResults
     };
   } catch (error) {
-    console.error('[Error Testing] Critical error during testing:', error);
     throw error;
   }
 }
@@ -247,25 +239,15 @@ export async function runAllErrorTests(): Promise<{
  * Log detailed test results to console
  */
 export function logTestResults(testResults: { summary: any; results: ErrorTestResult[] }) {
-  console.log('\n=== TRAILER ERROR HANDLING TEST RESULTS ===');
-  console.log(`Total Tests: ${testResults.summary.totalTests}`);
-  console.log(`Passed: ${testResults.summary.passedTests}`);
-  console.log(`Failed: ${testResults.summary.failedTests}`);
-  console.log(`Average Duration: ${testResults.summary.averageDuration}ms`);
-  console.log('\n=== DETAILED RESULTS ===');
-  
+
   testResults.results.forEach((result, index) => {
     const status = result.success ? '✅ PASS' : '❌ FAIL';
-    console.log(`${index + 1}. ${status} - ${result.testName} (${result.duration}ms)`);
     
     if (result.error) {
-      console.log(`   Error: ${result.error}`);
-    }
+     }
     
     if (result.result !== undefined) {
-      console.log(`   Result: ${JSON.stringify(result.result)}`);
     }
   });
   
-  console.log('\n=== END TEST RESULTS ===\n');
-}
+ }

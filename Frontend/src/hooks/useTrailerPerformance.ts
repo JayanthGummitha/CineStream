@@ -37,7 +37,6 @@ export function useTrailerPerformance(movieId: string) {
       cacheHit: false
     };
     
-    console.log(`[Trailer Performance] Started monitoring for movie ${movieId} at ${startTime.toFixed(2)}ms`);
     return startTime;
   };
 
@@ -85,12 +84,7 @@ export function useTrailerPerformance(movieId: string) {
     performanceReports.current.push(report);
 
     // Log performance report
-    console.log(`[Trailer Performance] Completed monitoring for movie ${movieId}:`, {
-      duration: `${duration.toFixed(2)}ms`,
-      performanceGrade,
-      cacheHit,
-      efficiency: cacheHit ? 'Cache Hit - Optimal' : 'Network Fetch - Standard'
-    });
+   
 
     return report;
   };
@@ -151,16 +145,11 @@ export function useTrailerPerformance(movieId: string) {
     const stats = getPerformanceStats();
     
     if (stats.totalRequests === 0) {
-      console.log('[Trailer Performance] No performance data available yet');
       return;
     }
 
     console.group('[Trailer Performance] Performance Insights');
-    console.log(`Total trailer loads monitored: ${stats.totalRequests}`);
-    console.log(`Average load time: ${stats.averageDuration.toFixed(2)}ms`);
-    console.log(`Cache hit rate: ${stats.cacheHitRate.toFixed(1)}%`);
-    console.log('Performance distribution:', stats.performanceDistribution);
-    
+   
     // Provide recommendations
     if (stats.averageDuration > 2000) {
       console.warn('⚠️ Average load time is high. Consider implementing preloading or improving cache strategy.');
@@ -175,7 +164,6 @@ export function useTrailerPerformance(movieId: string) {
     }
     
     if (stats.performanceDistribution.excellent > stats.totalRequests * 0.7) {
-      console.log('✅ Excellent performance! Trailer loading is well optimized.');
     }
     
     console.groupEnd();
@@ -187,7 +175,6 @@ export function useTrailerPerformance(movieId: string) {
   const clearPerformanceHistory = () => {
     performanceReports.current = [];
     currentMetrics.current = null;
-    console.log('[Trailer Performance] Performance history cleared');
   };
 
   // Periodic performance reporting (every 30 seconds)

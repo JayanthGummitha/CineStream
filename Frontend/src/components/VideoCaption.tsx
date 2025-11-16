@@ -82,7 +82,6 @@ const VideoCaption = ({
   const handleCaptionSelect = (captionId: string) => {
     onCaptionChange(captionId);
     setIsOpen(false);
-    console.log(captionId);
   };
 
   const getActiveCaption = () => {

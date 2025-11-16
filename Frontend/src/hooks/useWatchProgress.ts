@@ -135,17 +135,10 @@ export function useWatchProgress(
    */
   const saveProgress = useCallback(
     async (currentTime: number, duration: number) => {
-      console.log('📥 saveProgress called:', {
-        currentTime,
-        duration,
-        isAuthenticated,
-        hasUser: !!user,
-        userId: user?.id
-      });
+     
 
       // Don't track for unauthenticated users
       if (!isAuthenticated || !user) {
-        console.log('⚠️ Progress save blocked - not authenticated');
         return;
       }
       
@@ -168,21 +161,10 @@ export function useWatchProgress(
           episodeTitle: metadata.episodeTitle,
         };
         
-        console.log('💾 Saving watch progress to storage:', {
-          videoId,
-          userId: user.id,
-          contentType,
-          currentTime: currentTime.toFixed(2),
-          duration: duration.toFixed(2),
-          percentage: percentage.toFixed(2) + '%',
-          title: metadata.title,
-          thumbnail: metadata.thumbnail,
-          hasThumbnail: !!metadata.thumbnail
-        });
+     
         
         await saveProgressToStorage(user.id, progressData);
         
-        console.log('✅ Watch progress saved successfully to localStorage');
         
         if (isMountedRef.current) {
           setProgress(progressData);

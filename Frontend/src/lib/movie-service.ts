@@ -57,37 +57,31 @@ class TrailerCache {
       url,
       timestamp: Date.now()
     });
-    console.log(`[Trailer Cache] Cached trailer for movie ${movieId}: ${url ? 'URL available' : 'No trailer'}`);
   }
 
   get(movieId: string): string | null | undefined {
     const entry = this.cache.get(movieId);
     
     if (!entry) {
-      console.log(`[Trailer Cache] No cache entry found for movie ${movieId}`);
       return undefined;
     }
 
     // Check if cache entry is expired
     if (Date.now() - entry.timestamp > this.TTL) {
-      console.log(`[Trailer Cache] Cache entry expired for movie ${movieId}, removing`);
       this.cache.delete(movieId);
       return undefined;
     }
 
-    console.log(`[Trailer Cache] Cache hit for movie ${movieId}: ${entry.url ? 'URL available' : 'No trailer'}`);
     return entry.url;
   }
 
   invalidate(movieId: string): void {
     const deleted = this.cache.delete(movieId);
-    console.log(`[Trailer Cache] Invalidated cache for movie ${movieId}: ${deleted ? 'removed' : 'not found'}`);
   }
 
   clear(): void {
     const size = this.cache.size;
     this.cache.clear();
-    console.log(`[Trailer Cache] Cleared entire cache (${size} entries removed)`);
   }
 
   size(): number {
@@ -107,7 +101,6 @@ class TrailerCache {
     }
     
     if (removedCount > 0) {
-      console.log(`[Trailer Cache] Cleanup removed ${removedCount} expired entries`);
     }
   }
 }
@@ -286,7 +279,6 @@ export async function getUpcomingMovies(page: number = 1): Promise<Movie[]> {
 // Get movie details with credits and trailer
 export async function getMovieDetails(movieId: string): Promise<Movie | null> {
   try {
-    console.log(`[Movie Service] Fetching movie details for ID: ${movieId}`);
     
     // Validate movie ID
     if (!movieId || movieId.trim() === '') {
@@ -307,7 +299,6 @@ export async function getMovieDetails(movieId: string): Promise<Movie | null> {
         fetchMovieDetails(parsedMovieId),
         fetchMovieCredits(parsedMovieId)
       ]);
-      console.log(`[Movie Service] Successfully fetched movie details and credits for ${movieId}`);
     } catch (error) {
       console.error(`[Movie Service] Failed to fetch movie details or credits for ${movieId}:`, error);
       throw error; // Re-throw as this is critical data
@@ -319,13 +310,11 @@ export async function getMovieDetails(movieId: string): Promise<Movie | null> {
     const cachedTrailerUrl = trailerCache.get(movieId);
     if (cachedTrailerUrl !== undefined) {
       movie.trailer = cachedTrailerUrl || '';
-      console.log(`[Movie Service] Using cached trailer for movie ${movieId}: ${cachedTrailerUrl ? 'URL available' : 'No trailer'}`);
     } else {
       // Fetch trailer videos only if not cached
       let videos;
       try {
         videos = await fetchMovieVideos(parsedMovieId);
-        console.log(`[Movie Service] Successfully fetched ${videos.results?.length || 0} videos for movie ${movieId}`);
       } catch (error) {
         console.error(`[Movie Service] Failed to fetch trailer videos for movie ${movieId}:`, error);
         // Provide fallback empty videos response
@@ -335,25 +324,21 @@ export async function getMovieDetails(movieId: string): Promise<Movie | null> {
       // Process trailer URL with comprehensive error handling
       try {
         if (videos.results && videos.results.length > 0) {
-          console.log(`[Movie Service] Processing ${videos.results.length} video(s) for movie ${movieId}`);
           const trailerUrl = getTrailerUrl(videos.results);
           
           if (trailerUrl) {
             movie.trailer = trailerUrl;
             // Cache the successful result
             trailerCache.set(movieId, trailerUrl);
-            console.log(`[Movie Service] Trailer successfully processed and cached for movie ${movieId}: ${trailerUrl}`);
           } else {
             movie.trailer = '';
             // Cache the absence of trailer
             trailerCache.set(movieId, null);
-            console.log(`[Movie Service] No suitable trailer found for movie ${movieId}, cached negative result`);
           }
         } else {
           movie.trailer = '';
           // Cache the absence of videos
           trailerCache.set(movieId, null);
-          console.log(`[Movie Service] No videos available for movie ${movieId}, cached negative result`);
         }
       } catch (trailerError) {
         console.error(`[Movie Service] Error processing trailer for movie ${movieId}:`, trailerError);
@@ -364,7 +349,6 @@ export async function getMovieDetails(movieId: string): Promise<Movie | null> {
       }
     }
     
-    console.log(`[Movie Service] Successfully completed movie details fetch for ${movieId}`);
     return movie;
   } catch (error) {
     console.error(`[Movie Service] Critical error fetching movie details for ID ${movieId}:`, error);
@@ -382,7 +366,6 @@ export async function getMovieDetails(movieId: string): Promise<Movie | null> {
 // Get movie trailer URL separately (for cases where you only need the trailer)
 export async function getMovieTrailer(movieId: string): Promise<string | null> {
   try {
-    console.log(`[Movie Trailer Service] Fetching trailer for movie ID: ${movieId}`);
     
     // Validate movie ID
     if (!movieId || movieId.trim() === '') {
@@ -399,7 +382,6 @@ export async function getMovieTrailer(movieId: string): Promise<string | null> {
     // Check cache first
     const cachedUrl = trailerCache.get(movieId);
     if (cachedUrl !== undefined) {
-      console.log(`[Movie Trailer Service] Returning cached trailer for movie ${movieId}`);
       return cachedUrl;
     }
 
@@ -407,7 +389,6 @@ export async function getMovieTrailer(movieId: string): Promise<string | null> {
     let videos;
     try {
       videos = await fetchMovieVideos(parsedMovieId);
-      console.log(`[Movie Trailer Service] Retrieved ${videos.results?.length || 0} video(s) for movie ${movieId}`);
     } catch (error) {
       console.error(`[Movie Trailer Service] Failed to fetch videos for movie ${movieId}:`, error);
       
@@ -434,7 +415,6 @@ export async function getMovieTrailer(movieId: string): Promise<string | null> {
     // Process trailer URL with error handling
     try {
       if (!videos.results || videos.results.length === 0) {
-        console.log(`[Movie Trailer Service] No videos available for movie ${movieId}`);
         // Cache the absence of trailer
         trailerCache.set(movieId, null);
         return null;
@@ -443,12 +423,10 @@ export async function getMovieTrailer(movieId: string): Promise<string | null> {
       const trailerUrl = getTrailerUrl(videos.results);
       
       if (trailerUrl) {
-        console.log(`[Movie Trailer Service] Trailer URL successfully generated for movie ${movieId}: ${trailerUrl}`);
         // Cache the successful result
         trailerCache.set(movieId, trailerUrl);
         return trailerUrl;
       } else {
-        console.log(`[Movie Trailer Service] No suitable trailer found among ${videos.results.length} videos for movie ${movieId}`);
         // Cache the absence of suitable trailer
         trailerCache.set(movieId, null);
         return null;
@@ -488,37 +466,31 @@ class VidstackTrailerCache {
       url,
       timestamp: Date.now()
     });
-    console.log(`[Vidstack Trailer Cache] Cached Vidstack trailer for movie ${movieId}: ${url ? 'URL available' : 'No trailer'}`);
   }
 
   get(movieId: string): string | null | undefined {
     const entry = this.cache.get(movieId);
     
     if (!entry) {
-      console.log(`[Vidstack Trailer Cache] No cache entry found for movie ${movieId}`);
       return undefined;
     }
 
     // Check if cache entry is expired
     if (Date.now() - entry.timestamp > this.TTL) {
-      console.log(`[Vidstack Trailer Cache] Cache entry expired for movie ${movieId}, removing`);
       this.cache.delete(movieId);
       return undefined;
     }
 
-    console.log(`[Vidstack Trailer Cache] Cache hit for movie ${movieId}: ${entry.url ? 'URL available' : 'No trailer'}`);
     return entry.url;
   }
 
   invalidate(movieId: string): void {
     const deleted = this.cache.delete(movieId);
-    console.log(`[Vidstack Trailer Cache] Invalidated cache for movie ${movieId}: ${deleted ? 'removed' : 'not found'}`);
   }
 
   clear(): void {
     const size = this.cache.size;
     this.cache.clear();
-    console.log(`[Vidstack Trailer Cache] Cleared entire cache (${size} entries removed)`);
   }
 
   size(): number {
@@ -538,7 +510,6 @@ class VidstackTrailerCache {
     }
     
     if (removedCount > 0) {
-      console.log(`[Vidstack Trailer Cache] Cleanup removed ${removedCount} expired entries`);
     }
   }
 }
@@ -550,13 +521,11 @@ const vidstackTrailerCache = new VidstackTrailerCache();
 export function invalidateTrailerCache(movieId: string): void {
   trailerCache.invalidate(movieId);
   vidstackTrailerCache.invalidate(movieId);
-  console.log(`[Cache Management] Invalidated all trailer caches for movie ${movieId}`);
 }
 
 export function clearAllTrailerCaches(): void {
   trailerCache.clear();
   vidstackTrailerCache.clear();
-  console.log('[Cache Management] Cleared all trailer caches');
 }
 
 export function getTrailerCacheStats(): { standardCache: number; vidstackCache: number } {
@@ -575,7 +544,6 @@ setInterval(() => {
 // Get Vidstack-compatible movie trailer URL for optimal video player performance
 export async function getVidstackMovieTrailer(movieId: string): Promise<string | null> {
   try {
-    console.log(`[Vidstack Trailer Service] Fetching Vidstack trailer for movie ID: ${movieId}`);
     
     // Validate movie ID
     if (!movieId || movieId.trim() === '') {
@@ -592,7 +560,6 @@ export async function getVidstackMovieTrailer(movieId: string): Promise<string |
     // Check cache first
     const cachedUrl = vidstackTrailerCache.get(movieId);
     if (cachedUrl !== undefined) {
-      console.log(`[Vidstack Trailer Service] Returning cached Vidstack trailer for movie ${movieId}`);
       return cachedUrl;
     }
 
@@ -600,7 +567,6 @@ export async function getVidstackMovieTrailer(movieId: string): Promise<string |
     let videos;
     try {
       videos = await fetchMovieVideos(parsedMovieId);
-      console.log(`[Vidstack Trailer Service] Retrieved ${videos.results?.length || 0} video(s) for Vidstack processing for movie ${movieId}`);
     } catch (error) {
       console.error(`[Vidstack Trailer Service] Failed to fetch videos for movie ${movieId}:`, error);
       
@@ -627,7 +593,6 @@ export async function getVidstackMovieTrailer(movieId: string): Promise<string |
     // Process Vidstack trailer URL with error handling
     try {
       if (!videos.results || videos.results.length === 0) {
-        console.log(`[Vidstack Trailer Service] No videos available for movie ${movieId}`);
         // Cache the absence of trailer
         vidstackTrailerCache.set(movieId, null);
         return null;
@@ -636,12 +601,10 @@ export async function getVidstackMovieTrailer(movieId: string): Promise<string |
       const trailerUrl = getVidstackTrailerUrl(videos.results);
       
       if (trailerUrl) {
-        console.log(`[Vidstack Trailer Service] Vidstack trailer URL successfully generated for movie ${movieId}: ${trailerUrl}`);
         // Cache the successful result
         vidstackTrailerCache.set(movieId, trailerUrl);
         return trailerUrl;
       } else {
-        console.log(`[Vidstack Trailer Service] No suitable Vidstack trailer found among ${videos.results.length} videos for movie ${movieId}`);
         // Cache the absence of suitable trailer
         vidstackTrailerCache.set(movieId, null);
         return null;

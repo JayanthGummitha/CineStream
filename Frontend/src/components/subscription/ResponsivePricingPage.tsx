@@ -45,7 +45,6 @@ export function ResponsivePricingPage({
     const handlePlanSelect = useCallback(async (planId: string) => {
         // Don't process if this is the active plan
         if (planId === activePlanId) {
-            console.log('Already subscribed to this plan');
             return;
         }
 
@@ -57,7 +56,6 @@ export function ResponsivePricingPage({
         }
 
         // Log for debugging/tracking
-        console.log('Plan selected:', { planId, billingCycle });
 
         // Initiate Stripe checkout
         try {

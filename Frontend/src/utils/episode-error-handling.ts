@@ -90,7 +90,6 @@ export class EpisodeNavigationLogger {
     const prefix = '🎬 [Episode Navigation]';
     switch (level) {
       case 'info':
-        console.log(`${prefix} ${message}`, context || '');
         break;
       case 'warn':
         console.warn(`${prefix} ${message}`, context || '');

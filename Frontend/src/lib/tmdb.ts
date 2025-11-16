@@ -214,7 +214,6 @@ export async function searchMovies(query: string, page: number = 1): Promise<TMD
 
 export async function fetchMovieVideos(movieId: number): Promise<TMDBVideosResponse> {
   try {
-    console.log(`[TMDB API] Fetching videos for movie ID: ${movieId}`);
     
     // Validate movie ID
     if (!movieId || movieId <= 0) {
@@ -246,7 +245,6 @@ export async function fetchMovieVideos(movieId: number): Promise<TMDBVideosRespo
     }
 
     const data = await response.json();
-    console.log(`[TMDB API] Successfully fetched ${data.results?.length || 0} videos for movie ${movieId}`);
     
     return data;
   } catch (error) {
@@ -263,7 +261,6 @@ export async function fetchMovieVideos(movieId: number): Promise<TMDBVideosRespo
 
 export function getTrailerUrl(videos: TMDBVideo[]): string | null {
   try {
-    console.log(`[Trailer Processing] Processing ${videos?.length || 0} videos for trailer URL`);
     
     // Validate input
     if (!videos || !Array.isArray(videos)) {
@@ -272,7 +269,6 @@ export function getTrailerUrl(videos: TMDBVideo[]): string | null {
     }
 
     if (videos.length === 0) {
-      console.log('[Trailer Processing] No videos available');
       return null;
     }
 
@@ -284,12 +280,10 @@ export function getTrailerUrl(videos: TMDBVideo[]): string | null {
       }
 
       if (video.type !== 'Trailer') {
-        console.log(`[Trailer Processing] Skipping non-trailer video: ${video.type}`);
         return false;
       }
 
       if (video.site !== 'YouTube') {
-        console.log(`[Trailer Processing] Skipping non-YouTube video: ${video.site}`);
         return false;
       }
 
@@ -307,10 +301,8 @@ export function getTrailerUrl(videos: TMDBVideo[]): string | null {
       return true;
     });
 
-    console.log(`[Trailer Processing] Found ${youtubeTrailers.length} valid YouTube trailers`);
 
     if (youtubeTrailers.length === 0) {
-      console.log('[Trailer Processing] No valid YouTube trailers found');
       return null;
     }
 
@@ -318,14 +310,12 @@ export function getTrailerUrl(videos: TMDBVideo[]): string | null {
     const officialTrailer = youtubeTrailers.find(video => video.official === true);
     if (officialTrailer) {
       const url = `https://www.youtube.com/embed/${officialTrailer.key}`;
-      console.log(`[Trailer Processing] Using official trailer: ${url}`);
       return url;
     }
 
     // Priority 2: Any YouTube trailer (fallback)
     const anyTrailer = youtubeTrailers[0];
     const url = `https://www.youtube.com/embed/${anyTrailer.key}`;
-    console.log(`[Trailer Processing] Using fallback trailer: ${url}`);
     return url;
 
   } catch (error) {
@@ -340,7 +330,6 @@ export function getTrailerUrl(videos: TMDBVideo[]): string | null {
  */
 export function getVidstackTrailerUrl(videos: TMDBVideo[]): string | null {
   try {
-    console.log(`[Vidstack Trailer Processing] Processing ${videos?.length || 0} videos for Vidstack URL`);
     
     // Validate input
     if (!videos || !Array.isArray(videos)) {
@@ -349,7 +338,6 @@ export function getVidstackTrailerUrl(videos: TMDBVideo[]): string | null {
     }
 
     if (videos.length === 0) {
-      console.log('[Vidstack Trailer Processing] No videos available');
       return null;
     }
 
@@ -361,12 +349,10 @@ export function getVidstackTrailerUrl(videos: TMDBVideo[]): string | null {
       }
 
       if (video.type !== 'Trailer') {
-        console.log(`[Vidstack Trailer Processing] Skipping non-trailer video: ${video.type}`);
         return false;
       }
 
       if (video.site !== 'YouTube') {
-        console.log(`[Vidstack Trailer Processing] Skipping non-YouTube video: ${video.site}`);
         return false;
       }
 
@@ -384,10 +370,8 @@ export function getVidstackTrailerUrl(videos: TMDBVideo[]): string | null {
       return true;
     });
 
-    console.log(`[Vidstack Trailer Processing] Found ${youtubeTrailers.length} valid YouTube trailers`);
 
     if (youtubeTrailers.length === 0) {
-      console.log('[Vidstack Trailer Processing] No valid YouTube trailers found');
       return null;
     }
 
@@ -395,14 +379,12 @@ export function getVidstackTrailerUrl(videos: TMDBVideo[]): string | null {
     const officialTrailer = youtubeTrailers.find(video => video.official === true);
     if (officialTrailer) {
       const url = `youtube/${officialTrailer.key}`;
-      console.log(`[Vidstack Trailer Processing] Using official trailer: ${url}`);
       return url;
     }
 
     // Priority 2: Any YouTube trailer (fallback)
     const anyTrailer = youtubeTrailers[0];
     const url = `youtube/${anyTrailer.key}`;
-    console.log(`[Vidstack Trailer Processing] Using fallback trailer: ${url}`);
     return url;
 
   } catch (error) {

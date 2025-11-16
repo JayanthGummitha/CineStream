@@ -50,7 +50,6 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
     useEffect(() => {
         async function fetchTVShowData() {
             try {
-                console.log('Fetching TV show with real episodes...');
                 // Use the new function that fetches real episode data from TMDB
                 const { tvShow: showData, seasons: realSeasons } = await getTVShowWithSeasons(resolvedParams.id);
 
@@ -59,7 +58,6 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                     return;
                 }
 
-                console.log('Real TMDB data received:', { showData, realSeasons });
                 setTVShow(showData);
                 setSeasons(realSeasons);
 
@@ -70,11 +68,9 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                     setRelatedShows(filtered);
                 }
             } catch (error) {
-                console.error('Error fetching TV show data:', error);
 
                 // Fallback to original method if new method fails
                 try {
-                    console.log('Falling back to mock data...');
                     const showData = await getTVShowDetails(resolvedParams.id);
                     if (showData) {
                         setTVShow(showData);
@@ -106,18 +102,13 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
     // Transform seasons data to episode data for VideoPlayer when seasons change
     useEffect(() => {
         if (seasons.length > 0) {
-            console.log('🎬 Transforming seasons to episode data for VideoPlayer');
 
             // Use all seasons for cross-season navigation
             const transformedData = transformAllSeasonsToEpisodeData(seasons, currentEpisodeId || undefined);
 
             if (transformedData) {
                 setEpisodeData(transformedData);
-                console.log('🎬 Episode data set for VideoPlayer:', {
-                    totalEpisodes: transformedData.episodes.length,
-                    currentIndex: transformedData.currentEpisodeIndex,
-                    currentEpisode: transformedData.episodes[transformedData.currentEpisodeIndex]?.title
-                });
+               
             } else {
                 console.warn('🎬 Failed to transform seasons to episode data');
                 setEpisodeData(null);
@@ -129,7 +120,6 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
 
     // Episode change handler to update page state when episodes change in VideoPlayer
     const handleEpisodeChange = useCallback((newEpisodeData: { id: string; title: string }) => {
-        console.log('🎬 Episode changed in VideoPlayer:', newEpisodeData);
 
         if (newEpisodeData && newEpisodeData.id) {
             // Update current episode ID
@@ -141,7 +131,6 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
             );
 
             if (episodeSeason && episodeSeason.seasonNumber !== selectedSeason) {
-                console.log('🎬 Switching to season:', episodeSeason.seasonNumber);
                 setSelectedSeason(episodeSeason.seasonNumber);
             }
 
@@ -293,7 +282,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                                 {/* TV Show Info */}
                                 <div className="lg:col-span-2 space-y-6 text-white">
                                     {/* Title */}
-                                    <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+                                    <h1 className="text-4xl md:text-5xl font-bold leading-tight">
                                         {tvShow.title}
                                     </h1>
 
@@ -769,15 +758,11 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                         seriesId="series-1"
                         nextEpisodeTriggerTime={30} // Show next episode overlay 30 seconds before end (for easier testing)
                         onPlayingChange={(playing) => {
-                            console.log('Video playing:', playing);
                         }}
                         onTimeUpdate={(currentTime, duration) => {
-                            console.log('Time update:', currentTime, duration);
                         }}
                         onEpisodeChange={(episodeData) => {
-                            console.log('🎬 Episode changed:', episodeData.title);
-                            console.log('🎬 New episode data:', episodeData);
-                            // You could update the URL or other state here
+                               // You could update the URL or other state here
                         }}
                     />
 

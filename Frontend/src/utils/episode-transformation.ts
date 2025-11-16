@@ -21,11 +21,7 @@ export function transformSeasonsToEpisodeData(
   targetSeasonNumber: number,
   targetEpisodeId?: string
 ): VideoPlayerEpisodeData | null {
-  console.log('🎬 Transforming seasons to episode data:', {
-    seasonsCount: seasons.length,
-    targetSeason: targetSeasonNumber,
-    targetEpisode: targetEpisodeId
-  });
+
 
   // Find the target season
   const targetSeason = seasons.find(season => season.seasonNumber === targetSeasonNumber);
@@ -53,7 +49,6 @@ export function transformSeasonsToEpisodeData(
     const episodeIndex = episodes.findIndex(episode => episode.id === targetEpisodeId);
     if (episodeIndex !== -1) {
       currentEpisodeIndex = episodeIndex;
-      console.log('🎬 Found target episode at index:', episodeIndex);
     } else {
       console.warn('🎬 Target episode not found, using first episode:', targetEpisodeId);
     }
@@ -65,12 +60,7 @@ export function transformSeasonsToEpisodeData(
     seasonNumber: targetSeasonNumber
   };
 
-  console.log('🎬 Episode data transformation successful:', {
-    episodeCount: episodes.length,
-    currentIndex: currentEpisodeIndex,
-    currentEpisode: episodes[currentEpisodeIndex]?.title,
-    seasonNumber: targetSeasonNumber
-  });
+ 
 
   return result;
 }
@@ -85,10 +75,7 @@ export function transformAllSeasonsToEpisodeData(
   seasons: Season[],
   targetEpisodeId?: string
 ): VideoPlayerEpisodeData | null {
-  console.log('🎬 Transforming all seasons to episode data:', {
-    seasonsCount: seasons.length,
-    targetEpisode: targetEpisodeId
-  });
+
 
   if (!seasons || seasons.length === 0) {
     console.error('🎬 No seasons provided');
@@ -134,7 +121,6 @@ export function transformAllSeasonsToEpisodeData(
     const episodeIndex = allEpisodes.findIndex(episode => episode.id === targetEpisodeId);
     if (episodeIndex !== -1) {
       currentEpisodeIndex = episodeIndex;
-      console.log('🎬 Found target episode at index:', episodeIndex);
     } else {
       console.warn('🎬 Target episode not found, using first episode:', targetEpisodeId);
     }
@@ -146,13 +132,7 @@ export function transformAllSeasonsToEpisodeData(
     seasonNumber: currentSeasonNumber
   };
 
-  console.log('🎬 All seasons episode data transformation successful:', {
-    totalEpisodes: allEpisodes.length,
-    seasonsProcessed: sortedSeasons.length,
-    currentIndex: currentEpisodeIndex,
-    currentEpisode: allEpisodes[currentEpisodeIndex]?.title,
-    currentSeason: currentSeasonNumber
-  });
+ 
 
   return result;
 }
@@ -191,7 +171,6 @@ export function getNextEpisodeFromData(episodeData: VideoPlayerEpisodeData): Epi
   const nextIndex = episodeData.currentEpisodeIndex + 1;
   
   if (nextIndex >= episodeData.episodes.length) {
-    console.log('🎬 No next episode available (end of series)');
     return null;
   }
 

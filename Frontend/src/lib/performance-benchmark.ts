@@ -70,7 +70,6 @@ export class TrailerPerformanceBenchmark {
     ];
 
     for (const scenario of scenarios) {
-      console.log(`Testing scenario: ${scenario.name}`);
       
       const scenarioResults: BenchmarkResult[] = [];
       
@@ -83,7 +82,6 @@ export class TrailerPerformanceBenchmark {
       const avgResult = this.calculateAverageResult(scenarioResults);
       this.results.push(avgResult);
       
-      console.log(`${scenario.name} - Average: ${avgResult.totalTime.toFixed(2)}ms (${avgResult.performanceGrade})`);
     }
 
     console.groupEnd();
@@ -200,7 +198,6 @@ export class TrailerPerformanceBenchmark {
    */
   generateReport(): void {
     if (this.results.length === 0) {
-      console.log('[Performance Benchmark] No benchmark results available');
       return;
     }
 
@@ -209,30 +206,20 @@ export class TrailerPerformanceBenchmark {
     // Sort results by total time
     const sortedResults = [...this.results].sort((a, b) => a.totalTime - b.totalTime);
     
-    console.log('Performance Rankings (Best to Worst):');
     sortedResults.forEach((result, index) => {
       const improvement = index === 0 ? 'Baseline' : 
         `${((result.totalTime - sortedResults[0].totalTime) / sortedResults[0].totalTime * 100).toFixed(1)}% slower`;
       
-      console.log(`${index + 1}. ${result.scenario}`);
-      console.log(`   Total Time: ${result.totalTime.toFixed(2)}ms (${result.performanceGrade})`);
-      console.log(`   Page Load: ${result.pageLoadTime.toFixed(2)}ms`);
-      console.log(`   Trailer Load: ${result.trailerLoadTime.toFixed(2)}ms`);
-      console.log(`   Cache Hit: ${result.cacheHit ? 'Yes' : 'No'}`);
-      console.log(`   Render Blocked: ${result.renderBlocked ? 'Yes' : 'No'}`);
-      console.log(`   Performance Impact: ${improvement}`);
-      console.log('');
+     
     });
 
     // Performance insights
-    console.log('Key Insights:');
     
     const optimizedAsync = this.results.find(r => r.scenario.includes('Optimized Async') && !r.cacheHit);
     const legacySync = this.results.find(r => r.scenario.includes('Legacy Sync'));
     
     if (optimizedAsync && legacySync) {
       const improvement = ((legacySync.totalTime - optimizedAsync.totalTime) / legacySync.totalTime * 100);
-      console.log(`✅ Async loading improves performance by ${improvement.toFixed(1)}%`);
     }
 
     const cacheHit = this.results.find(r => r.cacheHit);
@@ -240,17 +227,14 @@ export class TrailerPerformanceBenchmark {
     
     if (cacheHit && networkFetch) {
       const cacheImprovement = ((networkFetch.totalTime - cacheHit.totalTime) / networkFetch.totalTime * 100);
-      console.log(`✅ Cache hits improve performance by ${cacheImprovement.toFixed(1)}%`);
     }
 
     const renderBlockedResults = this.results.filter(r => r.renderBlocked);
     if (renderBlockedResults.length > 0) {
-      console.log('⚠️ Render-blocking trailer loading significantly impacts page load performance');
     }
 
     const slowNetworkResult = this.results.find(r => r.scenario.includes('Slow Network'));
     if (slowNetworkResult && slowNetworkResult.performanceGrade === 'Poor') {
-      console.log('⚠️ Slow network conditions require additional optimization strategies');
     }
 
     console.groupEnd();
@@ -261,7 +245,6 @@ export class TrailerPerformanceBenchmark {
    */
   clearResults(): void {
     this.results = [];
-    console.log('[Performance Benchmark] Results cleared');
   }
 
   /**
@@ -286,7 +269,6 @@ export async function runQuickPerformanceTest(movieId: string): Promise<void> {
     simulateSlowNetwork: true
   };
 
-  console.log(`[Performance Test] Running quick performance test for movie ${movieId}`);
   
   await benchmark.runBenchmark(config);
   benchmark.generateReport();

@@ -33,7 +33,6 @@ export function WatchProgressCleanup() {
       try {
         // Clear progress older than 90 days
         await clearOldProgress(userId, 90);
-        console.log('Watch progress cleanup completed');
       } catch (error) {
         console.error('Failed to cleanup old watch progress:', error);
       }

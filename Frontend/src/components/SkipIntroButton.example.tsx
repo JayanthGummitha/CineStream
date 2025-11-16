@@ -40,7 +40,6 @@ export function VideoPlayerWithSkipIntro() {
 
   const handleSkipIntro = () => {
     if (videoRef) {
-      console.log('🎬 Skipping intro from', currentTime, 'to', introEnd);
       videoRef.currentTime = introEnd;
     }
   };

@@ -34,7 +34,6 @@ export default function CheckoutPage() {
 
         if (data.success) {
           setStatus('success');
-          console.log('Checkout successful:', data);
           
           // Redirect to subscription page after 3 seconds
           setTimeout(() => {

@@ -69,12 +69,7 @@ export function useMotionPreference(): MotionPreferences & {
         isTouch
       });
 
-      console.log('🎬 Motion preferences updated:', {
-        prefersReducedMotion,
-        prefersReducedData,
-        prefersHighContrast,
-        isTouch
-      });
+    
     };
 
     // Initial check

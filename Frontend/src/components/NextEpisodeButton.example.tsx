@@ -52,7 +52,6 @@ export function VideoPlayerWithNextEpisodeButton() {
   }, [videoRef]);
 
   const handlePlayNext = (episodeData: EpisodeMetadata) => {
-    console.log('🎬 Playing next episode:', episodeData.title);
     // In a real implementation, this would update the video source
     // and trigger the episode change in the parent component
     if (videoRef) {

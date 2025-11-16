@@ -87,7 +87,6 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
     const startTime = startPerformanceMonitoring();
 
     try {
-      console.log(`[Movie Detail Page] Starting optimized trailer fetch for movie ${movieId}`);
       let trailerUrl: string | null = null;
       let cacheHit = false;
 
@@ -95,10 +94,8 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
       if (movieData.trailer && movieData.trailer.includes('youtube.com/embed/')) {
         trailerUrl = movieData.trailer;
         cacheHit = true;
-        console.log(`[Movie Detail Page] Trailer found in movie data (cache hit) for ${movieId}:`, trailerUrl);
       } else {
         // Background fetch with optimized timeout and priority
-        console.log(`[Movie Detail Page] Fetching trailer in background for movie ${movieId}`);
 
         // Use requestIdleCallback for non-blocking execution when available
         const fetchTrailer = () => {
@@ -141,9 +138,7 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
         }
 
         if (trailerUrl) {
-          console.log(`[Movie Detail Page] Trailer fetched successfully for ${movieId}:`, trailerUrl);
         } else {
-          console.log(`[Movie Detail Page] No trailer available for movie ${movieId}`);
         }
       }
 
@@ -159,14 +154,7 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
       });
 
       // Enhanced performance logging with insights
-      console.log(`[Movie Detail Page] Trailer loading completed for ${movieId}:`, {
-        hasTrailer: !!trailerUrl,
-        isError: trailerUrl === null && !movieData.trailer,
-        duration: `${duration.toFixed(2)}ms`,
-        cacheHit,
-        performanceGrade: performanceReport?.performanceGrade || 'Unknown',
-        optimizationStatus: cacheHit ? 'Optimal (Cache Hit)' : 'Standard (Network Fetch)'
-      });
+
 
       // Log performance insights after a delay to allow for multiple loads
       setTimeout(() => {
@@ -330,7 +318,7 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
                 {/* Movie Info */}
                 <div className="lg:col-span-2 space-y-6 text-white">
                   {/* Title */}
-                  <h1 className="heading-hero font-bold leading-tight">
+                  <h1 className="text-4xl md:text-4xl font-bold leading-tight">
                     {movie.title}
                   </h1>
 
@@ -355,13 +343,13 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
                   </div>
 
                   {/* Description */}
-                  <p className="body-large text-white/90 leading-relaxed max-w-3xl">
+                  <p className="text-lg text-white/90 leading-relaxed max-w-3xl line-clamp-3">
                     {movie.description}
                   </p>
 
                   {/* Action Buttons */}
                   <div className="flex flex-wrap items-center gap-4">
-                    {isAuthenticated  && (
+                    {isAuthenticated && (
                       <Link
                         href={`/watch/${movie.id}?fullscreen=true&autoplay=true&title=${encodeURIComponent(movie.title)}&src=${videoSrc}&poster=${encodeURIComponent(movie.backdrop)}`}
                       >
@@ -386,15 +374,14 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
 
                     {isAuthenticated && movie && (
                       <>
-                        <Button 
-                          size="lg" 
-                          variant="outline" 
+                        <Button
+                          size="lg"
+                          variant="outline"
                           onClick={handleToggleList}
-                          className={`border-white/20 text-white hover:bg-white/10 transition-all ${
-                            isInList(movie.id) 
-                              ? 'bg-red-600/20 border-red-500/50 hover:bg-red-600/30' 
+                          className={`border-white/20 text-white hover:bg-white/10 transition-all ${isInList(movie.id)
+                              ? 'bg-red-600/20 border-red-500/50 hover:bg-red-600/30'
                               : ''
-                          }`}
+                            }`}
                         >
                           {isInList(movie.id) ? (
                             <>
@@ -443,7 +430,7 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
               {/* Description Section */}
               <div className="space-y-4">
                 <h2 className="heading-card font-semibold text-white">Description</h2>
-                <p className="text-white/80 leading-relaxed body-small">
+                <p className="text-white/80 leading-relaxed text-sm">
                   {movie.description}
                 </p>
               </div>
@@ -696,10 +683,8 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
             contentType="movie"
             contentId={movie.id.toString()}
             onPlayingChange={(playing) => {
-              console.log('Video playing:', playing);
             }}
             onTimeUpdate={(currentTime, duration) => {
-              console.log('Time update:', currentTime, duration);
             }}
           />
 

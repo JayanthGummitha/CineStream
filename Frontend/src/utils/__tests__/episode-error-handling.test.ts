@@ -20,7 +20,6 @@ import { type EpisodeMetadata } from '@/lib/episode-metadata';
 // Mock console methods to avoid noise in tests
 const originalConsole = { ...console };
 beforeAll(() => {
-  console.log = jest.fn();
   console.warn = jest.fn();
   console.error = jest.fn();
 });

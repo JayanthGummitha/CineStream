@@ -19,7 +19,6 @@ const otpStore = new Map<string, OTPData>();
 export function storeOTP(email: string, otp: string, expirationMinutes: number = 10): void {
   const expiresAt = Date.now() + expirationMinutes * 60 * 1000;
   otpStore.set(email.toLowerCase(), { otp, expiresAt });
-  console.log(`✅ OTP stored for ${email}: ${otp} (expires in ${expirationMinutes} minutes)`);
 }
 
 /**
@@ -28,8 +27,7 @@ export function storeOTP(email: string, otp: string, expirationMinutes: number =
 export function getOTP(email: string): OTPData | undefined {
   const normalizedEmail = email.toLowerCase();
   const data = otpStore.get(normalizedEmail);
-  console.log(`🔍 Getting OTP for ${normalizedEmail}: ${data ? `Found (${data.otp})` : 'Not found'}`);
-  console.log(`📊 Current OTP store size: ${otpStore.size}`);
+
   return data;
 }
 
@@ -39,7 +37,7 @@ export function getOTP(email: string): OTPData | undefined {
 export function deleteOTP(email: string): boolean {
   const deleted = otpStore.delete(email.toLowerCase());
   if (deleted) {
-    console.log(`🗑️ OTP deleted for ${email}`);
+    
   }
   return deleted;
 }
@@ -81,7 +79,6 @@ export function cleanupExpiredOTPs(): number {
   }
 
   if (cleaned > 0) {
-    console.log(`🧹 Cleaned up ${cleaned} expired OTP(s)`);
   }
 
   return cleaned;

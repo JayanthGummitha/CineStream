@@ -41,7 +41,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signup' }: AuthModal
     
     try {
       await login(formData);
-      console.log('User logged in successfully');
+      
       onClose();
       
       // Reset form

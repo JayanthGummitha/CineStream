@@ -36,7 +36,6 @@ export default function MyListPage() {
   }, []);
 
   // Debug: Log myList whenever it changes
-  console.log('My List Page - myList:', myList.length, myList);
 
   if (isLoading) {
     return (

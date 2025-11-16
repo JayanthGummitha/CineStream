@@ -201,9 +201,7 @@ export async function getEpisodeMetadata(episodeId: string): Promise<EpisodeMeta
     const episode = MOCK_EPISODES[episodeId];
     
     if (episode) {
-      console.log('🎬 Episode metadata loaded successfully:', episode.title);
     } else {
-      console.log('🎬 Episode metadata not found for ID:', episodeId);
     }
     
     return episode || null;
@@ -229,14 +227,12 @@ export async function getNextEpisode(currentEpisodeId: string): Promise<EpisodeM
     
     const nextEpisodeId = EPISODE_SEQUENCES[currentEpisodeId];
     if (!nextEpisodeId) {
-      console.log('🎬 No next episode found for:', currentEpisodeId);
       return null;
     }
     
     const nextEpisode = MOCK_EPISODES[nextEpisodeId];
     
     if (nextEpisode) {
-      console.log('🎬 Next episode loaded successfully:', nextEpisode.title);
     } else {
       console.warn('🎬 Next episode ID found but metadata missing:', nextEpisodeId);
     }
@@ -265,9 +261,7 @@ export async function getMovieMetadata(movieId: string): Promise<MovieMetadata |
     const movie = MOCK_MOVIES[movieId];
     
     if (movie) {
-      console.log('🎬 Movie metadata loaded successfully:', movie.title);
     } else {
-      console.log('🎬 Movie metadata not found for ID:', movieId);
     }
     
     return movie || null;
@@ -300,7 +294,6 @@ export async function getSeriesEpisodes(seriesId: string): Promise<EpisodeMetada
         return a.episodeNumber - b.episodeNumber;
       });
     
-    console.log(`🎬 Found ${episodes.length} episodes for series:`, seriesId);
     return episodes;
   } catch (error) {
     console.error('🎬 Error loading series episodes:', error);
@@ -334,19 +327,15 @@ export async function getIntroTiming(
     if (contentType === 'episode') {
       const episode = MOCK_EPISODES[contentId];
       if (episode) {
-        console.log(`🎬 Intro timing loaded for episode: ${episode.introStart}s - ${episode.introEnd}s`);
         return { start: episode.introStart, end: episode.introEnd };
       } else {
-        console.log('🎬 No intro timing found for episode:', contentId);
         return null;
       }
     } else {
       const movie = MOCK_MOVIES[contentId];
       if (movie) {
-        console.log(`🎬 Intro timing loaded for movie: ${movie.introStart}s - ${movie.introEnd}s`);
         return { start: movie.introStart, end: movie.introEnd };
       } else {
-        console.log('🎬 No intro timing found for movie:', contentId);
         return null;
       }
     }

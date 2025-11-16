@@ -107,7 +107,7 @@ export function generateContentId(options: ContentIdOptions): ContentIdResult {
   } = options;
 
   const warnings: string[] = [];
-  const log = enableLogging ? console.log : () => {};
+ 
   const warn = enableLogging ? console.warn : () => {};
 
   // Handle non-TV content types
@@ -185,12 +185,7 @@ export function generateContentId(options: ContentIdOptions): ContentIdResult {
     const seriesId = extractSeriesId(currentEpisode.id);
     
     if (enableLogging) {
-      log('🎬 Using episode ID from episode data:', {
-        episodeId: currentEpisode.id,
-        episodeTitle: currentEpisode.title,
-        currentIndex,
-        extractedSeriesId: seriesId
-      });
+     
     }
 
     return {

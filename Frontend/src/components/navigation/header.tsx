@@ -274,7 +274,6 @@ export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }:
               autoFocus={true}
               onSubmit={(value) => {
                 // Add search logic here
-                console.log('Search:', value);
                 setIsSearchOpen(false);
               }}
               onClear={() => {

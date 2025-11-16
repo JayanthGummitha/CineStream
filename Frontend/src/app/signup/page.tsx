@@ -59,7 +59,7 @@ export default function SignUpPage() {
         // Clear error message when user clicks signup button again
         setError('');
         setShowError(false);
-        console.log(formData);
+       
 
         // Validation
         if (!formData.firstName.trim()) {

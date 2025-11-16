@@ -366,9 +366,7 @@ export function logResponsiveTestResults(results: ResponsiveTestResult[]): void 
     const emoji = result.score >= 90 ? '✅' : result.score >= 70 ? '⚠️' : '❌';
     
     console.group(`${emoji} ${result.device} (${result.viewport.width}x${result.viewport.height})`);
-    console.log(`Score: ${result.score}/100`);
-    console.log(`Breakpoint: ${result.breakpoint}`);
-    
+     
     if (result.issues.length > 0) {
       console.group('Issues:');
       result.issues.forEach(issue => {
@@ -379,15 +377,12 @@ export function logResponsiveTestResults(results: ResponsiveTestResult[]): void 
           critical: '🚨'
         }[issue.severity];
         
-        console.log(`${severityEmoji} ${issue.element}: ${issue.description}`);
-        console.log(`   Fix: ${issue.fix}`);
-      });
+        });
       console.groupEnd();
     }
     
     if (result.recommendations.length > 0) {
       console.group('Recommendations:');
-      result.recommendations.forEach(rec => console.log(`💡 ${rec}`));
       console.groupEnd();
     }
     

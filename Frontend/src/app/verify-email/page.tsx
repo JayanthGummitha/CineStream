@@ -50,7 +50,6 @@ export default function VerifyEmailPage() {
 
       if (response.ok && data.success) {
         // Verification successful
-        console.log('Email verified successfully');
         setIsVerified(true);
         
         // Show redirecting state after 1 second
@@ -90,12 +89,10 @@ export default function VerifyEmailPage() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        console.log('OTP resent successfully');
         setError(""); // Clear any previous errors
         
         // Log OTP in development
         if (process.env.NODE_ENV === 'development' && data.otp) {
-          console.log('🔐 New OTP:', data.otp);
         }
       } else {
         setError(data.error || 'Failed to resend code. Please try again.');

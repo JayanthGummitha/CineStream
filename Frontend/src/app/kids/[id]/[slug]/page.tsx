@@ -117,7 +117,7 @@ export default function KidsDetailPage({ params }: KidsDetailPageProps) {
                 {/* Kids Movie Info */}
                 <div className="lg:col-span-2 space-y-6 text-white">
                   {/* Title */}
-                  <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+                  <h1 className="text-4xl md:text-5xl font-bold leading-tight">
                     {kidsMovie.title}
                   </h1>
 

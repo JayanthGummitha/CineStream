@@ -32,13 +32,11 @@ export function PricingSection({
   // Detect billing cycle changes
   useEffect(() => {
     if (prevBillingCycle !== billingCycle) {
-      console.log('🎬 Billing cycle changed:', prevBillingCycle, '→', billingCycle);
       setIsAnimating(true);
       setPrevBillingCycle(billingCycle);
       
       // Reset animation flag after animation completes (1.5s duration + buffer)
       const timer = setTimeout(() => {
-        console.log('✅ Animation complete');
         setIsAnimating(false);
       }, 1800);
 

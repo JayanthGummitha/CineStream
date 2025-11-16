@@ -14,7 +14,6 @@ export function VideoPlayerExample() {
 
   // Handle episode changes from the video player
   const handleEpisodeChange = useCallback((newEpisodeData: EpisodeMetadata) => {
-    console.log('🎬 Episode changed to:', newEpisodeData.title);
     
     // Update current episode state
     setCurrentEpisode({

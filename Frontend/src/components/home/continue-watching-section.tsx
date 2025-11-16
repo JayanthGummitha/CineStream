@@ -20,10 +20,8 @@ export function ContinueWatchingSection() {
         const keys = Object.keys(localStorage);
         const progressKeys = keys.filter(key => key.startsWith('watch_progress_'));
         progressKeys.forEach(key => localStorage.removeItem(key));
-        console.log('✅ Cleared all watch progress. Refresh the page.');
         window.location.reload();
       };
-      console.log('💡 To clear all watch progress, run: window.clearAllWatchProgress()');
     }
   }, []);
 
@@ -136,7 +134,6 @@ function ContinueWatchingCard({ progressData, onRemove }: ContinueWatchingCardPr
           onClick={() => {
             // Note: This is a simplified undo - in a real implementation,
             // we would need to restore the progress to storage
-            console.log('Undo clicked - would restore:', progressData.videoId);
           }}
         >
           Undo

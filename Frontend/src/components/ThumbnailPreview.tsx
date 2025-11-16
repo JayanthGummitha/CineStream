@@ -216,7 +216,6 @@ export function ThumbnailPreview({
         }
         
         setThumbnailCues(cues);
-        console.log(`Loaded ${cues.length} thumbnail cues`);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load thumbnails';
         setError(errorMessage);

@@ -174,11 +174,7 @@ export function findEpisodeWithIdResolution(
 
     const variantIndex = episodeList.findIndex((ep) => ep.id === variant);
     if (variantIndex !== -1) {
-      console.log("🎬 Episode found using ID resolution:", {
-        originalId: targetEpisodeId,
-        resolvedId: variant,
-        episodeTitle: episodeList[variantIndex].title,
-      });
+     
 
       return {
         found: true,
@@ -198,12 +194,7 @@ export function findEpisodeWithIdResolution(
     });
 
     if (episodeNumberIndex !== -1) {
-      console.log("🎬 Episode found using episode number matching:", {
-        originalId: targetEpisodeId,
-        targetEpisodeNumber: parsed.episodeNumber,
-        foundEpisodeId: episodeList[episodeNumberIndex].id,
-        episodeTitle: episodeList[episodeNumberIndex].title,
-      });
+      
 
       return {
         found: true,

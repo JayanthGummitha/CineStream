@@ -24,8 +24,7 @@ export default function ContinueWatchingPage() {
         <ToastAction 
           altText="Undo remove"
           onClick={() => {
-            console.log('Undo clicked - would restore:', videoId);
-          }}
+            }}
         >
           Undo
         </ToastAction>

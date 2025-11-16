@@ -269,7 +269,6 @@ const useCasting = () => {
     };
 
     const sessionListener = (session: any) => {
-      console.log('Cast session established:', session);
       setCastSession(session);
       setConnectedDevice({
         id: session.sessionId,
@@ -283,14 +282,12 @@ const useCasting = () => {
     };
 
     const receiverListener = (availability: string) => {
-      console.log('Cast receiver availability:', availability);
       if (availability === 'available') {
         setError(null);
       }
     };
 
     const onInitSuccess = () => {
-      console.log('Cast API initialized successfully');
       setIsInitialized(true);
       setError(null);
     };
@@ -362,7 +359,6 @@ const useCasting = () => {
           // Request session to trigger device discovery
           cast.requestSession(
             (session: any) => {
-              console.log('Cast session created during scan:', session);
               // Don't automatically connect, just add to available devices
               setAvailableDevices(prev => [
                 ...prev.filter(d => d.id !== session.sessionId),
@@ -419,7 +415,6 @@ const useCasting = () => {
 
           cast.requestSession(
             (session: any) => {
-              console.log('Cast session established:', session);
               setCastSession(session);
               setConnectedDevice({
                 id: session.sessionId,
@@ -501,7 +496,6 @@ const useCasting = () => {
       if (castSession) {
         castSession.stop(
           () => {
-            console.log('Cast session stopped successfully');
             setCastSession(null);
             setConnectedDevice(null);
             setAvailableDevices(prev =>
@@ -556,7 +550,6 @@ const useCasting = () => {
       castSession.loadMedia(
         request,
         (media: any) => {
-          console.log('Media loaded successfully:', media);
           setError(null);
         },
         (error: any) => {
@@ -776,11 +769,6 @@ export function VideoPlayerControls({
       }))
     : defaultCaptions;
 
-  // console.log('🎬 VideoPlayerControls - Available captions:', availableCaptions);
-  // console.log('🎬 VideoPlayerControls - Using captions:', captionsToUse);
-  // console.log('🎬 VideoPlayerControls - Active caption:', activeCaption);
-  // console.log('🎵 VideoPlayerControls - Available audio tracks:', availableAudioTracks);
-  // console.log('🎵 VideoPlayerControls - Current audio track:', currentAudioTrack);
 
 
   return (

@@ -19,7 +19,6 @@ export function VideoPlayerDebug() {
   const [isPlaying, setIsPlaying] = useState(false);
 
   const handleEpisodeChange = (episodeData: EpisodeMetadata) => {
-    console.log('🎬 Episode changed in debug component:', episodeData);
     setContentId(episodeData.id);
   };
 

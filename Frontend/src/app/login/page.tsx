@@ -103,7 +103,7 @@ export default function LoginPage() {
 
             // Log OTP in development mode
             if (process.env.NODE_ENV === 'development' && otpData.otp) {
-                console.log('🔐 Your OTP:', otpData.otp);
+                
                 toast.info(`Dev Mode - OTP: ${otpData.otp}`);
             }
 

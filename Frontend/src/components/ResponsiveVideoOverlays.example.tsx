@@ -59,7 +59,6 @@ export function ResponsiveVideoOverlaysExample() {
     setShowNextEpisode(false);
     setCurrentTime(0);
     setIsPlaying(true);
-    console.log('Playing next episode:', mockNextEpisode.title);
   };
 
   const handleCancelNext = () => {

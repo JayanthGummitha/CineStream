@@ -43,11 +43,7 @@ export default function WatchPage({ params, searchParams }: WatchPageProps) {
   // Load TV show episode data when it's a TV show
   useEffect(() => {
     if (contentType === 'tv' && !isTrailer) {
-      console.log('🎬 Loading TV show episode data for watch page:', {
-        showId: resolvedParams.id,
-        episodeId,
-        seasonNumber
-      });
+      
       
       setLoading(true);
       
@@ -61,11 +57,7 @@ export default function WatchPage({ params, searchParams }: WatchPageProps) {
             
             if (transformedData) {
               setEpisodeData(transformedData);
-              console.log('🎬 Episode data loaded for watch page:', {
-                totalEpisodes: transformedData.episodes.length,
-                currentIndex: transformedData.currentEpisodeIndex,
-                currentEpisode: transformedData.episodes[transformedData.currentEpisodeIndex]?.title
-              });
+             
             } else {
               console.warn('🎬 Failed to transform TV show data to episode data');
             }

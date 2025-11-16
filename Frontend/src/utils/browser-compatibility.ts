@@ -76,7 +76,6 @@ export function detectBrowserCapabilities(): BrowserCapabilities {
     device: detectDevice()
   };
 
-  console.log('🔍 Browser capabilities detected:', capabilities);
   return capabilities;
 }
 

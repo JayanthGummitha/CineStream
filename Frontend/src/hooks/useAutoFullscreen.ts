@@ -220,16 +220,10 @@ export function useAutoFullscreen(
       const needsUserInteraction = requiresUserInteraction();
 
       // Log browser capabilities for debugging
-      console.log('🎬 useAutoFullscreen: Browser capabilities:', {
-        fullscreenSupported: capabilities.isSupported,
-        requiresUserInteraction: needsUserInteraction,
-        isMobile,
-        browserType: capabilities.browserType
-      });
+     
 
       // Auto-play if requested
       if (autoPlay) {
-        console.log('🎬 useAutoFullscreen: Auto-playing video');
         await new Promise(resolve => setTimeout(resolve, 100));
         
         try {
