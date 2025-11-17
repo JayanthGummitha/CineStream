@@ -10,7 +10,14 @@ import { Badge } from '@/components/ui/badge';
 
 import { Play, Plus, Share, Download, Star, Clock, Calendar, ChevronLeft, ChevronRight, X, Tv } from 'lucide-react';
 // Add the missing import for getTVShowWithSeasons
-import { getTVShowDetails, getTVShowsByGenre, getTVShowWithSeasons } from '@/lib/movie-service';
+import { 
+    getTVShowDetails, 
+    getTVShowsByGenre, 
+    getTVShowWithSeasons,
+    TVShowFetchError,
+    TVShowFetchErrorType,
+    getUserFriendlyErrorMessage
+} from '@/lib/movie-service';
 import { createDetailUrl } from '@/lib/url-utils';
 import { Movie, Season, Episode } from '@/types';
 import Link from 'next/link';
@@ -19,6 +26,7 @@ import {
     transformAllSeasonsToEpisodeData,
     type VideoPlayerEpisodeData
 } from '@/utils/episode-transformation';
+import { ErrorDisplay } from '@/components/ErrorDisplay';
 
 interface TVShowDetailPageProps {
     params: Promise<{
@@ -33,6 +41,8 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
     const [seasons, setSeasons] = useState<Season[]>([]);
     const [selectedSeason, setSelectedSeason] = useState<number>(1);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [errorType, setErrorType] = useState<TVShowFetchErrorType | null>(null);
     const [isPlayerOpen, setIsPlayerOpen] = useState(false);
     const [showAllEpisodes, setShowAllEpisodes] = useState<{ [key: number]: boolean }>({});
 
@@ -46,58 +56,72 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
     const isAuthenticated = false;
     const resolvedParams = use(params);
 
-    // SINGLE useEffect - remove the duplicate one
-    useEffect(() => {
-        async function fetchTVShowData() {
-            try {
-                // Use the new function that fetches real episode data from TMDB
-                const { tvShow: showData, seasons: realSeasons } = await getTVShowWithSeasons(resolvedParams.id);
+    // Fetch TV show data with comprehensive error handling
+    const fetchTVShowData = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            setErrorType(null);
+            
+            // Use getTVShowWithSeasons which now has built-in fallback to getTVShowDetails + mock seasons
+            const { tvShow: showData, seasons: realSeasons } = await getTVShowWithSeasons(resolvedParams.id);
 
-                if (!showData) {
-                    notFound();
-                    return;
-                }
+            if (!showData) {
+                console.error('[TV Show Page] No TV show data returned');
+                setError('TV show not found. It may have been removed.');
+                setErrorType(TVShowFetchErrorType.NOT_FOUND);
+                notFound();
+                return;
+            }
 
-                setTVShow(showData);
-                setSeasons(realSeasons);
+            console.log(`[TV Show Page] Successfully loaded TV show: ${showData.title}`);
+            console.log(`[TV Show Page] Loaded ${realSeasons.length} seasons with ${realSeasons.reduce((sum, s) => sum + s.episodes.length, 0)} total episodes`);
+            
+            setTVShow(showData);
+            setSeasons(realSeasons);
 
-                // Get related TV shows based on the first genre
-                if (showData.genres.length > 0) {
+            // Get related TV shows based on the first genre
+            if (showData.genres.length > 0) {
+                try {
                     const related = await getTVShowsByGenre(showData.genres[0]);
                     const filtered = related.filter(s => s.id !== showData.id).slice(0, 10);
                     setRelatedShows(filtered);
+                    console.log(`[TV Show Page] Loaded ${filtered.length} related shows`);
+                } catch (relatedError) {
+                    console.warn('[TV Show Page] Failed to load related shows, continuing without them:', relatedError);
+                    // Don't fail the entire page if related shows fail
+                    setRelatedShows([]);
                 }
-            } catch (error) {
-
-                // Fallback to original method if new method fails
-                try {
-                    const showData = await getTVShowDetails(resolvedParams.id);
-                    if (showData) {
-                        setTVShow(showData);
-                        // Use mock seasons as fallback
-                        const mockSeasons = generateTVShowSeasons(showData);
-                        setSeasons(mockSeasons);
-
-                        // Get related shows for fallback too
-                        if (showData.genres.length > 0) {
-                            const related = await getTVShowsByGenre(showData.genres[0]);
-                            const filtered = related.filter(s => s.id !== showData.id).slice(0, 10);
-                            setRelatedShows(filtered);
-                        }
-                    } else {
-                        notFound();
-                    }
-                } catch (fallbackError) {
-                    console.error('Fallback also failed:', fallbackError);
+            }
+        } catch (error) {
+            console.error('[TV Show Page] Failed to load TV show data:', error);
+            
+            // Handle TVShowFetchError with typed error classification
+            if (error instanceof TVShowFetchError) {
+                setErrorType(error.type);
+                setError(getUserFriendlyErrorMessage(error.type));
+                
+                // Redirect to 404 page for not found errors
+                if (error.type === TVShowFetchErrorType.NOT_FOUND) {
                     notFound();
                 }
-            } finally {
-                setLoading(false);
+            } else if (error instanceof Error) {
+                // Fallback for non-TVShowFetchError errors
+                setError(error.message || 'Failed to load TV show. Please try again.');
+                setErrorType(TVShowFetchErrorType.UNKNOWN);
+            } else {
+                setError('Failed to load TV show. Please try again.');
+                setErrorType(TVShowFetchErrorType.UNKNOWN);
             }
+        } finally {
+            setLoading(false);
         }
-
-        fetchTVShowData();
     }, [resolvedParams.id]);
+
+    // SINGLE useEffect - remove the duplicate one
+    useEffect(() => {
+        fetchTVShowData();
+    }, [fetchTVShowData]);
 
     // Transform seasons data to episode data for VideoPlayer when seasons change
     useEffect(() => {
@@ -224,9 +248,37 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                 <Header isAuthenticated={isAuthenticated} />
                 <div className="flex items-center justify-center min-h-screen">
                     <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <p className="text-white/60">Loading TV Show...</p>
+                        <div className="relative">
+                            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600/30 border-t-blue-600 mx-auto mb-4"></div>
+                            <Tv className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-blue-600" />
+                        </div>
+                        <p className="text-white text-lg font-medium mb-2">Loading TV Show</p>
+                        <p className="text-white/60 text-sm">Fetching episodes and details...</p>
                     </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
+
+    // Display error state if there's an error
+    if (error && !tvShow) {
+        // Determine if retry should be shown based on error type
+        const shouldShowRetry = errorType !== TVShowFetchErrorType.NOT_FOUND && 
+                                errorType !== TVShowFetchErrorType.INVALID_ID;
+        
+        return (
+            <div className="min-h-screen bg-background">
+                <Header isAuthenticated={isAuthenticated} />
+                <div className="flex items-center justify-center min-h-screen">
+                    <ErrorDisplay
+                        title="Unable to Load TV Show"
+                        message={error}
+                        onRetry={fetchTVShowData}
+                        showRetry={shouldShowRetry}
+                        backLink="/tv-shows"
+                        backLinkText="Back to TV Shows"
+                    />
                 </div>
                 <Footer />
             </div>
@@ -322,7 +374,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                                             <Link
                                                 href={`/watch/${tvShow.id}?fullscreen=true&autoplay=true&title=${encodeURIComponent(tvShow.title)}&src=${videoSrc}&type=tv&season=${selectedSeason}${currentEpisodeId ? `&episode=${currentEpisodeId}` : ''}`}
                                             >
-                                                <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white">
+                                                <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
                                                     <Play className="mr-2 h-5 w-5" />
                                                     Play Now
                                                 </Button>
@@ -330,7 +382,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                                         )}
 
                                         <Link href={`/watch/${tvShow.id}?fullscreen=true&autoplay=true&trailer=true&type=tv`}>
-                                            <Button size="lg" className="bg-white text-black hover:bg-white/90">
+                                            <Button size="sm" className="bg-white text-black hover:bg-white/90">
                                                 <Play className="mr-2 h-5 w-5" />
                                                 Watch Trailer
                                             </Button>
@@ -338,19 +390,19 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
 
                                         {isAuthenticated && (
                                             <>
-                                                <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                                                <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
                                                     <Plus className="mr-2 h-5 w-5" />
                                                     Add to List
                                                 </Button>
 
-                                                <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                                                <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
                                                     <Download className="mr-2 h-5 w-5" />
                                                     Download
                                                 </Button>
                                             </>
                                         )}
 
-                                        <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                                        <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
                                             <Share className="mr-2 h-5 w-5" />
                                             Share
                                         </Button>
@@ -371,6 +423,23 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                             {/* Episodes Section */}
                             {seasons.length > 0 && (
                                 <div className="space-y-6">
+                                    {/* Show info banner if we have partial data or mock data */}
+                                    {seasons.length > 0 && seasons[0].episodes.length > 0 && (
+                                        seasons[0].episodes[0].description.includes('In this episode of') ? (
+                                            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 flex items-start space-x-3">
+                                                <svg className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <div className="flex-1">
+                                                    <p className="text-yellow-200 text-sm font-medium">Preview Episodes</p>
+                                                    <p className="text-yellow-200/80 text-xs mt-1">
+                                                        Some episode details may be limited. Full episode information will be available soon.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ) : null
+                                    )}
+                                    
                                     <div className="flex items-center justify-between">
                                         <h2 className="text-2xl font-semibold text-white">Episodes</h2>
                                         {seasons.length > 1 && (

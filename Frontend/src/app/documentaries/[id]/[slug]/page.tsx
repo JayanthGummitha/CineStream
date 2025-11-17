@@ -150,33 +150,33 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
                   <div className="flex flex-wrap items-center gap-4">
                     {isAuthenticated || true && (
                       <Link href={`/watch/${documentary.id}?title=${encodeURIComponent(documentary.title)}`}>
-                        <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
                           <Play className="mr-2 h-5 w-5" />
                           Play Now
                         </Button>
                       </Link>
                     )}
 
-                    <Button size="lg" className="bg-white text-black hover:bg-white/90">
+                    <Button size="sm" className="bg-white text-black hover:bg-white/90">
                       <Play className="mr-2 h-5 w-5" />
                       Watch Trailer
                     </Button>
 
                     {isAuthenticated && (
                       <>
-                        <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                        <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
                           <Plus className="mr-2 h-5 w-5" />
                           Add to List
                         </Button>
 
-                        <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                        <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
                           <Download className="mr-2 h-5 w-5" />
                           Download
                         </Button>
                       </>
                     )}
 
-                    <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                    <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
                       <Share className="mr-2 h-5 w-5" />
                       Share
                     </Button>

@@ -33,12 +33,240 @@ const TMDB_ACCESS_TOKEN = process.env.TMDB_ACCESS_TOKEN || '';
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
 
-// Validate API keys on initialization
-if (!TMDB_API_KEY || !TMDB_ACCESS_TOKEN) {
-  console.warn('⚠️ TMDB API keys not found. Please set TMDB_API_KEY and TMDB_ACCESS_TOKEN in .env.local');
+import { Movie, Collection, TVShow, Season, Episode } from '@/types';
+
+// ============================================================================
+// ERROR CLASSIFICATION AND VALIDATION UTILITIES
+// ============================================================================
+
+/**
+ * Error types for TV show fetch operations
+ */
+export enum TVShowFetchErrorType {
+  INVALID_ID = 'INVALID_ID',
+  NOT_FOUND = 'NOT_FOUND',
+  AUTHENTICATION = 'AUTHENTICATION',
+  RATE_LIMIT = 'RATE_LIMIT',
+  NETWORK = 'NETWORK',
+  SERVER_ERROR = 'SERVER_ERROR',
+  VALIDATION = 'VALIDATION',
+  UNKNOWN = 'UNKNOWN'
 }
 
-import { Movie, Collection, TVShow, Season, Episode } from '@/types';
+/**
+ * Custom error class for TV show fetch operations with detailed context
+ */
+export class TVShowFetchError extends Error {
+  type: TVShowFetchErrorType;
+  statusCode?: number;
+  tvShowId?: string;
+  context?: Record<string, any>;
+
+  constructor(
+    message: string,
+    type: TVShowFetchErrorType,
+    statusCode?: number,
+    tvShowId?: string,
+    context?: Record<string, any>
+  ) {
+    super(message);
+    this.name = 'TVShowFetchError';
+    this.type = type;
+    this.statusCode = statusCode;
+    this.tvShowId = tvShowId;
+    this.context = context;
+    
+    // Maintains proper stack trace for where our error was thrown (only available on V8)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, TVShowFetchError);
+    }
+  }
+}
+
+/**
+ * Validation result interface
+ */
+interface ValidationResult {
+  isValid: boolean;
+  error?: string;
+  sanitizedId?: number;
+}
+
+/**
+ * Validates TV show ID format and returns sanitized ID
+ * @param id - TV show ID to validate (string)
+ * @returns ValidationResult with isValid flag and sanitized ID if valid
+ */
+export function validateTVShowId(id: string): ValidationResult {
+  // Check for empty/null/undefined
+  if (!id || id.trim() === '') {
+    return {
+      isValid: false,
+      error: 'TV show ID is required and cannot be empty'
+    };
+  }
+
+  // Parse to integer
+  const parsedId = parseInt(id.trim(), 10);
+
+  // Check if parsing was successful
+  if (isNaN(parsedId)) {
+    return {
+      isValid: false,
+      error: `TV show ID must be numeric, received: ${id}`
+    };
+  }
+
+  // Validate positive number
+  if (parsedId <= 0) {
+    return {
+      isValid: false,
+      error: `TV show ID must be a positive number, received: ${parsedId}`
+    };
+  }
+
+  // Check for reasonable bounds (TMDB IDs are typically under 10 million)
+  if (parsedId > 10000000) {
+    return {
+      isValid: false,
+      error: `TV show ID exceeds maximum allowed value: ${parsedId}`
+    };
+  }
+
+  return {
+    isValid: true,
+    sanitizedId: parsedId
+  };
+}
+
+/**
+ * Validates API configuration at startup
+ * @returns boolean indicating if API is properly configured
+ */
+export function validateAPIConfiguration(): boolean {
+  const hasApiKey = !!TMDB_API_KEY && TMDB_API_KEY.trim() !== '';
+  const hasAccessToken = !!TMDB_ACCESS_TOKEN && TMDB_ACCESS_TOKEN.trim() !== '';
+
+  if (!hasApiKey || !hasAccessToken) {
+    console.error('[TV Show Service] API Configuration Error:');
+    if (!hasApiKey) {
+      console.error('[TV Show Service] - TMDB_API_KEY is missing or empty');
+    }
+    if (!hasAccessToken) {
+      console.error('[TV Show Service] - TMDB_ACCESS_TOKEN is missing or empty');
+    }
+    console.error('[TV Show Service] Please set these environment variables in .env.local');
+    return false;
+  }
+
+  console.log('[TV Show Service] API configuration validated successfully');
+  return true;
+}
+
+/**
+ * Classifies HTTP errors into specific error types
+ * @param response - Fetch Response object
+ * @returns TVShowFetchErrorType
+ */
+export function classifyHTTPError(response: Response): TVShowFetchErrorType {
+  const status = response.status;
+
+  switch (status) {
+    case 404:
+      return TVShowFetchErrorType.NOT_FOUND;
+    case 401:
+    case 403:
+      return TVShowFetchErrorType.AUTHENTICATION;
+    case 429:
+      return TVShowFetchErrorType.RATE_LIMIT;
+    case 500:
+    case 502:
+    case 503:
+    case 504:
+      return TVShowFetchErrorType.SERVER_ERROR;
+    default:
+      if (status >= 400 && status < 500) {
+        return TVShowFetchErrorType.VALIDATION;
+      }
+      return TVShowFetchErrorType.NETWORK;
+  }
+}
+
+/**
+ * Logs TV show fetch errors with comprehensive context
+ * @param error - TVShowFetchError instance
+ */
+export function logTVShowError(error: TVShowFetchError): void {
+  console.error(`[TV Show Service] ========================================`);
+  console.error(`[TV Show Service] Error Type: ${error.type}`);
+  console.error(`[TV Show Service] Message: ${error.message}`);
+  
+  if (error.tvShowId) {
+    console.error(`[TV Show Service] TV Show ID: ${error.tvShowId}`);
+  }
+  
+  if (error.statusCode) {
+    console.error(`[TV Show Service] HTTP Status: ${error.statusCode}`);
+  }
+  
+  if (error.context) {
+    console.error(`[TV Show Service] Context:`, JSON.stringify(error.context, null, 2));
+  }
+  
+  if (error.stack) {
+    console.error(`[TV Show Service] Stack Trace:`);
+    console.error(error.stack);
+  }
+  
+  console.error(`[TV Show Service] ========================================`);
+}
+
+/**
+ * Creates a user-friendly error message based on error type
+ * @param errorType - TVShowFetchErrorType
+ * @returns User-friendly error message
+ */
+export function getUserFriendlyErrorMessage(errorType: TVShowFetchErrorType): string {
+  switch (errorType) {
+    case TVShowFetchErrorType.INVALID_ID:
+      return 'Invalid TV show identifier. Please try again.';
+    case TVShowFetchErrorType.NOT_FOUND:
+      return 'TV show not found. It may have been removed.';
+    case TVShowFetchErrorType.AUTHENTICATION:
+      return 'Unable to access TV show data. Please try again later.';
+    case TVShowFetchErrorType.RATE_LIMIT:
+      return 'Too many requests. Please try again in a moment.';
+    case TVShowFetchErrorType.SERVER_ERROR:
+      return 'Service temporarily unavailable. Please try again later.';
+    case TVShowFetchErrorType.NETWORK:
+      return 'Unable to load TV show. Please check your connection.';
+    case TVShowFetchErrorType.VALIDATION:
+      return 'Invalid TV show data. Please try again.';
+    default:
+      return 'Failed to load TV show. Please try again.';
+  }
+}
+
+/**
+ * Lazy validation flag to ensure API configuration is checked only once
+ */
+let apiConfigValidated = false;
+
+/**
+ * Lazy API configuration validator - only runs on first API call
+ * @returns boolean indicating if API is properly configured
+ */
+function ensureAPIConfigured(): boolean {
+  if (!apiConfigValidated) {
+    apiConfigValidated = true;
+    return validateAPIConfiguration();
+  }
+  return true;
+}
+
+// ============================================================================
+// END ERROR CLASSIFICATION AND VALIDATION UTILITIES
+// ============================================================================
 
 let cachedGenres: TMDBGenre[] = [];
 
@@ -127,95 +355,784 @@ export async function initializeGenres() {
 
 
 export async function getTVShowWithSeasons(id: string) {
+  const startTime = Date.now();
+  
+  // Ensure API configuration is validated (lazy validation on first call)
+  ensureAPIConfigured();
+  
+  // ============================================================================
+  // SUBTASK 2.1: INPUT VALIDATION AT FUNCTION ENTRY
+  // ============================================================================
+  console.log(`[TV Show Service] getTVShowWithSeasons called with ID: ${id}`);
+  
+  // Validate TV show ID format before API calls
+  const validation = validateTVShowId(id);
+  if (!validation.isValid) {
+    const error = new TVShowFetchError(
+      validation.error || 'Invalid TV show ID',
+      TVShowFetchErrorType.INVALID_ID,
+      undefined,
+      id,
+      { validationError: validation.error }
+    );
+    logTVShowError(error);
+    throw error;
+  }
+  
+  const sanitizedId = validation.sanitizedId!;
+  console.log(`[TV Show Service] TV show ID validated successfully: ${sanitizedId}`);
+  
+  // ============================================================================
+  // SUBTASK 5.1: FALLBACK STRATEGY - TRY PRIMARY FETCH WITH FALLBACK
+  // ============================================================================
   try {
-      // First get the TV show details to know how many seasons it has
-      const response = await fetch(
-          `${TMDB_BASE_URL}/tv/${id}?api_key=${TMDB_API_KEY}&language=en-US&append_to_response=credits`
+    // ============================================================================
+    // SUBTASK 2.3: STRUCTURED LOGGING - API CALL ATTEMPT
+    // ============================================================================
+    console.log(`[TV Show Service] Fetching TV show details for ID: ${sanitizedId}`);
+    console.log(`[TV Show Service] API URL: ${TMDB_BASE_URL}/tv/${sanitizedId}`);
+    
+    // First get the TV show details to know how many seasons it has
+    const response = await fetch(
+      `${TMDB_BASE_URL}/tv/${sanitizedId}?api_key=${TMDB_API_KEY}&language=en-US&append_to_response=credits`
+    );
+    
+    // ============================================================================
+    // SUBTASK 2.2: HTTP ERROR CLASSIFICATION AND HANDLING
+    // ============================================================================
+    if (!response.ok) {
+      const errorType = classifyHTTPError(response);
+      const errorMessage = `Failed to fetch TV show: ${response.status} ${response.statusText}`;
+      
+      // Create typed error object with classification
+      const error = new TVShowFetchError(
+        errorMessage,
+        errorType,
+        response.status,
+        id,
+        {
+          url: response.url,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries())
+        }
       );
       
-      if (!response.ok) {
-          throw new Error('Failed to fetch TV show');
+      // Implement error-specific logging with context
+      logTVShowError(error);
+      
+      // Add specific guidance based on error type
+      if (errorType === TVShowFetchErrorType.AUTHENTICATION) {
+        console.error('[TV Show Service] Check TMDB_API_KEY in .env.local');
+      } else if (errorType === TVShowFetchErrorType.RATE_LIMIT) {
+        console.error('[TV Show Service] TMDB API rate limit exceeded. Please wait before retrying.');
+      } else if (errorType === TVShowFetchErrorType.NOT_FOUND) {
+        console.error(`[TV Show Service] TV show with ID ${id} not found in TMDB database`);
       }
       
-      const tvShow = await response.json();
+      throw error;
+    }
+    
+    // ============================================================================
+    // SUBTASK 2.3: STRUCTURED LOGGING - SUCCESSFUL API RESPONSE
+    // ============================================================================
+    console.log(`[TV Show Service] Successfully fetched TV show details for ID: ${sanitizedId}`);
+    
+    const tvShow = await response.json();
+    console.log(`[TV Show Service] TV Show: ${tvShow.name}, Seasons: ${tvShow.number_of_seasons}`);
+    
+    // ============================================================================
+    // SUBTASK 3.1: PARALLEL SEASON FETCHING WITH PROMISE.ALLSETTLED
+    // ============================================================================
+    console.log(`[TV Show Service] Starting to fetch ${tvShow.number_of_seasons} seasons in parallel...`);
+    
+    // Create an array of season fetch promises
+    const seasonPromises = Array.from(
+      { length: tvShow.number_of_seasons },
+      (_, index) => {
+        const seasonNum = index + 1;
+        return fetchSeasonData(sanitizedId, seasonNum, tvShow);
+      }
+    );
+    
+    // Fetch all seasons concurrently with error tolerance
+    const seasonResults = await Promise.allSettled(seasonPromises);
+    
+    // ============================================================================
+    // SUBTASK 3.2: PER-SEASON ERROR HANDLING
+    // ============================================================================
+    const seasons: Season[] = [];
+    const failedSeasons: number[] = [];
+    
+    seasonResults.forEach((result, index) => {
+      const seasonNum = index + 1;
       
-      // Now fetch each season's episodes
-      const seasons = [];
-      
-      for (let seasonNum = 1; seasonNum <= tvShow.number_of_seasons; seasonNum++) {
-          try {
-              const seasonResponse = await fetch(
-                  `${TMDB_BASE_URL}/tv/${id}/season/${seasonNum}?api_key=${TMDB_API_KEY}&language=en-US`
-              );
-              
-              if (seasonResponse.ok) {
-                  const seasonData = await seasonResponse.json();
-                  
-                  // Transform TMDB episode data to your Episode interface
-                  const episodes = seasonData.episodes.map((ep: any) => ({
-                      id: `${id}-s${seasonNum}-e${ep.episode_number}`,
-                      title: `Episode ${ep.episode_number}: ${ep.name}`,
-                      description: ep.overview || `Episode ${ep.episode_number} of ${tvShow.name}`,
-                      episodeNumber: ep.episode_number,
-                      duration: ep.runtime || tvShow.episode_run_time?.[0] || 45,
-                      thumbnail: ep.still_path 
-                          ? `https://image.tmdb.org/t/p/w500${ep.still_path}` 
-                          : `https://image.tmdb.org/t/p/w500${tvShow.backdrop_path}`,
-                      releaseDate: ep.air_date || tvShow.first_air_date,
-                      rating: Math.round((ep.vote_average || tvShow.vote_average) * 10) // Convert to your rating system
-                  }));
-
-                  seasons.push({
-                      id: `${id}-season-${seasonNum}`,
-                      seasonNumber: seasonNum,
-                      title: `Season ${seasonNum}`,
-                      episodes: episodes,
-                      releaseDate: seasonData.air_date || tvShow.first_air_date,
-                      thumbnail: seasonData.poster_path 
-                          ? `https://image.tmdb.org/t/p/w500${seasonData.poster_path}`
-                          : `https://image.tmdb.org/t/p/w500${tvShow.poster_path}`
-                  });
-              }
-          } catch (error) {
-              console.error(`Error fetching season ${seasonNum}:`, error);
+      if (result.status === 'fulfilled' && result.value) {
+        seasons.push(result.value);
+        console.log(`[TV Show Service] ✓ Season ${seasonNum} fetched successfully with ${result.value.episodes.length} episodes`);
+      } else if (result.status === 'rejected') {
+        // Log warnings for individual season failures
+        failedSeasons.push(seasonNum);
+        console.warn(`[TV Show Service] ✗ Season ${seasonNum} failed to fetch`);
+        console.warn(`[TV Show Service] Error reason:`, result.reason);
+        
+        // Track which seasons failed for debugging
+        if (result.reason instanceof Error) {
+          console.warn(`[TV Show Service] Error type: ${result.reason.name}`);
+          console.warn(`[TV Show Service] Error message: ${result.reason.message}`);
+          if (result.reason.stack) {
+            console.warn(`[TV Show Service] Stack trace:`, result.reason.stack);
           }
+        }
       }
+    });
+    
+    // Log summary of season fetching results
+    if (failedSeasons.length > 0) {
+      console.warn(`[TV Show Service] Failed to fetch ${failedSeasons.length} season(s): ${failedSeasons.join(', ')}`);
+      console.warn(`[TV Show Service] Successfully fetched ${seasons.length}/${tvShow.number_of_seasons} seasons`);
+      console.warn(`[TV Show Service] Continuing with available seasons...`);
+    } else {
+      console.log(`[TV Show Service] All ${seasons.length} seasons fetched successfully`);
+    }
+    
+    // ============================================================================
+    // SUBTASK 2.3: STRUCTURED LOGGING - SUCCESSFUL DATA RETRIEVAL WITH METRICS
+    // ============================================================================
+    const duration = Date.now() - startTime;
+    console.log(`[TV Show Service] ========================================`);
+    console.log(`[TV Show Service] Successfully completed getTVShowWithSeasons`);
+    console.log(`[TV Show Service] TV Show ID: ${sanitizedId}`);
+    console.log(`[TV Show Service] TV Show Name: ${tvShow.name}`);
+    console.log(`[TV Show Service] Total Seasons Requested: ${tvShow.number_of_seasons}`);
+    console.log(`[TV Show Service] Seasons Successfully Fetched: ${seasons.length}`);
+    console.log(`[TV Show Service] Total Episodes: ${seasons.reduce((sum, s) => sum + s.episodes.length, 0)}`);
+    console.log(`[TV Show Service] Duration: ${duration}ms`);
+    console.log(`[TV Show Service] ========================================`);
+    
+    // ============================================================================
+    // SUBTASK 4.3: DATA TRANSFORMATION ERROR HANDLING
+    // ============================================================================
+    
+    // Wrap TV show transformation in try-catch block
+    let transformedTVShow: Movie;
+    try {
+      console.log(`[TV Show Service] Transforming TV show data for ID: ${sanitizedId}`);
+      transformedTVShow = transformTMDBTVShow(tvShow);
+      console.log(`[TV Show Service] Successfully transformed TV show data`);
+    } catch (transformError) {
+      console.error(`[TV Show Service] Error transforming TV show data for ID ${sanitizedId}:`, transformError);
+      
+      // Log transformation error with context
+      if (transformError instanceof Error) {
+        console.error(`[TV Show Service] Transformation error name: ${transformError.name}`);
+        console.error(`[TV Show Service] Transformation error message: ${transformError.message}`);
+        console.error(`[TV Show Service] Transformation error stack:`, transformError.stack);
+      }
+      
+      console.error(`[TV Show Service] TV show data that failed transformation:`, {
+        id: tvShow?.id,
+        name: tvShow?.name,
+        hasOverview: !!tvShow?.overview,
+        hasPosterPath: !!tvShow?.poster_path,
+        hasBackdropPath: !!tvShow?.backdrop_path
+      });
+      
+      // Apply safe defaults for malformed data - create minimal valid Movie object
+      transformedTVShow = {
+        id: tvShow?.id?.toString() || sanitizedId.toString(),
+        title: tvShow?.name || 'Unknown TV Show',
+        description: tvShow?.overview || 'No description available.',
+        releaseDate: tvShow?.first_air_date || new Date().toISOString().split('T')[0],
+        duration: 45,
+        rating: 7.0,
+        genres: ['Drama'],
+        thumbnail: '/placeholder-movie.jpg',
+        backdrop: '/placeholder-movie.jpg',
+        director: 'Unknown',
+        cast: [],
+        languages: ['English'],
+        contentRating: 'NR'
+      };
+      
+      console.warn(`[TV Show Service] Applied safe defaults for TV show ${sanitizedId}`);
+    }
+    
+    return {
+      tvShow: transformedTVShow,
+      seasons: seasons
+    };
+  } catch (error) {
+    // ============================================================================
+    // SUBTASK 2.3: STRUCTURED LOGGING - ERROR DETAILS WITH FULL CONTEXT
+    // ============================================================================
+    
+    // Log the primary fetch error
+    console.error(`[TV Show Service] Primary fetch failed for TV show ${id}, attempting fallback...`);
+    
+    if (error instanceof TVShowFetchError) {
+      logTVShowError(error);
+    } else {
+      console.error(`[TV Show Service] Error:`, error);
+    }
+    
+    // ============================================================================
+    // SUBTASK 5.1: FALLBACK TO getTVShowDetails WITH MOCK SEASON DATA
+    // ============================================================================
+    try {
+      console.log(`[TV Show Service] Attempting fallback to getTVShowDetails for TV show ${id}`);
+      
+      // Attempt fallback to basic TV show details
+      const tvShowDetails = await getTVShowDetails(id);
+      
+      if (!tvShowDetails) {
+        console.error(`[TV Show Service] Fallback failed: getTVShowDetails returned null for TV show ${id}`);
+        
+        // If fallback also fails, throw the original error
+        if (error instanceof TVShowFetchError) {
+          throw error;
+        }
+        
+        const duration = Date.now() - startTime;
+        const wrappedError = new TVShowFetchError(
+          error instanceof Error ? error.message : 'Unknown error fetching TV show with seasons',
+          TVShowFetchErrorType.UNKNOWN,
+          undefined,
+          id,
+          {
+            originalError: error instanceof Error ? error.name : typeof error,
+            originalMessage: error instanceof Error ? error.message : String(error),
+            duration: `${duration}ms`,
+            stack: error instanceof Error ? error.stack : undefined,
+            fallbackAttempted: true,
+            fallbackFailed: true
+          }
+        );
+        
+        logTVShowError(wrappedError);
+        throw wrappedError;
+      }
+      
+      console.log(`[TV Show Service] Successfully fetched basic TV show details for ${id}, generating mock seasons...`);
+      
+      // Generate mock season data using existing generateTVShowSeasons function
+      const mockSeasons = generateTVShowSeasons(tvShowDetails);
+      
+      console.log(`[TV Show Service] Generated ${mockSeasons.length} mock seasons with ${mockSeasons.reduce((sum, s) => sum + s.episodes.length, 0)} total episodes`);
+      
+      const duration = Date.now() - startTime;
+      console.log(`[TV Show Service] ========================================`);
+      console.log(`[TV Show Service] Fallback completed successfully`);
+      console.log(`[TV Show Service] TV Show ID: ${id}`);
+      console.log(`[TV Show Service] TV Show Name: ${tvShowDetails.title}`);
+      console.log(`[TV Show Service] Mock Seasons Generated: ${mockSeasons.length}`);
+      console.log(`[TV Show Service] Total Mock Episodes: ${mockSeasons.reduce((sum, s) => sum + s.episodes.length, 0)}`);
+      console.log(`[TV Show Service] Duration: ${duration}ms`);
+      console.log(`[TV Show Service] Note: Using mock season data due to primary fetch failure`);
+      console.log(`[TV Show Service] ========================================`);
       
       return {
-          tvShow: transformTMDBTVShow(tvShow),
-          seasons: seasons
+        tvShow: tvShowDetails,
+        seasons: mockSeasons
       };
-  } catch (error) {
-      console.error('Error fetching TV show with seasons:', error);
-      throw error;
+      
+    } catch (fallbackError) {
+      console.error(`[TV Show Service] Fallback also failed for TV show ${id}:`, fallbackError);
+      
+      // If fallback fails, throw the original error with fallback context
+      const duration = Date.now() - startTime;
+      const wrappedError = new TVShowFetchError(
+        error instanceof Error ? error.message : 'Unknown error fetching TV show with seasons',
+        error instanceof TVShowFetchError ? error.type : TVShowFetchErrorType.UNKNOWN,
+        error instanceof TVShowFetchError ? error.statusCode : undefined,
+        id,
+        {
+          originalError: error instanceof Error ? error.name : typeof error,
+          originalMessage: error instanceof Error ? error.message : String(error),
+          duration: `${duration}ms`,
+          stack: error instanceof Error ? error.stack : undefined,
+          fallbackAttempted: true,
+          fallbackFailed: true,
+          fallbackError: fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
+        }
+      );
+      
+      logTVShowError(wrappedError);
+      throw wrappedError;
+    }
   }
 }
 
-// Helper function to transform TMDB TV show data to your Movie interface
-function transformTMDBTVShow(tmdbShow: any) {
+/**
+ * Generates mock TV show seasons for fallback when real season data is unavailable
+ * @param tvShow - Movie object representing the TV show
+ * @returns Array of Season objects with mock episode data
+ */
+function generateTVShowSeasons(tvShow: Movie): Season[] {
+  console.log(`[TV Show Service] Generating mock seasons for TV show: ${tvShow.title}`);
+  
+  const numSeasons = Math.floor(Math.random() * 4) + 1; // 1-4 seasons
+  const seasons: Season[] = [];
+  const usedTitles = new Set<string>(); // Prevent duplicate episode titles
+
+  for (let s = 1; s <= numSeasons; s++) {
+    const episodes: Episode[] = [];
+    const numEpisodes = Math.floor(Math.random() * 6) + 8; // 8-13 episodes per season
+
+    for (let e = 1; e <= numEpisodes; e++) {
+      let episodeTitle;
+      do {
+        episodeTitle = generateMockEpisodeTitle();
+      } while (usedTitles.has(`s${s}-${episodeTitle}`));
+
+      usedTitles.add(`s${s}-${episodeTitle}`);
+
+      episodes.push({
+        id: `${tvShow.id}-s${s}-e${e}`,
+        title: `Episode ${e}: ${episodeTitle}`,
+        description: `In this episode of ${tvShow.title}, ${generateMockEpisodeDescription()}`,
+        episodeNumber: e,
+        duration: Math.floor(Math.random() * 20) + 40, // 40-60 minutes
+        thumbnail: tvShow.backdrop,
+        releaseDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
+        rating: Math.floor(Math.random() * 30) + 70 // 70-100 rating
+      });
+    }
+
+    seasons.push({
+      id: `${tvShow.id}-season-${s}`,
+      seasonNumber: s,
+      title: `Season ${s}`,
+      episodes,
+      releaseDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
+      thumbnail: tvShow.thumbnail
+    });
+  }
+
+  console.log(`[TV Show Service] Generated ${numSeasons} mock seasons with ${seasons.reduce((sum, s) => sum + s.episodes.length, 0)} total episodes`);
+  
+  return seasons;
+}
+
+/**
+ * Generates a random episode title for mock data
+ * @returns Random episode title string
+ */
+function generateMockEpisodeTitle(): string {
+  const titles = [
+    'The Beginning', 'New Allies', 'The Hunt', 'Revelations', 'The Plan',
+    'Betrayal', 'The Truth', 'Final Stand', 'Consequences', 'The End',
+    'Pilot', 'The Discovery', 'Breaking Point', 'Crossroads', 'Aftermath',
+    'Rising Action', 'The Confrontation', 'Secrets Revealed', 'The Chase', 'Resolution'
+  ];
+  return titles[Math.floor(Math.random() * titles.length)];
+}
+
+/**
+ * Generates a random episode description for mock data
+ * @returns Random episode description string
+ */
+function generateMockEpisodeDescription(): string {
+  const descriptions = [
+    'relationships are tested as new challenges emerge.',
+    'characters face difficult decisions that will change everything.',
+    'the investigation takes an unexpected turn.',
+    'secrets from the past come to light.',
+    'alliances are formed and broken.',
+    'the stakes get higher as danger approaches.',
+    'new mysteries unfold in this thrilling episode.',
+    'characters must confront their deepest fears.',
+    'unexpected revelations change the game.',
+    'the story takes a dramatic turn.'
+  ];
+  return descriptions[Math.floor(Math.random() * descriptions.length)];
+}
+
+/**
+ * Validates episode runtime with fallback chain
+ * @param episode - TMDB episode data
+ * @param tvShow - TV show data for fallback
+ * @returns Valid runtime in minutes
+ */
+function validateEpisodeRuntime(episode: any, tvShow: any): number {
+  // Try episode runtime first
+  if (episode.runtime && typeof episode.runtime === 'number' && episode.runtime > 0) {
+    return episode.runtime;
+  }
+  
+  // Fallback to show's average episode runtime
+  if (tvShow.episode_run_time && Array.isArray(tvShow.episode_run_time) && tvShow.episode_run_time.length > 0) {
+    const showRuntime = tvShow.episode_run_time[0];
+    if (typeof showRuntime === 'number' && showRuntime > 0) {
+      return showRuntime;
+    }
+  }
+  
+  // Final fallback to 45 minutes default
+  return 45;
+}
+
+/**
+ * Validates episode thumbnail with fallback to show backdrop
+ * @param episode - TMDB episode data
+ * @param tvShow - TV show data for fallback
+ * @returns Valid thumbnail URL
+ */
+function validateEpisodeThumbnail(episode: any, tvShow: any): string {
+  // Try episode still_path first
+  if (episode.still_path && typeof episode.still_path === 'string') {
+    return `${TMDB_IMAGE_BASE_URL}/w500${episode.still_path}`;
+  }
+  
+  // Fallback to show backdrop
+  if (tvShow.backdrop_path && typeof tvShow.backdrop_path === 'string') {
+    return `${TMDB_IMAGE_BASE_URL}/w500${tvShow.backdrop_path}`;
+  }
+  
+  // Final fallback to placeholder
+  return '/placeholder-movie.jpg';
+}
+
+/**
+ * Validates episode rating with fallback to show rating
+ * @param episode - TMDB episode data
+ * @param tvShow - TV show data for fallback
+ * @returns Valid rating (0-100 scale)
+ */
+function validateEpisodeRating(episode: any, tvShow: any): number {
+  // Try episode vote_average first
+  if (typeof episode.vote_average === 'number' && episode.vote_average > 0) {
+    return Math.round(episode.vote_average * 10); // Convert 0-10 to 0-100 scale
+  }
+  
+  // Fallback to show's overall rating
+  if (typeof tvShow.vote_average === 'number' && tvShow.vote_average > 0) {
+    return Math.round(tvShow.vote_average * 10);
+  }
+  
+  // Final fallback to 70 (7.0 rating)
+  return 70;
+}
+
+/**
+ * Ensures consistent episode ID format
+ * @param tvShowId - TV show ID
+ * @param seasonNum - Season number
+ * @param episodeNum - Episode number
+ * @returns Formatted episode ID
+ */
+function formatEpisodeId(tvShowId: number, seasonNum: number, episodeNum: number): string {
+  return `${tvShowId}-s${seasonNum}-e${episodeNum}`;
+}
+
+/**
+ * Validates and transforms a single episode with comprehensive fallbacks
+ * @param episode - Raw TMDB episode data
+ * @param tvShowId - TV show ID
+ * @param seasonNum - Season number
+ * @param tvShow - TV show data for fallback values
+ * @returns Validated and transformed Episode object
+ */
+function validateAndTransformEpisode(
+  episode: any,
+  tvShowId: number,
+  seasonNum: number,
+  tvShow: any
+): Episode {
+  try {
+    // Ensure episode has required fields
+    if (!episode || typeof episode !== 'object') {
+      throw new Error('Invalid episode data structure');
+    }
+    
+    // Validate and get episode number
+    const episodeNumber = typeof episode.episode_number === 'number' && episode.episode_number > 0
+      ? episode.episode_number
+      : 1; // Fallback to 1 if missing
+    
+    // Validate episode name
+    const episodeName = episode.name && typeof episode.name === 'string' && episode.name.trim() !== ''
+      ? episode.name
+      : `Episode ${episodeNumber}`;
+    
+    // Validate episode overview/description
+    const description = episode.overview && typeof episode.overview === 'string' && episode.overview.trim() !== ''
+      ? episode.overview
+      : `Episode ${episodeNumber} of ${tvShow.name || 'this TV show'}`;
+    
+    // Validate release date
+    const releaseDate = episode.air_date && typeof episode.air_date === 'string'
+      ? episode.air_date
+      : tvShow.first_air_date || new Date().toISOString().split('T')[0];
+    
+    return {
+      id: formatEpisodeId(tvShowId, seasonNum, episodeNumber),
+      title: `Episode ${episodeNumber}: ${episodeName}`,
+      description: description,
+      episodeNumber: episodeNumber,
+      duration: validateEpisodeRuntime(episode, tvShow),
+      thumbnail: validateEpisodeThumbnail(episode, tvShow),
+      releaseDate: releaseDate,
+      rating: validateEpisodeRating(episode, tvShow)
+    };
+  } catch (error) {
+    console.error(`[TV Show Service] Error validating episode data:`, error);
+    console.error(`[TV Show Service] Episode context:`, {
+      tvShowId,
+      seasonNum,
+      episodeData: episode
+    });
+    
+    // Return a minimal valid episode as last resort
+    return {
+      id: formatEpisodeId(tvShowId, seasonNum, 1),
+      title: 'Episode 1',
+      description: 'No description available.',
+      episodeNumber: 1,
+      duration: 45,
+      thumbnail: '/placeholder-movie.jpg',
+      releaseDate: new Date().toISOString().split('T')[0],
+      rating: 70
+    };
+  }
+}
+
+/**
+ * Helper function to fetch a single season's data
+ * Used for parallel season fetching with Promise.allSettled
+ * @param tvShowId - Sanitized TV show ID
+ * @param seasonNum - Season number to fetch
+ * @param tvShow - TV show data for fallback values
+ * @returns Promise<Season> - Transformed season data
+ */
+async function fetchSeasonData(
+  tvShowId: number,
+  seasonNum: number,
+  tvShow: any
+): Promise<Season> {
+  console.log(`[TV Show Service] Fetching season ${seasonNum}/${tvShow.number_of_seasons}`);
+  
+  const seasonResponse = await fetch(
+    `${TMDB_BASE_URL}/tv/${tvShowId}/season/${seasonNum}?api_key=${TMDB_API_KEY}&language=en-US`
+  );
+  
+  // HTTP error classification for season fetch
+  if (!seasonResponse.ok) {
+    const errorType = classifyHTTPError(seasonResponse);
+    const error = new TVShowFetchError(
+      `Failed to fetch season ${seasonNum}: ${seasonResponse.status} ${seasonResponse.statusText}`,
+      errorType,
+      seasonResponse.status,
+      tvShowId.toString(),
+      {
+        seasonNumber: seasonNum,
+        url: seasonResponse.url,
+        statusText: seasonResponse.statusText
+      }
+    );
+    
+    console.warn(`[TV Show Service] Failed to fetch season ${seasonNum}: ${seasonResponse.status} ${seasonResponse.statusText}`);
+    console.warn(`[TV Show Service] Error type: ${errorType}`);
+    
+    throw error;
+  }
+  
+  const seasonData = await seasonResponse.json();
+  
+  console.log(`[TV Show Service] Successfully fetched season ${seasonNum} with ${seasonData.episodes?.length || 0} episodes`);
+  
+  // Validate and transform episodes with comprehensive fallbacks
+  const episodes: Episode[] = [];
+  
+  if (seasonData.episodes && Array.isArray(seasonData.episodes)) {
+    for (const ep of seasonData.episodes) {
+      try {
+        const validatedEpisode = validateAndTransformEpisode(ep, tvShowId, seasonNum, tvShow);
+        episodes.push(validatedEpisode);
+      } catch (error) {
+        console.warn(`[TV Show Service] Failed to transform episode in season ${seasonNum}:`, error);
+        // Continue with other episodes - don't let one bad episode break the whole season
+      }
+    }
+  } else {
+    console.warn(`[TV Show Service] No episodes array found for season ${seasonNum}`);
+  }
+  
+  // Validate season poster with fallback
+  const seasonThumbnail = seasonData.poster_path && typeof seasonData.poster_path === 'string'
+    ? `${TMDB_IMAGE_BASE_URL}/w500${seasonData.poster_path}`
+    : (tvShow.poster_path 
+        ? `${TMDB_IMAGE_BASE_URL}/w500${tvShow.poster_path}`
+        : '/placeholder-movie.jpg');
+  
+  // Validate season air date with fallback
+  const seasonReleaseDate = seasonData.air_date && typeof seasonData.air_date === 'string'
+    ? seasonData.air_date
+    : tvShow.first_air_date || new Date().toISOString().split('T')[0];
+
   return {
-      id: tmdbShow.id.toString(),
-      title: tmdbShow.name,
-      description: tmdbShow.overview,
-      releaseDate: tmdbShow.first_air_date,
-      duration: tmdbShow.episode_run_time?.[0] || 45,
-      rating: Math.round(tmdbShow.vote_average * 10) / 10,
-      genres: tmdbShow.genres?.map((g: any) => g.name) || [],
-      thumbnail: `https://image.tmdb.org/t/p/w500${tmdbShow.poster_path}`,
-      backdrop: `https://image.tmdb.org/t/p/original${tmdbShow.backdrop_path}`,
-      director: tmdbShow.created_by?.[0]?.name || 'Unknown',
-      cast: tmdbShow.credits?.cast?.slice(0, 10).map((actor: any) => ({
-          id: actor.id.toString(),
-          name: actor.name,
-          character: actor.character,
-          profileImage: actor.profile_path 
-              ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
-              : '/placeholder-actor.jpg'
-      })) || [],
-      languages: tmdbShow.spoken_languages?.map((lang: any) => lang.english_name) || ['English'],
-      contentRating: tmdbShow.content_ratings?.results?.find((cr: any) => cr.iso_3166_1 === 'US')?.rating || 'NR'
+    id: `${tvShowId}-season-${seasonNum}`,
+    seasonNumber: seasonNum,
+    title: `Season ${seasonNum}`,
+    episodes: episodes,
+    releaseDate: seasonReleaseDate,
+    thumbnail: seasonThumbnail
   };
 }
+
+// ============================================================================
+// DATA VALIDATION AND TRANSFORMATION UTILITIES
+// ============================================================================
+
+/**
+ * Validates required TV show fields from TMDB response
+ * @param tmdbShow - Raw TMDB TV show data
+ * @returns Object with validation status and missing fields
+ */
+function validateTVShowFields(tmdbShow: any): { isValid: boolean; missingFields: string[] } {
+  const requiredFields = ['id', 'name', 'overview', 'poster_path', 'backdrop_path'];
+  const missingFields: string[] = [];
+  
+  for (const field of requiredFields) {
+    if (!tmdbShow[field]) {
+      missingFields.push(field);
+    }
+  }
+  
+  return {
+    isValid: missingFields.length === 0,
+    missingFields
+  };
+}
+
+/**
+ * Applies fallback values for missing optional TV show fields
+ * @param tmdbShow - Raw TMDB TV show data
+ * @returns TV show data with fallback values applied
+ */
+function applyTVShowFallbacks(tmdbShow: any): any {
+  const fallbackShow = { ...tmdbShow };
+  
+  // Apply fallback for missing poster_path
+  if (!fallbackShow.poster_path) {
+    console.warn(`[TV Show Service] Missing poster_path for TV show ${tmdbShow.id}, using placeholder`);
+    fallbackShow.poster_path = '/placeholder-movie.jpg';
+  }
+  
+  // Apply fallback for missing backdrop_path
+  if (!fallbackShow.backdrop_path) {
+    console.warn(`[TV Show Service] Missing backdrop_path for TV show ${tmdbShow.id}, using poster as fallback`);
+    fallbackShow.backdrop_path = fallbackShow.poster_path;
+  }
+  
+  // Apply fallback for missing overview
+  if (!fallbackShow.overview || fallbackShow.overview.trim() === '') {
+    console.warn(`[TV Show Service] Missing overview for TV show ${tmdbShow.id}, using default description`);
+    fallbackShow.overview = `Watch ${fallbackShow.name || 'this TV show'} and enjoy the story.`;
+  }
+  
+  // Apply fallback for missing first_air_date
+  if (!fallbackShow.first_air_date) {
+    console.warn(`[TV Show Service] Missing first_air_date for TV show ${tmdbShow.id}, using current date`);
+    fallbackShow.first_air_date = new Date().toISOString().split('T')[0];
+  }
+  
+  // Apply fallback for missing episode_run_time
+  if (!fallbackShow.episode_run_time || fallbackShow.episode_run_time.length === 0) {
+    console.warn(`[TV Show Service] Missing episode_run_time for TV show ${tmdbShow.id}, using default 45 minutes`);
+    fallbackShow.episode_run_time = [45];
+  }
+  
+  // Apply fallback for missing vote_average
+  if (typeof fallbackShow.vote_average !== 'number' || fallbackShow.vote_average === 0) {
+    console.warn(`[TV Show Service] Missing or invalid vote_average for TV show ${tmdbShow.id}, using default 7.0`);
+    fallbackShow.vote_average = 7.0;
+  }
+  
+  // Apply fallback for missing genres
+  if (!fallbackShow.genres || fallbackShow.genres.length === 0) {
+    console.warn(`[TV Show Service] Missing genres for TV show ${tmdbShow.id}, using default genre`);
+    fallbackShow.genres = [{ id: 0, name: 'Drama' }];
+  }
+  
+  // Apply fallback for missing spoken_languages
+  if (!fallbackShow.spoken_languages || fallbackShow.spoken_languages.length === 0) {
+    console.warn(`[TV Show Service] Missing spoken_languages for TV show ${tmdbShow.id}, using English as default`);
+    fallbackShow.spoken_languages = [{ english_name: 'English', iso_639_1: 'en' }];
+  }
+  
+  return fallbackShow;
+}
+
+/**
+ * Helper function to transform TMDB TV show data to Movie interface with validation
+ * @param tmdbShow - Raw TMDB TV show data
+ * @returns Transformed Movie object with fallbacks applied
+ */
+function transformTMDBTVShow(tmdbShow: any): Movie {
+  try {
+    // Validate required fields
+    const validation = validateTVShowFields(tmdbShow);
+    
+    if (!validation.isValid) {
+      console.warn(`[TV Show Service] TV show ${tmdbShow.id} missing required fields: ${validation.missingFields.join(', ')}`);
+      console.warn(`[TV Show Service] Applying fallback values for missing fields`);
+    }
+    
+    // Apply fallback values for missing optional fields
+    const showWithFallbacks = applyTVShowFallbacks(tmdbShow);
+    
+    // Transform to Movie interface
+    return {
+      id: showWithFallbacks.id.toString(),
+      title: showWithFallbacks.name,
+      description: showWithFallbacks.overview,
+      releaseDate: showWithFallbacks.first_air_date,
+      duration: showWithFallbacks.episode_run_time[0],
+      rating: Math.round(showWithFallbacks.vote_average * 10) / 10,
+      genres: showWithFallbacks.genres.map((g: any) => g.name),
+      thumbnail: showWithFallbacks.poster_path.startsWith('http') 
+        ? showWithFallbacks.poster_path 
+        : `${TMDB_IMAGE_BASE_URL}/w500${showWithFallbacks.poster_path}`,
+      backdrop: showWithFallbacks.backdrop_path.startsWith('http')
+        ? showWithFallbacks.backdrop_path
+        : `${TMDB_IMAGE_BASE_URL}/original${showWithFallbacks.backdrop_path}`,
+      director: showWithFallbacks.created_by?.[0]?.name || 'Unknown',
+      cast: showWithFallbacks.credits?.cast?.slice(0, 10).map((actor: any) => ({
+        id: actor.id.toString(),
+        name: actor.name,
+        character: actor.character,
+        profileImage: actor.profile_path 
+          ? `${TMDB_IMAGE_BASE_URL}/w185${actor.profile_path}`
+          : '/placeholder-actor.jpg'
+      })) || [],
+      languages: showWithFallbacks.spoken_languages.map((lang: any) => lang.english_name),
+      contentRating: showWithFallbacks.content_ratings?.results?.find((cr: any) => cr.iso_3166_1 === 'US')?.rating || 'NR'
+    };
+  } catch (error) {
+    console.error(`[TV Show Service] Error transforming TV show data for ID ${tmdbShow?.id}:`, error);
+    
+    // Return a minimal valid Movie object as last resort
+    return {
+      id: tmdbShow?.id?.toString() || '0',
+      title: tmdbShow?.name || 'Unknown TV Show',
+      description: tmdbShow?.overview || 'No description available.',
+      releaseDate: tmdbShow?.first_air_date || new Date().toISOString().split('T')[0],
+      duration: 45,
+      rating: 7.0,
+      genres: ['Drama'],
+      thumbnail: '/placeholder-movie.jpg',
+      backdrop: '/placeholder-movie.jpg',
+      director: 'Unknown',
+      cast: [],
+      languages: ['English'],
+      contentRating: 'NR'
+    };
+  }
+}
+
+// ============================================================================
+// END DATA VALIDATION AND TRANSFORMATION UTILITIES
+// ============================================================================
 // Get popular movies
 export async function getPopularMovies(page: number = 1): Promise<Movie[]> {
   try {

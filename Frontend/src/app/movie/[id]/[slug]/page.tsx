@@ -353,7 +353,7 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
                       <Link
                         href={`/watch/${movie.id}?fullscreen=true&autoplay=true&title=${encodeURIComponent(movie.title)}&src=${videoSrc}&poster=${encodeURIComponent(movie.backdrop)}`}
                       >
-                        <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white">
+                        <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
                           <Play className="mr-2 h-5 w-5" />
                           Play Now
                         </Button>
@@ -369,13 +369,13 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
                       hasError={trailerState.hasError}
                       movieId={movie.id}
                       movieTitle={movie.title}
-                      size="lg"
+                      size="sm"
                     />
 
                     {isAuthenticated && movie && (
                       <>
                         <Button
-                          size="lg"
+                          size="sm"
                           variant="outline"
                           onClick={handleToggleList}
                           className={`border-white/20 text-white hover:bg-white/10 transition-all ${isInList(movie.id)
@@ -409,7 +409,7 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
                       </>
                     )}
 
-                    <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                    <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
                       <Share className="mr-2 h-5 w-5" />
                       Share
                     </Button>
