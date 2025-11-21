@@ -47,6 +47,7 @@ public class UserController {
         return new ResponseEntity<>("new User and Subscription plan is not created",HttpStatus.BAD_REQUEST);
 
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserAccount(@PathVariable Long id)throws Exception{
         User user=userServiceImpl.findUserById(id);
