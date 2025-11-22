@@ -25,13 +25,13 @@ import {
   fetchTVShowsByGenre,
   convertTMDBTVShowToMovie,
   convertTMDBTVShowDetailsToMovie,
-  TMDBGenre
+  TMDBGenre,
+  // API Configuration
+  TMDB_API_KEY,
+  TMDB_ACCESS_TOKEN,
+  TMDB_BASE_URL,
+  TMDB_IMAGE_BASE_URL
 } from './tmdb';
-
-const TMDB_API_KEY = process.env.TMDB_API_KEY || '';
-const TMDB_ACCESS_TOKEN = process.env.TMDB_ACCESS_TOKEN || '';
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
 
 import { Movie, Collection, TVShow, Season, Episode } from '@/types';
 

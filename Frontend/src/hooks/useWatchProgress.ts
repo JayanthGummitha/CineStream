@@ -50,7 +50,7 @@ export interface UseWatchProgressReturn {
   /** Function to save progress with current time and duration */
   saveProgress: (currentTime: number, duration: number) => void;
   
-  /** Function to clear progress (when content is completed) */
+  /** Function to mark content as completed (saves at 100%, keeps in watch history) */
   clearProgress: () => void;
   
   /** Resume point in seconds (null if no progress exists) */
@@ -188,7 +188,13 @@ export function useWatchProgress(
   );
   
   /**
-   * Clear progress (mark as completed)
+   * Mark content as completed (save at 100%)
+   * 
+   * IMPORTANT: We DO NOT delete completed items from storage.
+   * Completed items should remain in watch history for 30 days.
+   * They will be automatically cleaned up by the clearOldProgress function.
+   * 
+   * This function saves the progress at 100% to mark completion.
    */
   const clearProgress = useCallback(async () => {
     // Don't clear for unauthenticated users
@@ -203,17 +209,34 @@ export function useWatchProgress(
     }
     
     try {
-      await deleteProgressFromStorage(user.id, videoId);
+      // Instead of deleting, save progress at 100% to mark as completed
+      // This keeps the item in watch history
+      const completedProgressData: WatchProgressData = {
+        videoId,
+        userId: user.id,
+        contentType,
+        currentTime: progress?.duration || 0,
+        duration: progress?.duration || 0,
+        percentage: 100,
+        lastWatchedAt: new Date().toISOString(),
+        title: metadata.title,
+        thumbnail: metadata.thumbnail,
+        seasonNumber: metadata.seasonNumber,
+        episodeNumber: metadata.episodeNumber,
+        episodeTitle: metadata.episodeTitle,
+      };
+      
+      await saveProgressToStorage(user.id, completedProgressData);
       
       if (isMountedRef.current) {
-        setProgress(null);
-        setResumePoint(null);
+        setProgress(completedProgressData);
+        setResumePoint(null); // Clear resume point since it's completed
       }
     } catch (error) {
       // Log error but don't break functionality
-      console.error('Failed to clear progress:', error);
+      console.error('Failed to mark progress as completed:', error);
     }
-  }, [videoId, isAuthenticated, user]);
+  }, [videoId, contentType, metadata, isAuthenticated, user, progress]);
   
   /**
    * Cleanup on unmount

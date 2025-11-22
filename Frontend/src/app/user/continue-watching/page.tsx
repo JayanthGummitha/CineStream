@@ -88,37 +88,53 @@ export default function ContinueWatchingPage() {
     <div className="min-h-screen bg-background">
       <main className="container max-w-screen-2xl px-4 md:px-8 lg:px-12 py-8">
         {/* Header Section */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30">
-                <Play className="h-8 w-8 text-white fill-white" />
+        <div className="mb-10">
+          {/* Top Bar with Title and Actions */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
+            {/* Title Section */}
+            <div className="flex items-start gap-5">
+              <div className="relative">
+                <div className="absolute inset-0  rounded-2xl blur-xl opacity-40"></div>
+                <div className="relative p-4 rounded-2xl shadow-2xl">
+                  <Play className="h-7 w-7 text-white fill-white" />
+                </div>
               </div>
-              <div>
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
+              <div className="flex-1">
+                <h1 className="text-3xl md:text-4xl lg:text-4xl font-bold text-white mb-2 tracking-tight">
                   Continue Watching
                 </h1>
-                <p className="text-white/70 text-lg">
-                  Pick up where you left off • {progressList.length} {progressList.length === 1 ? 'item' : 'items'}
-                </p>
+                <div className="flex items-center gap-3 text-white/60">
+                  <span className="text-sm md:text-base font-medium">
+                    {progressList.length} {progressList.length === 1 ? 'video' : 'videos'} in progress
+                  </span>
+                  <span className="hidden sm:inline text-white/40">•</span>
+                  <span className="hidden sm:inline text-sm md:text-base">Pick up where you left off</span>
+                </div>
               </div>
             </div>
 
-            {/* Refresh Button */}
+            {/* Action Buttons */}
             {progressList.length > 0 && (
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={refreshProgress}
-                disabled={isRefreshing}
-                className="bg-black/40 border-white/20 hover:bg-black/60 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Refresh progress"
-              >
-                <RefreshCw className={`h-5 w-5 text-white mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={refreshProgress}
+                  disabled={isRefreshing}
+                  className="group relative overflow-hidden bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 w-full font-semibold bg-gradient-to-b from-red-500 to-red-600 shadow-red-500"
+                  
+                  aria-label="Refresh progress"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/10 to-blue-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                  <RefreshCw className={`h-4 w-4 text-white mr-2 transition-transform ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180'} duration-500`} />
+                  <span className="text-white font-medium">Refresh</span>
+                </Button>
+              </div>
             )}
           </div>
+
+          {/* Divider */}
+          {/* <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div> */}
         </div>
 
         {/* Content Grid */}
@@ -140,7 +156,7 @@ export default function ContinueWatchingPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+          <div className="flex flex-wrap gap-3">
             {progressList.map((progressData) => {
               const isMovie = progressData.contentType === 'movie';
               const displayTitle = progressData.title;
@@ -148,8 +164,8 @@ export default function ContinueWatchingPage() {
 
               return (
                 <Link key={progressData.videoId} href={getContentUrl(progressData)}>
-                  <div className="group relative cursor-pointer transition-all duration-300 hover:scale-105 min-w-[280px]">
-                    <div className="relative rounded-lg overflow-hidden bg-black w-[300px] h-[150px] flex flex-col">
+                  <div className="group relative cursor-pointer transition-all duration-300 hover:scale-105 w-[298px] h-[200px]">
+                    <div className="relative rounded-lg overflow-hidden bg-black h-full w-full flex flex-col">
                       {/* Main Image */}
                       <div className="relative flex-1">
                         <Image

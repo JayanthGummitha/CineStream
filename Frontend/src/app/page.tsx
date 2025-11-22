@@ -4,6 +4,7 @@ import { Footer } from '@/components/navigation/footer';
 import { HeroSection } from '@/components/home/hero-section';
 import { ContentCarousel } from '@/components/content/content-carousel';
 import { ContinueWatchingSection } from '@/components/home/continue-watching-section';
+import { RewatchSection } from '@/components/home/RewatchSection';
 import { PopularWeekSection } from '@/components/home/popular-week-section';
 import { JustReleaseSection } from '@/components/home/just-release-section';
 // import { YourWatchlistSection } from '@/components/home/your-watchlist-section';
@@ -30,10 +31,10 @@ export default async function Home() {
   const upcomingCollection = collections.find(c => c.id === 'upcoming');
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen  bg-background overflow-x-hidden">
       <Header isAuthenticated={isAuthenticated} />
 
-      <main>
+      <main className="w-screen overflow-x-hidden">
         {/* Hero Section */}
         <HeroSection
           featuredContent={featuredContent}
@@ -46,6 +47,11 @@ export default async function Home() {
             {/* Continue Watching Section */}
             {isAuthenticated && (
               <ContinueWatchingSection />
+            )}
+
+            {/* Watch Again Section - Completed content from 15-20 days ago */}
+            {isAuthenticated && (
+              <RewatchSection />
             )}
 
             {/* My List Section */}

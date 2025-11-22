@@ -65,174 +65,16 @@ export function HeroSection({ featuredContent, isAuthenticated = false }: HeroSe
   const videoSrc = 'https://media.axprod.net/TestVectors/v7-Clear/Manifest_1080p.mpd';
 
   return (
-    // <section className="relative hero-height w-full bg-amber-400 overflow-hidden">
-
-    //   <div className="absolute inset-0 ">
-    //     <Image
-    //       src={currentMovie.backdrop}
-    //       alt={currentMovie.title}
-
-    //       fill
-    //       sizes="100"
-    //       className="object-fill scale-105"
-    //       priority
-    //     />
-    //     <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/70 to-black/40 lg:from-black/95 lg:via-black/60 lg:to-black/30" />
-    //     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent lg:via-black/20" />
-    //     <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent lg:from-black/40" />
-    //   </div>
-
-    //   <div className="relative z-10 flex h-full items-center">
-    //     <div className="responsive-container">
-    //       <div className="grid grid-cols-1 lg:grid-cols-12 gap-responsive-large w-full">
-    //         <div className="lg:col-span-8 xl:col-span-7">
-    //           <div className="max-w-3xl h-full flex flex-col  sm:justify-center space-responsive-large">
-
-    //             <div className='bg-amber-300'>
-    //               <h1 className="heading-hero text-white leading-tight tracking-wide mb-2 sm:mb-3 lg:mb-4">
-    //                 {currentMovie.title.toUpperCase()}
-    //               </h1>
-
-    //               {/* Movie Badges and Metadata */}
-    //               <div className="flex flex-wrap items-center gap-responsive text-white/90">
-    //                 {/* Badges */}
-    //                 {currentMovie.isNew && (
-    //                   <div className="px-2 py-1 sm:px-3 bg-gradient-to-r from-red-500 to-orange-500 rounded-full text-white text-xs sm:text-xs font-bold uppercase tracking-wider">
-    //                     New Release
-    //                   </div>
-    //                 )}
-    //                 {currentMovie.isTrending && (
-    //                   <div className="px-2 py-1 sm:px-3 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full text-white text-xs sm:text-xs font-medium uppercase tracking-wider">
-    //                     Trending
-    //                   </div>
-    //                 )}
-    //                 <div className="px-2 py-1 sm:px-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white text-xs sm:text-xs font-medium">
-    //                   {currentMovie.contentRating}
-    //                 </div>
-
-    //                 {/* Separator - Hidden on mobile */}
-    //                 <span className="hidden sm:inline text-white/60">|</span>
-
-    //                 {/* Metadata - Responsive layout */}
-    //                 <div className="flex flex-wrap items-center gap-responsive-compact text-xs sm:text-sm font-medium">
-    //                   <span>{currentMovie.genres.slice(0, 2).join(', ')}</span>
-    //                   <span className="text-white/60">•</span>
-    //                   <span>{new Date(currentMovie.releaseDate).getFullYear()}</span>
-    //                   <span className="text-white/60">•</span>
-    //                   <span>{Math.floor(currentMovie.duration / 60)}h {currentMovie.duration % 60}m</span>
-    //                 </div>
-    //               </div>
-    //             </div>
-
-    //             <div className="max-w-responsive-text">
-    //               <p className="text-white/90 body-text leading-relaxed overflow-clamp-responsive overflow-text-responsive">
-    //                 {currentMovie.description}
-    //               </p>
-    //             </div>
-
-
-
-    //             <div className="flex flex-row sm:flex-row items-stretch sm:items-center gap-responsive">
-    //               <Button
-    //                 size="lg"
-    //                 className="button-responsive-large bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold rounded-2xl shadow-2xl hover:shadow-red-500/25 transition-all duration-300 touch-target-large"
-    //               >
-    //                 <Play className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 fill-white" />
-    //                 Watch Now
-    //               </Button>
-
-    //               <div className="flex max-md:flex gap-responsive">
-    //                 <Button
-    //                   size="lg"
-    //                   variant="outline"
-    //                   className="button-responsive-large bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-white/20 hover:border-white/30 font-semibold rounded-2xl transition-all duration-300 touch-target-large flex-1 sm:flex-none"
-    //                 >
-    //                   <Plus className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
-    //                   My List
-    //                 </Button>
-
-    //                 <Button
-    //                   size="lg"
-    //                   variant="ghost"
-    //                   className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all duration-300 touch-target-large"
-    //                 >
-    //                   <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    //                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    //                   </svg>
-    //                 </Button>
-    //               </div>
-    //             </div>
-
-
-    //           </div>
-    //         </div>
-
-    //         <div className="hidden lg:block lg:col-span-4 xl:col-span-5">
-    //         </div>
-    //       </div>
-    //     </div>
-    //   </div>
-
-    //   <div className="w-full max-lg:px-5 absolute flex justify-end bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 md:bottom-0 md:left-8 md:right-8 lg:bottom-0 lg:right-8 lg:left-auto z-20">
-    //     <div className="rounded-2xl sm:rounded-3xl p-3 sm:p-4 lg:p-6">
-    //       <div className="flex justify-center lg:justify-end gap-2 sm:gap-3 overflow-x-auto scrollbar-hide">
-    //         {carouselMovies.map(({ movie, originalIndex }, carouselIndex) => (
-    //           <div
-    //             key={movie.id}
-    //             className="group cursor-pointer transition-all duration-300 flex-shrink-0 touch-target"
-    //             onClick={() => setCurrentIndex(originalIndex)}
-    //           >
-    //             <div className="relative w-[70px] h-[98px] sm:w-[80px] sm:h-[112px] md:w-[90px] md:h-[126px] lg:w-[100px] lg:h-[140px] rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 hover:border-white/40 transition-all duration-300">
-    //               <Image
-    //                 src={movie.thumbnail}
-    //                 alt={movie.title}
-    //                 fill
-    //                 sizes="(max-width: 640px) 70px, (max-width: 768px) 80px, (max-width: 1024px) 90px, 100px"
-    //                 className="object-cover group-hover:scale-105 transition-transform duration-300"
-    //               />
-
-    //               {carouselIndex === 0 && (
-    //                 <div className="absolute top-1 left-1 sm:top-2 sm:left-2 lg:top-3 lg:left-3">
-    //                   <div className="px-1 py-0.5 sm:px-2 sm:py-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[6px] sm:text-[8px] font-bold rounded-full uppercase tracking-wider">
-    //                     Next
-    //                   </div>
-    //                 </div>
-    //               )}
-
-    //               <div className="absolute inset-0  items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:flex">
-    //                 <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center shadow-2xl">
-    //                   <Play className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-white fill-white ml-0.5" />
-    //                 </div>
-    //               </div>
-
-    //               <div className="absolute inset-0 bg-black/20 opacity-0 group-active:opacity-100 transition-opacity duration-150 sm:hidden" />
-    //             </div>
-    //           </div>
-    //         ))}
-    //       </div>
-    //     </div>
-    //   </div>
-
-    //   {isAuthenticated && (
-    //     <div className="absolute bottom-8 right-6 z-20">
-    //       <div className="text-center text-white/60 text-sm">
-    //         <div className="w-12 h-12 bg-white/20 rounded-full mx-auto mb-2 flex items-center justify-center">
-    //           <span className="text-white font-semibold">TM</span>
-    //         </div>
-    //         <p>TANJIM MORSHED</p>
-    //       </div>
-    //     </div>
-    //   )}
-    // </section>
-    <section className="relative h-screen w-full overflow-hidden">
+   
+    <section className="relative h-screen w-screen overflow-hidden">
       {/* Background Image */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 w-screen h-full">
         <Image
           src={currentMovie.backdrop || currentMovie.thumbnail}
           alt={currentMovie.title}
           fill
           sizes="100vw"
-          className="object-cover scale-105"
+          className="object-cover"
           priority
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/60 to-black/30" />
@@ -241,8 +83,8 @@ export function HeroSection({ featuredContent, isAuthenticated = false }: HeroSe
       </div>
 
       {/* Main Content */}
-      <div className="relative px-2 z-10 flex h-full sm:items-center justify-end">
-        <div className="full-width-minimal">
+      <div className="relative z-10 flex h-full sm:items-center justify-end">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 w-full">
             {/* Left Side - Show Info */}
             <div className="max-sm:h-70 lg:col-span-8 xl:col-span-7 max-sm:mt-26">

@@ -1,7 +1,7 @@
-const TMDB_API_KEY = '7e83be858f9268de6fa04f84b4045b31';
-const TMDB_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3ZTgzYmU4NThmOTI2OGRlNmZhMDRmODRiNDA0NWIzMSIsIm5iZiI6MTc1NDk2OTAyOC44MDMsInN1YiI6IjY4OWFiM2M0OTE0Yzg1NDZhMThkYjBlZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.31grce5Jf4lAiwnVXpLih4Sh6G81Y4KprizPynnPUjw';
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
+export const TMDB_API_KEY = '7e83be858f9268de6fa04f84b4045b31';
+export const TMDB_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3ZTgzYmU4NThmOTI2OGRlNmZhMDRmODRiNDA0NWIzMSIsIm5iZiI6MTc1NDk2OTAyOC44MDMsInN1YiI6IjY4OWFiM2M0OTE0Yzg1NDZhMThkYjBlZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.31grce5Jf4lAiwnVXpLih4Sh6G81Y4KprizPynnPUjw';
+export const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+export const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
 
 // TMDB API Response Types
 export interface TMDBMovie {

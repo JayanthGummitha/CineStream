@@ -75,13 +75,13 @@ export function PopularWeekSection({ items, isAuthenticated }: PopularWeekSectio
       {/* Horizontal Scrolling Carousel - Full width with minimal padding */}
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 full-width-minimal"
+        className="flex gap-1 overflow-x-auto scrollbar-hide pb-4 full-width-minimal"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {items.slice(0, 10).map((item, index) => (
           <div
             key={item.id}
-            className="flex-shrink-0 w-80 sm:w-96 md:w-[calc((100vw-1vw-3rem)/4)] lg:w-[calc((100vw-1vw-3rem)/4)] xl:w-[calc((100vw-1vw-3rem)/4)]"
+            className="flex-shrink-0 w-80 sm:w-96 md:w-[calc((100vw-1vw-3rem)/3)] lg:w-[calc((100vw-1vw-3rem)/4)] xl:w-[calc((100vw-1vw-3rem)/4)]"
           >
             <PopularWeekCard
               item={item}
@@ -106,52 +106,52 @@ function PopularWeekCard({ item, rank, isAuthenticated }: PopularWeekCardProps) 
 
   return (
     <Link href={isMovie ? createDetailUrl('movie', item.id, item.title) : createDetailUrl('tv', item.id, item.title)}>
-      <div className="group flex items-center gap-responsive cursor-pointer transition-all duration-300 hover:scale-105 w-full">
+      <div className="group flex items-center gap-2 sm:gap-1 md:gap-1 cursor-pointer transition-all duration-300 hover:scale-105 w-full ">
 
         {/* Rank Number */}
-        <div className="flex-shrink-0">
-          <span className="text-6xl font-black text-white leading-none">
+        <div className="flex-shrink-0 w-8 sm:w-10 md:w-12 ">
+          <span className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-none">
             {rank}
           </span>
         </div>
 
         {/* Movie Poster */}
-        <div className="relative w-24 h-36 flex-shrink-0 rounded-lg overflow-hidden">
+        <div className="relative w-16 h-24 sm:w-20 sm:h-30 md:w-24 md:h-36 flex-shrink-0 rounded-lg overflow-hidden">
           <Image
             src={item.thumbnail}
             alt={item.title}
             fill
-            sizes="96px"
+            sizes="(max-width: 640px) 64px, (max-width: 768px) 80px, 96px"
             className="object-cover transition-all duration-300 group-hover:brightness-110"
           />
         </div>
 
         {/* Content Info */}
-        <div className="flex-1 min-w-0 space-responsive-compact overflow-text-responsive">
+        <div className="flex-1 min-w-0 space-y-1 sm:space-y-1.5 md:space-y-2">
           {/* Content Rating Badge - Above Title */}
-          <div className="mb-1">
-            <span className="bg-black/70 text-white text-xs px-2 py-1 rounded">
+          <div>
+            <span className="bg-black/70 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
               {item.contentRating}
             </span>
           </div>
 
-          <h3 className="heading-card text-white font-bold leading-tight overflow-ellipsis-responsive">
+          <h3 className="text-sm sm:text-base md:text-lg text-white font-bold leading-tight line-clamp-2">
             {item.title}
           </h3>
 
           {/* Genres */}
-          <div className="flex items-center gap-1 caption-text text-white/70">
-            <span className="w-2 h-2 bg-white/50 rounded-full"></span>
-            <span>{item.genres.slice(0, 2).join(' • ')}</span>
+          <div className="flex items-center gap-1 text-[10px] sm:text-xs text-white/70">
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white/50 rounded-full flex-shrink-0"></span>
+            <span className="truncate">{item.genres.slice(0, 2).join(' • ')}</span>
           </div>
 
           {/* Rating */}
-          <div className="flex items-center gap-responsive-compact">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-              <span className="text-yellow-400 font-semibold caption-text">{item.rating}</span>
+              <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
+              <span className="text-yellow-400 font-semibold text-xs sm:text-sm">{item.rating}</span>
             </div>
-            <span className="text-white/60 caption-text">
+            <span className="text-white/60 text-[10px] sm:text-xs">
               {isMovie ? 'Movie' : 'TV Show'}
             </span>
           </div>

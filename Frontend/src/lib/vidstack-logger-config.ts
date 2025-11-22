@@ -32,18 +32,18 @@ export interface VidstackLoggerConfig {
 /**
  * Determines the appropriate Vidstack log level based on environment
  * 
- * @returns 'warn' for development (reduces noise while keeping important messages)
- *          'error' for production (minimal logging for performance)
+ * @returns 'silent' to completely disable Vidstack's internal logging
  * 
- * Development: 'warn' level suppresses verbose info logs that trigger
- * state serialization errors while maintaining visibility of warnings and errors.
+ * Note: Set to 'silent' to prevent state serialization errors that occur
+ * when Vidstack's logger tries to stringify reactive state proxies during
+ * autoplay failures or other internal logging operations.
  * 
- * Production: 'error' level minimizes logging overhead and only shows
- * critical issues that need attention.
+ * Even 'error' level can trigger serialization in some cases, so 'silent'
+ * is used to completely disable Vidstack's internal logging system.
+ * Application-level error handling is still active and functional.
  */
 export function getVidstackLogLevel(): VidstackLogLevel {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  return isDevelopment ? 'warn' : 'error';
+  return 'silent';
 }
 
 /**

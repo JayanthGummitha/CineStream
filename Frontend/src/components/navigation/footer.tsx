@@ -6,7 +6,7 @@ export function Footer() {
   return (
     <footer className="bg-card border-t border-border">
       <div className="container max-w-screen-2xl px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5  lg:justify-items-center  gap-8">
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
@@ -16,7 +16,7 @@ export function Footer() {
               <span className="font-bold text-xl">CineStream</span>
             </div>
             <p className="text-sm text-muted-foreground max-w-xs">
-              Stream thousands of movies and TV shows instantly. Premium entertainment 
+              Stream thousands of movies and TV shows instantly. Premium entertainment
               at your fingertips, anywhere, anytime.
             </p>
             <div className="flex space-x-4">
@@ -28,7 +28,7 @@ export function Footer() {
                   Youtube,
                 };
                 const IconComponent = iconMap[social.icon as keyof typeof iconMap];
-                
+
                 return (
                   <Link
                     key={social.name}
@@ -45,9 +45,9 @@ export function Footer() {
           </div>
 
           {/* Company Links */}
-          <div className="space-y-4">
+          <div className="space-y-4 grid justify-items-start">
             <h3 className="font-semibold">Company</h3>
-            <ul className="space-y-2">
+            <ul className="space-y-2 grid justify-items-start">
               {FOOTER_LINKS.company.map((link) => (
                 <li key={link.name}>
                   <Link
@@ -62,9 +62,9 @@ export function Footer() {
           </div>
 
           {/* Support Links */}
-          <div className="space-y-4">
+          <div className="space-y-4 grid justify-items-start">
             <h3 className="font-semibold">Support</h3>
-            <ul className="space-y-2">
+            <ul className="space-y-2 grid justify-items-start">
               {FOOTER_LINKS.support.map((link) => (
                 <li key={link.name}>
                   <Link
@@ -76,20 +76,13 @@ export function Footer() {
                 </li>
               ))}
             </ul>
-            <div className="pt-2 space-y-1">
-              <p className="text-xs text-muted-foreground">
-                Email: {CONTACT_INFO.email}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Support: {CONTACT_INFO.supportHours}
-              </p>
-            </div>
+
           </div>
 
           {/* Legal Links */}
-          <div className="space-y-4">
+          <div className="space-y-4 grid justify-items-start">
             <h3 className="font-semibold">Legal</h3>
-            <ul className="space-y-2">
+            <ul className="space-y-2 grid justify-items-start">
               {FOOTER_LINKS.legal.map((link) => (
                 <li key={link.name}>
                   <Link
@@ -102,6 +95,31 @@ export function Footer() {
               ))}
             </ul>
           </div>
+
+          {/* Contact Details */}
+          <div className="space-y-4 grid justify-items-start">
+            <div className="pt-2 space-y-2 ">
+              <h3 className="font-semibold">Contact</h3>
+              <ul className="space-y-2">
+                <li>
+                  <p 
+                    className=" text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Email: {CONTACT_INFO.email}
+                  </p>
+                </li>
+                <li>
+
+                  <p 
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Support: {CONTACT_INFO.supportHours}
+                  </p>
+                </li>
+              </ul>
+            </div>
+          </div>
+
         </div>
 
         <div className="mt-12 pt-8 border-t border-border">
