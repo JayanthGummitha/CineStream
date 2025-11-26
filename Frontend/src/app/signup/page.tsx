@@ -614,21 +614,39 @@ export default function SignUpPage() {
                         </div>
                         {/* Privacy Terms Checkbox */}
                         <div className="flex items-start space-x-2 sm:space-x-3">
-                            <input
-                                type="checkbox"
-                                id="agreeTerms"
-                                checked={agreeTerms}
-                                onChange={(e) => setAgreeTerms(e.target.checked)}
-                                className="mt-1 h-4 w-4 sm:h-5 sm:w-5 text-blue-600 bg-[#0a0a0a] border-gray-600 rounded focus:ring-blue-500 focus:ring-2 touch-target cursor-pointer"
-                                required
-                            />
-                            <label htmlFor="agreeTerms" className="micro-text text-[#828080] leading-relaxed">
+                            <button
+                                type="button"
+                                onClick={() => setAgreeTerms(!agreeTerms)}
+                                className="mt-0.5 h-4 w-4 flex items-center justify-center rounded border transition-all duration-200 cursor-pointer flex-shrink-0"
+                                style={{
+                                    borderColor: agreeTerms ? '#006BFF' : '#4a4a4a',
+                                    backgroundColor: agreeTerms ? '#006BFF' : '#0a0a0a'
+                                }}
+                                aria-label="Agree to terms"
+                            >
+                                {agreeTerms && (
+                                    <motion.svg
+                                        initial={{ scale: 0, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="w-2.5 h-2.5 text-white"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={3}
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </motion.svg>
+                                )}
+                            </button>
+                            <label htmlFor="agreeTerms" className="micro-text text-[#828080] leading-relaxed cursor-pointer" onClick={() => setAgreeTerms(!agreeTerms)}>
                                 I agree to the{' '}
-                                <Link href="/privacy" className="text-blue-400 hover:text-blue-300 underline">
+                                <Link href="/privacy" className="text-blue-400 hover:text-blue-300 underline" onClick={(e) => e.stopPropagation()}>
                                     Privacy Policy
                                 </Link>
                                 {' '}and{' '}
-                                <Link href="/terms" className="text-blue-400 hover:text-blue-300 underline">
+                                <Link href="/terms" className="text-blue-400 hover:text-blue-300 underline" onClick={(e) => e.stopPropagation()}>
                                     Terms of Service
                                 </Link>
                             </label>

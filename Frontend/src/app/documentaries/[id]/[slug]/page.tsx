@@ -8,7 +8,9 @@ import { Footer } from '@/components/navigation/footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Play, Plus, Share, Download, Star, Clock, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { getMovieDetails, getMoviesByGenre } from '@/lib/movie-service';
+import { searchPersonImage } from '@/lib/tmdb';
 import { createDetailUrl } from '@/lib/url-utils';
 import { Movie } from '@/types';
 import Link from 'next/link';
@@ -24,9 +26,33 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
   const [documentary, setDocumentary] = useState<Movie | null>(null);
   const [relatedDocs, setRelatedDocs] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
+  const [directorImage, setDirectorImage] = useState<string | null>(null);
 
-  const isAuthenticated = false;
+  // Auto-login for development if not authenticated
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const authData = localStorage.getItem('cinestream_auth');
+      if (!authData) {
+        // Auto-login with demo user for development
+        const demoUser = {
+          id: 'demo-user-123',
+          name: 'Demo User',
+          email: 'demo@cinestream.com',
+          firstName: 'Demo',
+          lastName: 'User'
+        };
+        localStorage.setItem('cinestream_auth', JSON.stringify({ isAuthenticated: true, user: demoUser }));
+        localStorage.setItem('cinestream_user', JSON.stringify(demoUser));
+        console.log('✅ Auto-logged in as demo user for development');
+      }
+    }
+  }, []);
+
+  const isAuthenticated = true;
   const resolvedParams = use(params);
+  
+  // Sample video URL - using the same working source as movies
+  const videoSrc = 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_with_multiple_tiled_thumbnails.mpd';
 
   useEffect(() => {
     async function fetchDocumentaryData() {
@@ -39,6 +65,13 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
         }
 
         setDocumentary(movieData);
+
+        // Fetch director image from TMDB (non-blocking)
+        if (movieData.director && movieData.director !== 'Unknown') {
+          searchPersonImage(movieData.director).then(imageUrl => {
+            setDirectorImage(imageUrl);
+          });
+        }
 
         // Get related documentaries based on the first genre
         if (movieData.genres.length > 0) {
@@ -148,8 +181,8 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
 
                   {/* Action Buttons */}
                   <div className="flex flex-wrap items-center gap-4">
-                    {isAuthenticated || true && (
-                      <Link href={`/watch/${documentary.id}?title=${encodeURIComponent(documentary.title)}`}>
+                    { isAuthenticated  && (
+                      <Link href={`/watch/${documentary.id}?fullscreen=true&autoplay=true&title=${encodeURIComponent(documentary.title)}&src=${videoSrc}&poster=${encodeURIComponent(documentary.backdrop)}&type=movie`}>
                         <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
                           <Play className="mr-2 h-5 w-5" />
                           Play Now
@@ -195,41 +228,56 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
             <div className="lg:col-span-2 space-y-8">
 
               {/* Description Section */}
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-white">About This Documentary</h2>
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:border-white/20 transition-colors">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-lg">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                    </svg>
+                  </div>
+                  <h2 className="text-lg font-bold text-white">About This Documentary</h2>
+                </div>
                 <p className="text-white/80 leading-relaxed text-sm">
                   {documentary.description}
                 </p>
               </div>
 
               {/* Featured People Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white">Featured People</h2>
-                  <div className="flex items-center space-x-2">
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:border-white/20 transition-colors">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-lg font-bold text-white">Featured People</h2>
+                    <span className="text-white/40 text-sm">({documentary.cast.length} people)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => {
                         const container = document.getElementById('cast-carousel');
                         if (container) {
-                          container.scrollBy({ left: -400, behavior: 'smooth' });
+                          container.scrollBy({ left: -300, behavior: 'smooth' });
                         }
                       }}
-                      className="h-8 w-8 p-0 bg-transparent border-white/20 hover:bg-white/10"
+                      className="h-9 w-9 p-0 rounded-full bg-white/10 hover:bg-white/20 border-0"
                     >
                       <ChevronLeft className="h-4 w-4 text-white" />
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => {
                         const container = document.getElementById('cast-carousel');
                         if (container) {
-                          container.scrollBy({ left: 400, behavior: 'smooth' });
+                          container.scrollBy({ left: 300, behavior: 'smooth' });
                         }
                       }}
-                      className="h-8 w-8 p-0 bg-transparent border-white/20 hover:bg-white/10"
+                      className="h-9 w-9 p-0 rounded-full bg-white/10 hover:bg-white/20 border-0"
                     >
                       <ChevronRight className="h-4 w-4 text-white" />
                     </Button>
@@ -240,93 +288,189 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
                   className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
-                  {documentary.cast.map((person) => (
-                    <div key={person.id} className="flex-shrink-0 cursor-pointer group text-center">
-                      <div className="relative w-20 h-20 rounded-full overflow-hidden mx-auto mb-3 ring-2 ring-transparent group-hover:ring-white/30 transition-all duration-300">
-                        <Image
-                          src={person.profileImage}
-                          alt={person.name}
-                          fill
-                          className="object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
+                  {documentary.cast.map((person, index) => (
+                    <motion.div
+                      key={person.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex-shrink-0 group cursor-pointer"
+                    >
+                      <div className="bg-gradient-to-b from-white/10 to-white/5 rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-all duration-300 w-[140px]">
+                        <div className="relative w-20 h-20 mx-auto mb-3">
+                          <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md" />
+                          <div className="relative w-full h-full rounded-full overflow-hidden ring-2 ring-white/20 transition-all duration-300">
+                            <Image
+                              src={person.profileImage}
+                              alt={person.name}
+                              fill
+                              sizes="80px"
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-white font-semibold text-sm truncate mb-1 transition-colors">
+                            {person.name}
+                          </p>
+                          <p className="text-white/50 text-xs truncate">
+                            {person.character}
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-center max-w-[100px]">
-                        <p className="text-white font-semibold text-sm truncate mb-1">
-                          {person.name}
-                        </p>
-                        <p className="text-white/60 text-xs truncate">
-                          {person.character}
-                        </p>
-                      </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
-
             </div>
 
             {/* Right Column - Information Panel */}
-            <div className="space-y-6">
+            <div className="space-y-4">
+              {/* Documentary Details Card */}
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+                {/* Card Header */}
+                <div className="px-5 py-4 border-b border-white/10 bg-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-white font-semibold">Documentary Details</h3>
+                  </div>
+                </div>
 
-              {/* Released Year */}
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2 text-white/60">
-                  <Calendar className="h-4 w-4" />
-                  <span className="text-sm">Released Year</span>
-                </div>
-                <div className="text-white font-semibold">
-                  {new Date(documentary.releaseDate).getFullYear()}
-                </div>
-              </div>
-
-              {/* Available Languages */}
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2 text-white/60">
-                  <span className="text-sm">🌐 Available Languages</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {documentary.languages.map((language) => (
-                    <span
-                      key={language}
-                      className="bg-white/10 text-white/80 px-2 py-1 rounded text-xs border border-white/20"
-                    >
-                      {language}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Genres */}
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2 text-white/60">
-                  <span className="text-sm">🎭 Genres</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {documentary.genres.map((genre) => (
-                    <span
-                      key={genre}
-                      className="bg-white/10 text-white/80 px-2 py-1 rounded text-xs border border-white/20"
-                    >
-                      {genre}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Director */}
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2 text-white/60">
-                  <span className="text-sm">Director</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">
-                      {documentary.director.charAt(0)}
+                {/* Card Content */}
+                <div className="p-5 space-y-4">
+                  {/* Released Year */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-white/60">
+                      <Calendar className="h-4 w-4" />
+                      <span className="text-sm">Released</span>
+                    </div>
+                    <span className="text-white font-medium text-sm">
+                      {new Date(documentary.releaseDate).getFullYear()}
                     </span>
                   </div>
+
+                  <div className="h-px bg-white/10" />
+
+                  {/* Duration */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-white/60">
+                      <Clock className="h-4 w-4" />
+                      <span className="text-sm">Duration</span>
+                    </div>
+                    <span className="text-white font-medium text-sm">
+                      {Math.floor(documentary.duration / 60)}h {documentary.duration % 60}m
+                    </span>
+                  </div>
+
+                  <div className="h-px bg-white/10" />
+
+                  {/* Content Rating */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-white/60">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      <span className="text-sm">Rating</span>
+                    </div>
+                    <span className="border-2 border-white/10 text-white px-2.5 py-1 rounded-md text-xs font-semibold">
+                      {documentary.contentRating}
+                    </span>
+                  </div>
+
+                  <div className="h-px bg-white/10" />
+
+                  {/* Languages */}
                   <div>
-                    <p className="text-white font-semibold text-sm">{documentary.director}</p>
-                    <p className="text-white/60 text-xs">Documentary Filmmaker</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-white/60">
+                        <div className="p-2 rounded-lg">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                          </svg>
+                        </div>
+                        <h3 className="text-white font-semibold">Languages</h3>
+                        <span className="text-white/40 text-xs ml-auto">{documentary.languages.length} available</span>
+                      </div>
+                    </div>
+                    <div className="p-1">
+                      <div className="flex flex-wrap gap-2">
+                        {documentary.languages.map((language) => (
+                          <span
+                            key={language}
+                            className="text-white px-3 py-1.5 rounded-lg text-xs font-medium border-2 border-white/10"
+                          >
+                            {language}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-white/10" />
+
+                  {/* Genres */}
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-white/60">
+                        <div className="p-2 rounded-lg">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                          </svg>
+                        </div>
+                        <h3 className="text-white font-semibold">Genres</h3>
+                      </div>
+                    </div>
+                    <div className="p-1">
+                      <div className="flex flex-wrap gap-2">
+                        {documentary.genres.map((genre) => (
+                          <span
+                            key={genre}
+                            className="text-white px-3 py-1.5 rounded-lg text-xs font-medium border-2 border-white/10"
+                          >
+                            {genre}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-white/10" />
+
+                  {/* Director */}
+                  <div>
+                    <div className="flex items-center gap-2 text-white/60 mb-3">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      <span className="text-sm">Director</span>
+                    </div>
+                    <div className="flex items-center gap-3 bg-white/5 p-3 rounded-lg">
+                      {directorImage ? (
+                        <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                          <Image
+                            src={directorImage}
+                            alt={documentary.director}
+                            fill
+                            sizes="40px"
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-bold text-sm">
+                            {documentary.director.charAt(0)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-white font-medium text-sm truncate">{documentary.director}</p>
+                        <p className="text-white/50 text-xs">Documentary Filmmaker</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

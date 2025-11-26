@@ -538,6 +538,39 @@ export function getProfileUrl(path: string | null, size: 'w45' | 'w185' | 'h632'
   return `${TMDB_IMAGE_BASE_URL}/${size}${path}`;
 }
 
+// Search for a person by name and get their profile image
+export async function searchPersonImage(name: string): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(name)}&page=1`,
+      {
+        headers: {
+          'Authorization': `Bearer ${TMDB_ACCESS_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    
+    if (data.results && data.results.length > 0) {
+      const person = data.results[0];
+      if (person.profile_path) {
+        return `${TMDB_IMAGE_BASE_URL}/w185${person.profile_path}`;
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error searching for person image:', error);
+    return null;
+  }
+}
+
 // Convert TMDB data to our internal types
 export function convertTMDBMovieToMovie(tmdbMovie: TMDBMovie, genres: TMDBGenre[] = []): import('@/types').Movie {
   const movieGenres = genres.filter(g => tmdbMovie.genre_ids.includes(g.id)).map(g => g.name);
