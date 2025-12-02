@@ -66,8 +66,8 @@ const data = {
     },
 
     {
-      title: "My List",
-      url: "/user/my-list",
+      title: "Watchlist",
+      url: "/user/watchlist",
       icon: IconHeart,
     },
     {
@@ -90,6 +90,16 @@ const data = {
       url: "/user/notifications",
       icon: IconBell,
     },
+    {
+      title: "Settings",
+      url: "/user/settings",
+      icon: IconSettings,
+    },
+    {
+      title: "Help Center",
+      url: "/help",
+      icon: IconHelp,
+    }
   ],
   navClouds: [
     {
@@ -110,25 +120,22 @@ const data = {
           title: "Notifications",
           url: "/user/notifications",
         },
-      ],
+
+      ]
     },
   ],
   navSecondary: [
-    {
-      title: "Settings",
-      url: "/user/settings",
-      icon: IconSettings,
-    },
-    {
-      title: "Help Center",
-      url: "/help",
-      icon: IconHelp,
-    },
-    {
-      title: "Search",
-      url: "/search",
-      icon: IconSearch,
-    },
+    // {
+    //   title: "Settings",
+    //   url: "/user/settings",
+    //   icon: IconSettings,
+    // },
+    // {
+    //   title: "Help Center",
+    //   url: "/help",
+    //   icon: IconHelp,
+    // },
+
   ],
   documents: [
     // {
@@ -151,7 +158,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    
+
     <Sidebar variant="floating" collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
@@ -170,10 +177,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-            <SidebarMenu>
-              <NavMain items={data.navMain} />
-              <NavSecondary items={data.navSecondary} />
-            </SidebarMenu>
+        <SidebarMenu>
+          <NavMain items={data.navMain} />
+          {/* <NavSecondary items={data.navSecondary} /> */}
+        </SidebarMenu>
         {/* <SidebarGroup>
           <SidebarGroupContent>
           </SidebarGroupContent>
@@ -185,6 +192,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       </SidebarFooter>
     </Sidebar>
-    
+
   )
 }

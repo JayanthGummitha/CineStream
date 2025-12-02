@@ -67,7 +67,7 @@ const dashboardRoutes: Route[] = [
     id: "my-list",
     title: "My List",
     icon: <Package2 className="size-4" />,
-    link: "/user/my-list",
+    link: "/user/watchlist",
   },
   {
     id: "continue-watching",

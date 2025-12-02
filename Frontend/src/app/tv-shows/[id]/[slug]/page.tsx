@@ -8,11 +8,11 @@ import { Footer } from '@/components/navigation/footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-import { Play, Plus, Share, Download, Star, Clock, Calendar, ChevronLeft, ChevronRight, X, Tv } from 'lucide-react';
+import { Play, Plus, Share, Download, Star, Clock, Calendar, ChevronLeft, ChevronRight, X, Tv, Heart, Save } from 'lucide-react';
 // Add the missing import for getTVShowWithSeasons
-import { 
-    getTVShowDetails, 
-    getTVShowsByGenre, 
+import {
+    getTVShowDetails,
+    getTVShowsByGenre,
     getTVShowWithSeasons,
     TVShowFetchError,
     TVShowFetchErrorType,
@@ -27,6 +27,8 @@ import {
     type VideoPlayerEpisodeData
 } from '@/utils/episode-transformation';
 import { ErrorDisplay } from '@/components/ErrorDisplay';
+import { useLikes } from '@/hooks/useLikes';
+import { useMyList } from '@/hooks/useMyList';
 
 interface TVShowDetailPageProps {
     params: Promise<{
@@ -53,8 +55,11 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
     // Use DASH video source for better streaming
     const videoSrc = 'https://files.vidstack.io/sprite-fight/dash/stream.mpd';
 
-    const isAuthenticated = false;
+    const isAuthenticated = true;
     const resolvedParams = use(params);
+
+    const { isLiked, toggleLike } = useLikes();
+    const { isInList, toggleList } = useMyList();
 
     // Fetch TV show data with comprehensive error handling
     const fetchTVShowData = useCallback(async () => {
@@ -62,7 +67,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
             setLoading(true);
             setError(null);
             setErrorType(null);
-            
+
             // Use getTVShowWithSeasons which now has built-in fallback to getTVShowDetails + mock seasons
             const { tvShow: showData, seasons: realSeasons } = await getTVShowWithSeasons(resolvedParams.id);
 
@@ -76,7 +81,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
 
             console.log(`[TV Show Page] Successfully loaded TV show: ${showData.title}`);
             console.log(`[TV Show Page] Loaded ${realSeasons.length} seasons with ${realSeasons.reduce((sum, s) => sum + s.episodes.length, 0)} total episodes`);
-            
+
             setTVShow(showData);
             setSeasons(realSeasons);
 
@@ -95,12 +100,12 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
             }
         } catch (error) {
             console.error('[TV Show Page] Failed to load TV show data:', error);
-            
+
             // Handle TVShowFetchError with typed error classification
             if (error instanceof TVShowFetchError) {
                 setErrorType(error.type);
                 setError(getUserFriendlyErrorMessage(error.type));
-                
+
                 // Redirect to 404 page for not found errors
                 if (error.type === TVShowFetchErrorType.NOT_FOUND) {
                     notFound();
@@ -132,7 +137,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
 
             if (transformedData) {
                 setEpisodeData(transformedData);
-               
+
             } else {
                 console.warn('🎬 Failed to transform seasons to episode data');
                 setEpisodeData(null);
@@ -264,9 +269,9 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
     // Display error state if there's an error
     if (error && !tvShow) {
         // Determine if retry should be shown based on error type
-        const shouldShowRetry = errorType !== TVShowFetchErrorType.NOT_FOUND && 
-                                errorType !== TVShowFetchErrorType.INVALID_ID;
-        
+        const shouldShowRetry = errorType !== TVShowFetchErrorType.NOT_FOUND &&
+            errorType !== TVShowFetchErrorType.INVALID_ID;
+
         return (
             <div className="min-h-screen bg-background">
                 <Header isAuthenticated={isAuthenticated} />
@@ -388,16 +393,38 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                                             </Button>
                                         </Link>
 
-                                        {isAuthenticated && (
+                                        {isAuthenticated && tvShow && (
                                             <>
-                                                <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                                                    <Plus className="mr-2 h-5 w-5" />
-                                                    Add to List
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={() => toggleList({ ...tvShow, contentType: 'tv-shows' })}
+                                                    className={`border-white/20 text-white hover:bg-white/10 transition-all ${isInList(tvShow.id) ? 'text-white' : ''}`}
+                                                >
+                                                    {isInList(tvShow.id) ? (
+                                                        <>
+                                                            <Save className="mr-2 h-5 w-5" />
+                                                            <span className="text-white">Saved</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Save className="mr-2 h-5 w-5" />
+                                                            Add to list
+                                                        </>
+                                                    )}
                                                 </Button>
 
-                                                <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                                                    <Download className="mr-2 h-5 w-5" />
-                                                    Download
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={() => toggleLike({ ...tvShow, contentType: 'tv-shows' })}
+                                                    className={`border-white/20 text-white hover:bg-white/10 transition-all ${isLiked(tvShow.id) ? 'text-white' : ''}`}
+                                                >
+                                                    {isLiked(tvShow.id) ? (
+                                                        <Heart className="h-5 w-5 fill-red-500 text-red-500" />
+                                                    ) : (
+                                                        <Heart className="h-5 w-5" />
+                                                    )}
                                                 </Button>
                                             </>
                                         )}
@@ -420,8 +447,261 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                         {/* Left Column - Episodes and Cast */}
                         <div className="lg:col-span-2 space-y-8">
 
-                            {/* Episodes Section */}
-                            {seasons.length > 0 && (
+                            {/* Storyline Section */}
+                            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border  hover:border-white/20 transition-colors">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="p-2  rounded-lg">
+                                        <svg className="w-5 h-5 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                                        </svg>
+                                    </div>
+                                    <h2 className="text-lg font-bold text-white">Story Line</h2>
+                                </div>
+                                <p className="text-white/80 leading-relaxed text-sm">
+                                    {tvShow.description}
+                                </p>
+                            </div>
+
+
+                            {/* Top Cast Section */}
+                            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:border-white/20 transition-colors">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg">
+                                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                        </div>
+                                        <h2 className="text-lg font-bold text-white">Top Cast</h2>
+                                        <span className="text-white/40 text-sm">({tvShow.cast.length} actors)</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                const container = document.getElementById('cast-carousel');
+                                                if (container) {
+                                                    container.scrollBy({ left: -300, behavior: 'smooth' });
+                                                }
+                                            }}
+                                            className="h-9 w-9 p-0 rounded-full bg-white/10 hover:bg-white/20 border-0"
+                                        >
+                                            <ChevronLeft className="h-4 w-4 text-white" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                const container = document.getElementById('cast-carousel');
+                                                if (container) {
+                                                    container.scrollBy({ left: 300, behavior: 'smooth' });
+                                                }
+                                            }}
+                                            className="h-9 w-9 p-0 rounded-full bg-white/10 hover:bg-white/20 border-0"
+                                        >
+                                            <ChevronRight className="h-4 w-4 text-white" />
+                                        </Button>
+                                    </div>
+                                </div>
+                                <div
+                                    id="cast-carousel"
+                                    className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4"
+                                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                >
+                                    {tvShow.cast.map((actor) => (
+                                        <div key={actor.id} className="flex-shrink-0 group cursor-pointer">
+                                            <div className="bg-gradient-to-b from-white/10 to-white/5 rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-all duration-300 w-[140px]">
+                                                <div className="relative w-20 h-20 mx-auto mb-3">
+                                                    <div className="relative w-full h-full rounded-full overflow-hidden ring-2 ring-white/20 transition-all duration-300">
+                                                        <Image
+                                                            src={actor.profileImage}
+                                                            alt={actor.name}
+                                                            fill
+                                                            sizes="80px"
+                                                            className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="text-center">
+                                                    <p className="text-white font-semibold text-sm truncate mb-1">
+                                                        {actor.name}
+                                                    </p>
+                                                    <p className="text-white/50 text-xs truncate">
+                                                        as {actor.character}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        {/* Right Column - Information Panel */}
+                        <div className="space-y-4">
+                            {/* TV Show Details Card */}
+                            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+                                {/* Card Header */}
+                                <div className="px-5 py-4 border-b border-white/10 bg-white/5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg">
+                                            <Tv className="w-4 h-4 text-white" />
+                                        </div>
+                                        <h3 className="text-white font-semibold">TV Show Details</h3>
+                                    </div>
+                                </div>
+
+                                {/* Card Content */}
+                                <div className="p-5 space-y-4">
+                                    {/* Seasons */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-white/60">
+                                            <Tv className="h-4 w-4" />
+                                            <span className="text-sm">Seasons</span>
+                                        </div>
+                                        <span className="text-white font-medium text-sm">{totalSeasons}</span>
+                                    </div>
+
+                                    <div className="h-px bg-white/10" />
+
+                                    {/* Episodes */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-white/60">
+                                            <Play className="h-4 w-4" />
+                                            <span className="text-sm">Total Episodes</span>
+                                        </div>
+                                        <span className="text-white font-medium text-sm">{totalEpisodes}</span>
+                                    </div>
+
+                                    <div className="h-px bg-white/10" />
+
+                                    {/* Status */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-white/60">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span className="text-sm">Status</span>
+                                        </div>
+                                        <span className="text-green-400 font-medium text-sm">Ongoing</span>
+                                    </div>
+
+                                    <div className="h-px bg-white/10" />
+
+                                    {/* First Air Date */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-white/60">
+                                            <Calendar className="h-4 w-4" />
+                                            <span className="text-sm">First Aired</span>
+                                        </div>
+                                        <span className="text-white font-medium text-sm">
+                                            {new Date(tvShow.releaseDate).getFullYear()}
+                                        </span>
+                                    </div>
+
+                                    <div className="h-px bg-white/10" />
+
+                                    {/* Episode Duration */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-white/60">
+                                            <Clock className="h-4 w-4" />
+                                            <span className="text-sm">Episode Length</span>
+                                        </div>
+                                        <span className="text-white font-medium text-sm">~{tvShow.duration}min</span>
+                                    </div>
+
+                                    <div className="h-px bg-white/10" />
+
+                                    {/* Content Rating */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-white/60">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                            </svg>
+                                            <span className="text-sm">Rating</span>
+                                        </div>
+                                        <span className="border-2 border-white/10 text-white px-2.5 py-1 rounded-md text-xs font-semibold">
+                                            {tvShow.contentRating}
+                                        </span>
+                                    </div>
+
+                                    <div className="h-px bg-white/10" />
+
+                                    {/* Languages */}
+                                    <div>
+                                        <div className="flex items-center gap-2 text-white/60 mb-3">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                                            </svg>
+                                            <span className="text-sm">Languages</span>
+                                            <span className="text-white/40 text-xs ml-auto">{tvShow.languages.length} available</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {tvShow.languages.map((language) => (
+                                                <span
+                                                    key={language}
+                                                    className="text-white px-3 py-1.5 rounded-lg text-xs font-medium border-2 border-white/10"
+                                                >
+                                                    {language}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="h-px bg-white/10" />
+
+                                    {/* Genres */}
+                                    <div>
+                                        <div className="flex items-center gap-2 text-white/60 mb-3">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                            </svg>
+                                            <span className="text-sm">Genres</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {tvShow.genres.map((genre) => (
+                                                <span
+                                                    key={genre}
+                                                    className="text-white px-3 py-1.5 rounded-lg text-xs font-medium border-2 border-white/10"
+                                                >
+                                                    {genre}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="h-px bg-white/10" />
+
+                                    {/* Creator */}
+                                    <div>
+                                        <div className="flex items-center gap-2 text-white/60 mb-3">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                            <span className="text-sm">Creator</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 bg-white/5 p-3 rounded-lg">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <span className="text-white font-bold text-sm">
+                                                    {tvShow.director.charAt(0)}
+                                                </span>
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-white font-medium text-sm truncate">{tvShow.director}</p>
+                                                <p className="text-white/50 text-xs">Creator</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Episodes Section - Full Width */}
+                    <div className="mt-8">
+                        {seasons.length > 0 && (
                                 <div className="space-y-6">
                                     {/* Show info banner if we have partial data or mock data */}
                                     {seasons.length > 0 && seasons[0].episodes.length > 0 && (
@@ -439,7 +719,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                                             </div>
                                         ) : null
                                     )}
-                                    
+
                                     <div className="flex items-center justify-between">
                                         <h2 className="text-2xl font-semibold text-white">Episodes</h2>
                                         {seasons.length > 1 && (
@@ -544,187 +824,6 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                                     )}
                                 </div>
                             )}
-
-                            {/* Top Cast Section */}
-                            <div className="space-y-4 w-[98vw] ">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="text-xl font-semibold text-white">Top Cast</h2>
-                                    <div className="flex items-center space-x-2 ">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => {
-                                                const container = document.getElementById('cast-carousel');
-                                                if (container) {
-                                                    container.scrollBy({ left: -400, behavior: 'smooth' });
-                                                }
-                                            }}
-                                            className="h-8 w-8 p-0 bg-transparent border-white/20 hover:bg-white/10"
-                                        >
-                                            <ChevronLeft className="h-4 w-4 text-white" />
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => {
-                                                const container = document.getElementById('cast-carousel');
-                                                if (container) {
-                                                    container.scrollBy({ left: 400, behavior: 'smooth' });
-                                                }
-                                            }}
-                                            className="h-8 w-8 p-0 bg-transparent border-white/20 hover:bg-white/10"
-                                        >
-                                            <ChevronRight className="h-4 w-4 text-white" />
-                                        </Button>
-                                    </div>
-                                </div>
-                                <div
-                                    id="cast-carousel"
-                                    className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4"
-                                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                                >
-                                    {tvShow.cast.map((actor) => (
-                                        <div key={actor.id} className="flex-shrink-0 cursor-pointer group text-center">
-                                            <div className="relative w-20 h-20 rounded-full overflow-hidden mx-auto mb-3 ring-2 ring-transparent group-hover:ring-white/30 transition-all duration-300">
-                                                <Image
-                                                    src={actor.profileImage}
-                                                    alt={actor.name}
-                                                    fill
-                                                    sizes="80px"
-                                                    className="object-cover group-hover:scale-110 transition-transform duration-300"
-                                                />
-                                            </div>
-                                            <div className="text-center max-w-[100px]">
-                                                <p className="text-white font-semibold text-sm truncate mb-1">
-                                                    {actor.name}
-                                                </p>
-                                                <p className="text-white/60 text-xs truncate">
-                                                    {actor.character}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                        </div>
-
-                        {/* Right Column - Information Panel */}
-                        <div className="space-y-6">
-
-                            {/* TV Show Stats */}
-                            <div className="space-y-3">
-                                <div className="flex items-center space-x-2 text-white/60">
-                                    <Tv className="h-4 w-4" />
-                                    <span className="text-sm">TV Show Info</span>
-                                </div>
-                                <div className="space-y-2 text-white">
-                                    <div className="flex justify-between">
-                                        <span className="text-white/70 text-sm">Seasons:</span>
-                                        <span className="font-semibold">{totalSeasons}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-white/70 text-sm">Episodes:</span>
-                                        <span className="font-semibold">{totalEpisodes}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-white/70 text-sm">Status:</span>
-                                        <span className="font-semibold text-green-400">Ongoing</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* First Air Date */}
-                            <div className="space-y-3">
-                                <div className="flex items-center space-x-2 text-white/60">
-                                    <Calendar className="h-4 w-4" />
-                                    <span className="text-sm">First Air Date</span>
-                                </div>
-                                <div className="text-white font-semibold">
-                                    {new Date(tvShow.releaseDate).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric'
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Available Languages */}
-                            <div className="space-y-3">
-                                <div className="flex items-center space-x-2 text-white/60">
-                                    <span className="text-sm">🌐 Available Languages</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {tvShow.languages.map((language) => (
-                                        <span
-                                            key={language}
-                                            className="bg-white/10 text-white/80 px-2 py-1 rounded text-xs border border-white/20"
-                                        >
-                                            {language}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Genres */}
-                            <div className="space-y-3">
-                                <div className="flex items-center space-x-2 text-white/60">
-                                    <span className="text-sm">🎭 Genres</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {tvShow.genres.map((genre) => (
-                                        <span
-                                            key={genre}
-                                            className="bg-white/10 text-white/80 px-2 py-1 rounded text-xs border border-white/20"
-                                        >
-                                            {genre}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Creator */}
-                            <div className="space-y-3">
-                                <div className="flex items-center space-x-2 text-white/60">
-                                    <span className="text-sm">Creator</span>
-                                </div>
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                                        <span className="text-white font-bold text-sm">
-                                            {tvShow.director.charAt(0)}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <p className="text-white font-semibold text-sm">{tvShow.director}</p>
-                                        <p className="text-white/60 text-xs">Creator</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Episode Duration */}
-                            <div className="space-y-3">
-                                <div className="flex items-center space-x-2 text-white/60">
-                                    <Clock className="h-4 w-4" />
-                                    <span className="text-sm">Episode Duration</span>
-                                </div>
-                                <div className="text-white font-semibold">
-                                    ~{tvShow.duration} minutes
-                                </div>
-                            </div>
-
-                            {/* Content Rating */}
-                            <div className="space-y-3">
-                                <div className="flex items-center space-x-2 text-white/60">
-                                    <span className="text-sm">Content Rating</span>
-                                </div>
-                                <div className="text-white font-semibold">
-                                    <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-xs border border-blue-400/30 font-semibold">
-                                        {tvShow.contentRating}
-                                    </span>
-                                </div>
-                            </div>
-
-                        </div>
                     </div>
 
                     {/* Similar TV Shows Section */}
@@ -831,7 +930,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                         onTimeUpdate={(currentTime, duration) => {
                         }}
                         onEpisodeChange={(episodeData) => {
-                               // You could update the URL or other state here
+                            // You could update the URL or other state here
                         }}
                     />
 

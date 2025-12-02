@@ -314,18 +314,28 @@ function DocumentaryHeroSection({ featuredContent, isAuthenticated }: Documentar
 
   const currentMovie = featuredContent[currentIndex];
 
-  // Get sliding window of 3 movies starting from the next movie after current
+  // Get sliding window of up to 3 unique movies starting from the next movie after current
   const getCarouselMovies = () => {
     const carouselMovies = [];
     const totalMovies = featuredContent.length;
+    const seenIds = new Set<string>();
+    
+    // Add current movie id to prevent showing it in carousel
+    seenIds.add(currentMovie?.id);
 
-    // Start from the next movie after current and get 3 movies
-    for (let i = 1; i <= 3; i++) {
+    // Start from the next movie after current and get up to 3 unique movies
+    for (let i = 1; i <= totalMovies && carouselMovies.length < 3; i++) {
       const movieIndex = (currentIndex + i) % totalMovies;
-      carouselMovies.push({
-        movie: featuredContent[movieIndex],
-        originalIndex: movieIndex
-      });
+      const movie = featuredContent[movieIndex];
+      
+      // Only add if we haven't seen this movie yet
+      if (!seenIds.has(movie.id)) {
+        seenIds.add(movie.id);
+        carouselMovies.push({
+          movie,
+          originalIndex: movieIndex
+        });
+      }
     }
 
     return carouselMovies;
@@ -467,7 +477,7 @@ function DocumentaryHeroSection({ featuredContent, isAuthenticated }: Documentar
           <div className="flex space-x-3">
             {carouselMovies.map(({ movie, originalIndex }, carouselIndex) => (
               <div
-                key={movie.id}
+                key={`${movie.id}-${carouselIndex}`}
                 className="group cursor-pointer transition-all duration-300 flex-shrink-0"
                 onClick={() => setCurrentIndex(originalIndex)}
               >

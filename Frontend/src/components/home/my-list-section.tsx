@@ -45,7 +45,7 @@ export function MyListSection({ isAuthenticated }: MyListSectionProps) {
       <div className="flex items-center justify-between full-width-minimal">
         <h2 className="heading-section text-white">My Watchlist</h2>
         <div className="flex items-center space-x-2">
-          <Link href="/user/my-list">
+          <Link href="/user/watchlist">
             <Button
               size="sm"
               variant="outline"

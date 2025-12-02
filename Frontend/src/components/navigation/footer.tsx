@@ -4,8 +4,8 @@ import { FOOTER_LINKS, CONTACT_INFO } from '@/lib/constants';
 
 export function Footer() {
   return (
-    <footer className="bg-card border-t border-border">
-      <div className="container max-w-screen-2xl px-4 py-12">
+    <footer className="bg-card border-border">
+      <div className="container max-w-screen-2xl px-4 py-5">
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5  lg:justify-items-center  gap-8">
           {/* Company Info */}
           <div className="space-y-4">
@@ -122,7 +122,7 @@ export function Footer() {
 
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border">
+        <div className="mt-12 pt-4 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} CineStream. All rights reserved.

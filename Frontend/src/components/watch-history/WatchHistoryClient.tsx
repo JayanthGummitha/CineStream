@@ -92,11 +92,11 @@ export function WatchHistoryClient() {
     <main role="main" aria-label="Watch History">
       {/* Header - Requirement 6.4 */}
       <header className="flex items-center gap-3 mb-8">
-        <div className="p-3 rounded-lg bg-purple-500/20 ring-1 ring-purple-500/30" aria-hidden="true">
-          <History className="h-6 w-6 text-purple-400" aria-hidden="true" />
+        <div className="p-3 rounded-lg ring-0 " aria-hidden="true">
+          <History className="h-6 w-6 " aria-hidden="true" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold">Watch History</h1>
+          <h1 className="text-2xl font-bold">Watch History</h1>
           <p className="text-muted-foreground" id="watch-history-description">
             Your viewing history from the past 30 days
           </p>

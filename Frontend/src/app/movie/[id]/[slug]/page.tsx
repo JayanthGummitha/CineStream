@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 
-import { Play, Plus, Share, Download, Star, Clock, Calendar, ChevronLeft, ChevronRight, X, Save, Check } from 'lucide-react';
+import { Play, Plus, Share, Download, Star, Clock, Calendar, ChevronLeft, ChevronRight, X, Save, Check, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMovieDetails, getMoviesByGenre, getMovieTrailer } from '@/lib/movie-service';
 import { searchPersonImage } from '@/lib/tmdb';
@@ -23,6 +23,7 @@ import { VideoPlayer } from '@/components/VideoPlayer';
 import { TrailerButton } from '@/components/TrailerButton';
 import { useTrailerPerformance } from '@/hooks/useTrailerPerformance';
 import { useMyList } from '@/hooks/useMyList';
+import { useLikes } from '@/hooks/useLikes';
 
 interface MovieDetailPageProps {
   params: Promise<{
@@ -55,19 +56,30 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
   const [directorImage, setDirectorImage] = useState<string | null>(null);
 
   const { isInList, toggleList, myList } = useMyList();
+  const { isLiked, toggleLike, likes } = useLikes();
   const resolvedParams = use(params);
 
-  // Force re-render when myList changes
+  // Force re-render when myList or likes changes
   const [, forceUpdate] = useState({});
   useEffect(() => {
     forceUpdate({});
-  }, [myList]);
+  }, [myList, likes]);
 
   const handleToggleList = () => {
     if (movie) {
       const wasInList = isInList(movie.id);
-      toggleList(movie);
+      toggleList({ ...movie, contentType: 'movie' });
       setToastMessage(wasInList ? 'Removed from your list' : 'Added to your list');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
+  };
+
+  const handleToggleLike = () => {
+    if (movie) {
+      const wasLiked = isLiked(movie.id);
+      toggleLike({ ...movie, contentType: 'movie' });
+      setToastMessage(wasLiked ? 'Removed from likes' : 'Added to your likes');
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     }
@@ -388,33 +400,38 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
                           variant="outline"
                           onClick={handleToggleList}
                           className={`border-white/20 text-white hover:bg-white/10 transition-all ${isInList(movie.id)
-                            ? 'bg-red-600/20 border-red-500/50 hover:bg-red-600/30'
+                            ? 'text-white'
                             : ''
                             }`}
                         >
                           {isInList(movie.id) ? (
                             <>
-                              <Check className="mr-2 h-5 w-5 text-red-400" />
-                              <span className="text-red-400">Saved </span>
+                              <Save className="mr-2 h-5 w-5" />
+                              <span className="">Saved </span>
                             </>
                           ) : (
                             <>
-                              <Save className="mr-2 h-5 w-5" />
-                              Save
+                          <Plus className="mr-2 h-5 w-5" />
+                              Add to List
                             </>
                           )}
                         </Button>
 
-                        {/* <Link href="/user/my-list">
-                          <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                            View My List ({myList.length})
-                          </Button>
-                        </Link> */}
-
-                        {/* <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                          <Download className="mr-2 h-5 w-5" />
-                          Download
-                        </Button> */}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleToggleLike}
+                          className={`border-white/20 text-white hover:bg-white/10 transition-all ${isLiked(movie.id)
+                            ? 'text-white'
+                            : ''
+                            }`}
+                        >
+                          {isLiked(movie.id) ? (
+                            <Heart className="h-5 w-5 fill-red-500 text-red-500" />
+                          ) : (
+                            <Heart className="h-5 w-5" />
+                          )}
+                        </Button>
                       </>
                     )}
 
@@ -594,9 +611,9 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
                     </span>
                   </div>
 
-                
 
-                 
+
+
                   <div className="h-px bg-white/10" />
                   {/* Languages Card */}
                   <div>
@@ -624,37 +641,37 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
                       </div>
                     </div>
                   </div>
-                       <div className="h-px bg-white/10" />
+                  <div className="h-px bg-white/10" />
 
                   {/* Genres Card */}
                   <div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-white/60">
-                    
-                          <div className="p-2 rounded-lg">
-                            <svg className="w-4 h-4 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
-                          </div>
-                          <h3 className="text-white font-semibold">Genres</h3>
-                       
+
+                        <div className="p-2 rounded-lg">
+                          <svg className="w-4 h-4 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                          </svg>
+                        </div>
+                        <h3 className="text-white font-semibold">Genres</h3>
+
                       </div>
                     </div>
-                      <div className="p-1">
-                        <div className="flex flex-wrap gap-2">
-                          {movie.genres.map((genre) => (
-                            <span
-                              key={genre}
-                              className=" text-white px-3 py-1.5 rounded-lg text-xs font-medium border-2 border-white/10"
-                            >
-                              {genre}
-                            </span>
-                          ))}
-                        </div>
+                    <div className="p-1">
+                      <div className="flex flex-wrap gap-2">
+                        {movie.genres.map((genre) => (
+                          <span
+                            key={genre}
+                            className=" text-white px-3 py-1.5 rounded-lg text-xs font-medium border-2 border-white/10"
+                          >
+                            {genre}
+                          </span>
+                        ))}
                       </div>
+                    </div>
                   </div>
-                    <div className="h-px bg-white/10" />
-                   {/* Director */}
+                  <div className="h-px bg-white/10" />
+                  {/* Director */}
                   <div>
                     <div className="flex items-center gap-2 text-white/60 mb-3">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

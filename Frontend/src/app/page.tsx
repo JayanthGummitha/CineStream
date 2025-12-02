@@ -10,6 +10,7 @@ import { JustReleaseSection } from '@/components/home/just-release-section';
 // import { YourWatchlistSection } from '@/components/home/your-watchlist-section';
 import { YourLikesSection } from '@/components/home/your-likes-section';
 import { MyListSection } from '@/components/home/my-list-section';
+import { CTASection } from '@/components/home/cta-section';
 import { Button } from '@/components/ui/button';
 import { getFeaturedContent, getHomeCollections } from '@/lib/movie-service';
 
@@ -34,7 +35,7 @@ export default async function Home() {
     <div className="min-h-screen  bg-background overflow-x-hidden">
       <Header isAuthenticated={isAuthenticated} />
 
-      <main className="w-screen overflow-x-hidden">
+      <main className=" w-screen overflow-x-hidden">
         {/* Hero Section */}
         <HeroSection
           featuredContent={featuredContent}
@@ -86,34 +87,12 @@ export default async function Home() {
             )} */}
 
             {/* Your Likes */}
-            {isAuthenticated && topRatedCollection && topRatedCollection.items && topRatedCollection.items.length > 0 && (
-              <YourLikesSection
-                items={topRatedCollection.items.slice(0, 8)}
-                isAuthenticated={isAuthenticated}
-              />
+            {isAuthenticated && (
+              <YourLikesSection />
             )}
 
-            {/* Call to Action for Guest Users */}
-            {!isAuthenticated && (
-              <section className="full-width-minimal spacing-section text-center">
-                <div className="max-w-responsive mx-auto space-responsive-large">
-                  <h2 className="heading-hero font-bold">
-                    Ready to start watching?
-                  </h2>
-                  <p className="body-large text-muted-foreground">
-                    Join millions of users streaming their favorite movies and TV shows on CineStream.
-                  </p>
-                  <div className="flex items-center justify-center gap-responsive-large">
-                    <Button className="bg-orange-500 hover:bg-orange-600 text-white px-10 py-4 rounded-full font-semibold text-lg transition-colors" asChild>
-                      <Link href="/signup">Start Free Trial</Link>
-                    </Button>
-                    <Button className="border-2 border-border hover:bg-accent hover:text-accent-foreground px-10 py-4 rounded-full font-semibold text-lg transition-colors" asChild>
-                      <Link href="/subscription">View Plans</Link>
-                    </Button>
-                  </div>
-                </div>
-              </section>
-            )}
+            {/* Call to Action - Shows based on user subscription status */}
+            <CTASection />
         </div>
       </main>
 

@@ -1,3 +1,5 @@
+export type ContentType = 'movie' | 'tv-shows' | 'documentaries' | 'kids';
+
 export interface Movie {
   id: string;
   title: string;
@@ -19,6 +21,7 @@ export interface Movie {
   isNew?: boolean;
   isTrending?: boolean;
   isPopular?: boolean;
+  contentType?: ContentType; // Type of content for routing
 }
 
 export interface TVShow extends Omit<Movie, 'duration'> {

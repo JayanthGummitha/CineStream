@@ -147,8 +147,8 @@ export const pricingPlans: PricingPlanData[] = [
       { text: "Ad-free experience", included: false },
     ],
     cta: {
-      text: "Start Free Trial",
-      variant: "secondary",
+      text: "choose Basic",
+      variant: "primary",
     },
     isHighlighted: false,
   },

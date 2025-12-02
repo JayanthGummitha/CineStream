@@ -7,13 +7,15 @@ import { Header } from '@/components/navigation/header';
 import { Footer } from '@/components/navigation/footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Plus, Share, Download, Star, Clock, Calendar, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Play, Plus, Share, Download, Star, Clock, Calendar, ChevronLeft, ChevronRight, Heart, Save, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getMovieDetails, getMoviesByGenre } from '@/lib/movie-service';
 import { searchPersonImage } from '@/lib/tmdb';
 import { createDetailUrl } from '@/lib/url-utils';
 import { Movie } from '@/types';
 import Link from 'next/link';
+import { useMyList } from '@/hooks/useMyList';
+import { useLikes } from '@/hooks/useLikes';
 
 interface KidsDetailPageProps {
   params: Promise<{
@@ -27,6 +29,37 @@ export default function KidsDetailPage({ params }: KidsDetailPageProps) {
   const [relatedKids, setRelatedKids] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [directorImage, setDirectorImage] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const { isInList, toggleList, myList } = useMyList();
+  const { isLiked, toggleLike, likes } = useLikes();
+
+  // Force re-render when myList or likes changes
+  const [, forceUpdate] = useState({});
+  useEffect(() => {
+    forceUpdate({});
+  }, [myList, likes]);
+
+  const handleToggleList = () => {
+    if (kidsMovie) {
+      const wasInList = isInList(kidsMovie.id);
+      toggleList({ ...kidsMovie, contentType: 'kids' });
+      setToastMessage(wasInList ? 'Removed from your list' : 'Added to your list');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
+  };
+
+  const handleToggleLike = () => {
+    if (kidsMovie) {
+      const wasLiked = isLiked(kidsMovie.id);
+      toggleLike({ ...kidsMovie, contentType: 'kids' });
+      setToastMessage(wasLiked ? 'Removed from likes' : 'Added to your likes');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
+  };
 
   // Auto-login for development if not authenticated
   useEffect(() => {
@@ -112,6 +145,23 @@ export default function KidsDetailPage({ params }: KidsDetailPageProps) {
     <div className="min-h-screen bg-background">
       <Header isAuthenticated={isAuthenticated} />
 
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            className="fixed top-20 right-4 z-[9999] max-w-sm"
+          >
+            <div className="flex items-center gap-3 px-4 py-3 rounded-lg shadow-2xl backdrop-blur-xl border bg-green-500/20 border-green-500/50">
+              <Check className="h-5 w-5 text-green-400 flex-shrink-0" />
+              <p className="text-sm font-medium text-white">{toastMessage}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <main>
         {/* Hero Section */}
         <section className="relative h-screen w-full overflow-hidden">
@@ -194,19 +244,48 @@ export default function KidsDetailPage({ params }: KidsDetailPageProps) {
                       Watch Trailer
                     </Button>
 
-                    {isAuthenticated && (
+                    {isAuthenticated && kidsMovie && (
                       <>
-                        <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                          <Plus className="mr-2 h-5 w-5" />
-                          Add to List
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleToggleList}
+                          className={`border-white/20 text-white hover:bg-white/10 transition-all ${isInList(kidsMovie.id)
+                            ? 'text-white'
+                            : ''
+                            }`}
+                        >
+                          {isInList(kidsMovie.id) ? (
+                            <>
+                              <Save className="mr-2 h-5 w-5" />
+                              <span className="text-white">Saved</span>
+                            </>
+                          ) : (
+                            <>
+                              <Save className="mr-2 h-5 w-5" />
+                              Add to list
+                            </>
+                          )}
                         </Button>
 
-                        <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                          <Heart className="mr-2 h-5 w-5" />
-                          Favorite
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleToggleLike}
+                          className={`border-white/20 text-white hover:bg-white/10 transition-all ${isLiked(kidsMovie.id)
+                            ? 'text-white'
+                            : ''
+                            }`}
+                        >
+                          {isLiked(kidsMovie.id) ? (
+                            <Heart className="h-5 w-5 fill-red-500 text-red-500" />
+                          ) : (
+                            <Heart className="h-5 w-5" />
+                          )}
                         </Button>
                       </>
                     )}
+
 
                     <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
                       <Share className="mr-2 h-5 w-5" />

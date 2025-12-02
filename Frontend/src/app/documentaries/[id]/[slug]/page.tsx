@@ -7,13 +7,15 @@ import { Header } from '@/components/navigation/header';
 import { Footer } from '@/components/navigation/footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Plus, Share, Download, Star, Clock, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Play, Plus, Share, Download, Star, Clock, Calendar, ChevronLeft, ChevronRight, Heart, Save } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getMovieDetails, getMoviesByGenre } from '@/lib/movie-service';
 import { searchPersonImage } from '@/lib/tmdb';
 import { createDetailUrl } from '@/lib/url-utils';
 import { Movie } from '@/types';
 import Link from 'next/link';
+import { useLikes } from '@/hooks/useLikes';
+import { useMyList } from '@/hooks/useMyList';
 
 interface DocumentaryDetailPageProps {
   params: Promise<{
@@ -27,6 +29,9 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
   const [relatedDocs, setRelatedDocs] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [directorImage, setDirectorImage] = useState<string | null>(null);
+  
+  const { isLiked, toggleLike } = useLikes();
+  const { isInList, toggleList } = useMyList();
 
   // Auto-login for development if not authenticated
   useEffect(() => {
@@ -195,16 +200,44 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
                       Watch Trailer
                     </Button>
 
-                    {isAuthenticated && (
+                    {isAuthenticated && documentary && (
                       <>
-                        <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                          <Plus className="mr-2 h-5 w-5" />
-                          Add to List
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toggleList({ ...documentary, contentType: 'documentaries' })}
+                          className={`border-white/20 text-white hover:bg-white/10 transition-all ${isInList(documentary.id)
+                            ? 'text-white'
+                            : ''
+                            }`}
+                        >
+                          {isInList(documentary.id) ? (
+                            <>
+                              <Save className="mr-2 h-5 w-5" />
+                              <span className="text-white">Saved</span>
+                            </>
+                          ) : (
+                            <>
+                              <Save className="mr-2 h-5 w-5" />
+                              Add to list
+                            </>
+                          )}
                         </Button>
 
-                        <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                          <Download className="mr-2 h-5 w-5" />
-                          Download
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toggleLike({ ...documentary, contentType: 'documentaries' })}
+                          className={`border-white/20 text-white hover:bg-white/10 transition-all ${isLiked(documentary.id)
+                            ? 'text-white'
+                            : ''
+                            }`}
+                        >
+                          {isLiked(documentary.id) ? (
+                            <Heart className="h-5 w-5 fill-red-500 text-red-500" />
+                          ) : (
+                            <Heart className="h-5 w-5" />
+                          )}
                         </Button>
                       </>
                     )}
