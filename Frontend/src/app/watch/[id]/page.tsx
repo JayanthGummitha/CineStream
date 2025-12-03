@@ -29,6 +29,7 @@ export default function WatchPage({ params, searchParams }: WatchPageProps) {
   
   const [episodeData, setEpisodeData] = useState<VideoPlayerEpisodeData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [seriesName, setSeriesName] = useState<string | undefined>(undefined);
 
   const autoFullscreen = resolvedSearchParams.fullscreen === 'true';
   const autoPlay = resolvedSearchParams.autoplay !== 'false';
@@ -50,6 +51,11 @@ export default function WatchPage({ params, searchParams }: WatchPageProps) {
       const loadTVShowData = async () => {
         try {
           const { tvShow, seasons } = await getTVShowWithSeasons(resolvedParams.id);
+          
+          // Set the series name from the TV show data
+          if (tvShow?.title) {
+            setSeriesName(tvShow.title);
+          }
           
           if (seasons && seasons.length > 0) {
             // Transform seasons to episode data
@@ -89,9 +95,10 @@ export default function WatchPage({ params, searchParams }: WatchPageProps) {
       autoPlay={autoPlay}
       isTrailer={isTrailer}
       title={movieTitle}
+      seriesName={seriesName}
       contentType={contentType}
       contentId={resolvedParams.id}
-      episodeData={episodeData} // Pass episode data to Video component
+      episodeData={episodeData}
     />
   );
 }

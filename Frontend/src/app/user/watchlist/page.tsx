@@ -160,7 +160,7 @@ export default function MyListPage() {
         )}
       </main>
 
-      <Footer />
+     
     </div>
   );
 }

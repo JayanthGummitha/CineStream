@@ -4,7 +4,6 @@ import { memo } from 'react';
 import { WatchProgressData } from '@/types/watch-progress';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, CheckCircle2 } from 'lucide-react';
 import Image from 'next/image';
@@ -40,10 +39,21 @@ function WatchHistoryCardComponent({ item, onDelete }: WatchHistoryCardProps) {
 
   // Determine navigation URL based on content type (Requirement 3.1)
   const getContentUrl = () => {
+    // For TV shows, use seriesName if available, otherwise fall back to title
+    const titleForSlug = item.contentType === 'tv-show' && item.seriesName 
+      ? item.seriesName 
+      : item.title;
+    
+    // Create URL-friendly slug from title
+    const slug = titleForSlug
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    
     if (item.contentType === 'movie') {
-      return `/movie/${item.videoId}`;
+      return `/movie/${item.videoId}/${slug}`;
     } else if (item.contentType === 'tv-show') {
-      return `/tv-shows/${item.videoId}`;
+      return `/tv-shows/${item.videoId}/${slug}`;
     }
     // Fallback for other content types
     return '#';
@@ -71,7 +81,7 @@ function WatchHistoryCardComponent({ item, onDelete }: WatchHistoryCardProps) {
   ].filter(Boolean).join('. ');
 
   return (
-    <Card className="group relative overflow-hidden hover:ring-primary hover:border-2 hover:border-neutral-500 transition-all border-2 border-neutral-700 p-2">
+    <Card className="group relative overflow-hidden hover:ring-primary hover:border-2  transition-all border-2  p-2">
       <Link 
         href={getContentUrl()}
         aria-label={linkAriaLabel}
@@ -91,7 +101,7 @@ function WatchHistoryCardComponent({ item, onDelete }: WatchHistoryCardProps) {
             
             {/* Completed Badge - Requirement 2.4, 2.6 */}
             {isCompleted && (
-              <div className="absolute top-2 left-2 z-10 ">
+              <div className="absolute top-1 left-0 z-10 ">
                 <Badge 
                   variant="secondary" 
                   className="bg-green-500/90 hover:bg-green-500 text-white border-0 shadow-lg backdrop-blur-sm gap-1"
@@ -103,10 +113,9 @@ function WatchHistoryCardComponent({ item, onDelete }: WatchHistoryCardProps) {
               </div>
             )}
             
-            <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-black/80 via-black/40 to-transparent" aria-hidden="true" />
 
-            <div className="absolute bottom-0 left-0 right-0 p-4">
-              <Progress 
+            <div className="absolute bottom-0 left-0 p-1">
+              {/* <Progress 
                 value={item.percentage} 
                 className="h-1 mb-2 bg-white/20" 
                 aria-label={progressText}
@@ -114,14 +123,17 @@ function WatchHistoryCardComponent({ item, onDelete }: WatchHistoryCardProps) {
                 aria-valuenow={Math.round(item.percentage)}
                 aria-valuemin={0}
                 aria-valuemax={100}
-              />
-              <p className="text-xs text-white/80 font-medium" aria-hidden="true">
+              /> */}
+              <p 
+                  className="text-white border-0 shadow-lg backdrop-blur-sm gap-1"
+              
+              aria-hidden="true">
                 {progressText}
               </p>
             </div>
           </div>
 
-          <div className="p-4 space-y-2">
+          <div className="p-1 space-y-2">
             <h3 className="font-semibold line-clamp-1 text-base" aria-hidden="true">
               {item.title}
             </h3>

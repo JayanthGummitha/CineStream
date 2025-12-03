@@ -81,6 +81,7 @@ export interface VideoPlayerProps {
   contentType?: 'movie' | 'episode';
   contentId?: string; // movie ID or episode ID
   seriesId?: string; // for episodes, the series they belong to
+  seriesName?: string; // Series/show name for TV shows (used for watch history URLs)
   onEpisodeChange?: (newEpisodeData: EpisodeMetadata) => void;
   // Next episode overlay timing (seconds before end to show overlay)
   nextEpisodeTriggerTime?: number;
@@ -133,6 +134,7 @@ export function VideoPlayerContent({
   contentType = 'movie',
   contentId,
   seriesId,
+  seriesName,
   onEpisodeChange,
   nextEpisodeTriggerTime = 120, // Default 2 minutes
   // New episode navigation props
@@ -140,6 +142,19 @@ export function VideoPlayerContent({
   currentEpisodeIndex,
   seasonNumber
 }: VideoPlayerProps) {
+  // Store the series name for display and watch progress tracking
+  // Use explicit seriesName prop if provided, otherwise fall back to title
+  const [displaySeriesName, setDisplaySeriesName] = useState(seriesName || title || 'Unknown');
+  
+  // Update displaySeriesName when seriesName prop changes (but not when title changes for episodes)
+  useEffect(() => {
+    if (seriesName) {
+      setDisplaySeriesName(seriesName);
+    } else if (title && contentType !== 'episode') {
+      setDisplaySeriesName(title);
+    }
+  }, [seriesName, title, contentType]);
+  
   // Dynamic title and poster state that updates with episode changes
   const [currentTitle, setCurrentTitle] = useState(title || 'Unknown Movie');
   const [currentPoster, setCurrentPoster] = useState(poster || '');
@@ -240,6 +255,8 @@ export function VideoPlayerContent({
   // ===== WATCH PROGRESS TRACKING =====
   
   // Initialize watch progress hook
+  // For TV shows: displaySeriesName = series name (stable), currentTitle = episode title
+  // For movies: displaySeriesName = movie title, currentTitle = movie title
   const {
     saveProgress: saveWatchProgress,
     clearProgress: clearWatchProgress,
@@ -249,11 +266,12 @@ export function VideoPlayerContent({
     contentId || 'unknown',
     contentType === 'episode' ? 'tv-show' : contentType === 'movie' ? 'movie' : 'trailer',
     {
-      title: currentTitle,
+      title: displaySeriesName,
       thumbnail: currentPoster,
       seasonNumber,
       episodeNumber: currentEpisodeIndex !== undefined ? currentEpisodeIndex + 1 : undefined,
-      episodeTitle: currentEpisode?.title
+      episodeTitle: currentEpisode?.title,
+      seriesName: contentType === 'episode' ? displaySeriesName : undefined,
     }
   );
 
@@ -2828,7 +2846,7 @@ export function VideoPlayerContent({
             volume={volume}
             isMuted={isMuted}
             movieInfo={movieInfo}
-            quality={getCurrentQualityLabel()} // Use the correct quality value
+            quality={getCurrentQualityLabel()}
             availableQualities={availableQualities}
             playbackRate={playbackRate}
             captionsEnabled={captionsEnabled}
@@ -2846,7 +2864,7 @@ export function VideoPlayerContent({
             onSkip={handleSkip}
             onVolumeChange={setVolume}
             onMuteToggle={() => setIsMuted(prev => !prev)}
-            onQualityChange={handleQualityChange} // Single quality change handler
+            onQualityChange={handleQualityChange}
             onPlaybackRateChange={setPlaybackRate}
             onCaptionChange={handleCaptionChange}
             onAudioTrackChange={handleAudioTrackChange}
@@ -2855,11 +2873,16 @@ export function VideoPlayerContent({
             onFullscreenToggle={toggleFullscreen}
             onShowShortcuts={() => setShowShortcuts(true)}
             thumbnailsUrl={thumbnailpreview}
-            // Add any new props needed for quality management
             isQualityChanging={isQualityChanging}
             canSetQuality={canSetQuality}
-            selectedQualityValue={selectedQualityValue} // The actual value used for selection
+            selectedQualityValue={selectedQualityValue}
             isAutoQuality={autoQuality}
+            // Episode info for title display
+            contentType={contentType}
+            seriesName={displaySeriesName}
+            seasonNumber={seasonNumber}
+            episodeNumber={currentEpisodeIndex !== undefined ? currentEpisodeIndex + 1 : undefined}
+            episodeTitle={currentEpisode?.title}
           />
         </MediaPlayer>
 

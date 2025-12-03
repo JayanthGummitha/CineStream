@@ -38,6 +38,9 @@ export interface WatchProgressMetadata {
   
   /** Episode title (for TV shows only) */
   episodeTitle?: string;
+  
+  /** Series/Show name (for TV shows only, used for URL generation) */
+  seriesName?: string;
 }
 
 /**
@@ -159,6 +162,7 @@ export function useWatchProgress(
           seasonNumber: metadata.seasonNumber,
           episodeNumber: metadata.episodeNumber,
           episodeTitle: metadata.episodeTitle,
+          seriesName: metadata.seriesName,
         };
         
      
@@ -224,6 +228,7 @@ export function useWatchProgress(
         seasonNumber: metadata.seasonNumber,
         episodeNumber: metadata.episodeNumber,
         episodeTitle: metadata.episodeTitle,
+        seriesName: metadata.seriesName,
       };
       
       await saveProgressToStorage(user.id, completedProgressData);

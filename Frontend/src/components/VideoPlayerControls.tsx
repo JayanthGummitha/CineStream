@@ -108,6 +108,13 @@ interface VideoPlayerControlsProps {
   // Media info
   movieInfo: { title: string };
   thumbnailsUrl: string;
+  
+  // Episode info for TV shows/documentaries/kids content
+  contentType?: 'movie' | 'episode';
+  seriesName?: string;
+  seasonNumber?: number;
+  episodeNumber?: number;
+  episodeTitle?: string;
 
   // Quality management
   quality: string;
@@ -599,13 +606,13 @@ export function VideoPlayerControls({
   playbackRate,
   captionsEnabled,
   activeCaption,
-  movieInfo, // <-- make sure this is here
+  movieInfo,
   availableCaptions,
   isTheaterMode,
   isPiPSupported,
   isPiPActive,
   showControls,
-  isFullscreen = false, // Default to false
+  isFullscreen = false,
   currentAudioTrack,
   availableAudioTracks,
   onPlayPause,
@@ -621,7 +628,13 @@ export function VideoPlayerControls({
   onPictureInPictureToggle,
   onFullscreenToggle,
   onShowShortcuts,
-  thumbnailsUrl
+  thumbnailsUrl,
+  // Episode info props
+  contentType,
+  seriesName,
+  seasonNumber,
+  episodeNumber,
+  episodeTitle
 }: VideoPlayerControlsProps) {
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [showThumbnail, setShowThumbnail] = useState(false);
@@ -1048,8 +1061,28 @@ export function VideoPlayerControls({
           </div>
 
           {movieInfo && (
-            <div className="movie-title">
-              {movieInfo.title}
+            <div className="movie-title text-white text-sm font-medium truncate max-w-[300px]">
+              {contentType === 'episode' && seriesName ? (
+                // Format: "Series Name : S1 E3 Title"
+                <>
+                  <span className="text-white/90">{seriesName}</span>
+                  {seasonNumber && episodeNumber && (
+                    <span className="text-white/70">
+                      {' : S'}{seasonNumber}{' E'}{episodeNumber}
+                    </span>
+                  )}
+                  {episodeTitle && (
+                    <span className="text-white/70">
+                      {' '}
+                      {/* Strip "Episode X:" or "Episode X -" prefix from title */}
+                      {episodeTitle.replace(/^Episode\s*\d+\s*[:\-]\s*/i, '')}
+                    </span>
+                  )}
+                </>
+              ) : (
+                // For movies, just show the title
+                movieInfo.title
+              )}
             </div>
           )}
 

@@ -11,6 +11,7 @@ interface VideoProps {
   autoPlay?: boolean;
   isTrailer?: boolean;
   title?: string;
+  seriesName?: string;
   src?: string;
   poster?: string;
   contentType?: string;
@@ -18,7 +19,7 @@ interface VideoProps {
   episodeData?: VideoPlayerEpisodeData | null;
 }
 
-function Video({ autoFullscreen = false, autoPlay = false, title = "Untitled", src = '', poster = '', contentType = 'movie', contentId, episodeData = null }: VideoProps) {
+function Video({ autoFullscreen = false, autoPlay = false, title = "Untitled", seriesName, src = '', poster = '', contentType = 'movie', contentId, episodeData = null }: VideoProps) {
   const [videoSrc] = useState(src);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentEpisodeData, setCurrentEpisodeData] = useState(episodeData);
@@ -85,10 +86,11 @@ function Video({ autoFullscreen = false, autoPlay = false, title = "Untitled", s
           autoFullscreen={autoFullscreen}
           autoPlay={autoPlay}
           title={title}
+          seriesName={seriesName}
           className="w-99% m-0 p-0 h-full max-w-none"
           contentType={contentType === 'tv' ? 'episode' : 'movie'}
-          contentId={contentId || contentIdResult.contentId} // Use provided contentId or generate from episode data
-          seriesId={seriesId} // ✅ Now extracts series ID from episode data
+          contentId={contentId || contentIdResult.contentId}
+          seriesId={seriesId}
           // Pass episode data props for TV shows
           episodes={currentEpisodeData?.episodes}
           currentEpisodeIndex={currentEpisodeData?.currentEpisodeIndex}

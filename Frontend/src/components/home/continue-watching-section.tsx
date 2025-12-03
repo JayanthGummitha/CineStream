@@ -176,10 +176,21 @@ function ContinueWatchingCard({ progressData, onRemove }: ContinueWatchingCardPr
 
   // Determine the URL based on content type
   const getContentUrl = () => {
+    // For TV shows, use seriesName if available, otherwise fall back to title
+    const titleForSlug = (isTVShow && progressData.seriesName)
+      ? progressData.seriesName 
+      : (progressData.title || 'untitled');
+    
+    // Create URL-friendly slug from title
+    const slug = titleForSlug
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || 'watch';
+    
     if (isMovie) {
-      return `/movie/${progressData.videoId}`;
+      return `/movie/${progressData.videoId}/${slug}`;
     } else if (isTVShow) {
-      return `/tv-shows/${progressData.videoId}`;
+      return `/tv-shows/${progressData.videoId}/${slug}`;
     }
     return '#';
   };

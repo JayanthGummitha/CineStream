@@ -67,7 +67,7 @@ export interface WatchProgressData {
   /** ISO 8601 timestamp of when the content was last watched */
   lastWatchedAt: string;
   
-  /** Title of the content */
+  /** Title of the content (movie title or series name) */
   title: string;
   
   /** Optional thumbnail URL for display in Continue Watching */
@@ -81,6 +81,9 @@ export interface WatchProgressData {
   
   /** Episode title (for TV shows only) */
   episodeTitle?: string;
+  
+  /** Series/Show name (for TV shows only, used for URL generation) */
+  seriesName?: string;
 }
 
 /**
@@ -185,6 +188,9 @@ export interface WatchProgressMetadata {
   
   /** Episode title (for TV shows only) */
   episodeTitle?: string;
+  
+  /** Series/Show name (for TV shows only, used for URL generation) */
+  seriesName?: string;
 }
 
 /**

@@ -63,10 +63,21 @@ export default function ContinueWatchingPage() {
   };
 
   const getContentUrl = (progressData: any) => {
+    // For TV shows, use seriesName if available, otherwise fall back to title
+    const titleForSlug = (progressData.contentType === 'tv-show' && progressData.seriesName)
+      ? progressData.seriesName 
+      : (progressData.title || 'untitled');
+    
+    // Create URL-friendly slug from title
+    const slug = titleForSlug
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || 'watch';
+    
     if (progressData.contentType === 'movie') {
-      return `/movie/${progressData.videoId}`;
+      return `/movie/${progressData.videoId}/${slug}`;
     } else if (progressData.contentType === 'tv-show') {
-      return `/tv-shows/${progressData.videoId}`;
+      return `/tv-shows/${progressData.videoId}/${slug}`;
     }
     return '#';
   };

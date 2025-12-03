@@ -234,7 +234,7 @@ export function ResponsivePricingPage({
                                                             isActivePlan
                                                                 ? '!bg-red-600 !text-white cursor-pointer !opacity-100'
                                                                 : isTrialDisabled
-                                                                ? 'bg-gray-500 text-gray-300 cursor-not-allowed opacity-50'
+                                                                ? 'bg-gray-500 cursor-not-allowed text-gray-300  opacity-50 '
                                                                 : 'bg-white text-black hover:bg-gray-200 hover:cursor-pointer'
                                                         }`}
                                                         style={{

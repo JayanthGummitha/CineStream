@@ -920,6 +920,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                         src={videoSrc}
                         poster={tvShow.backdrop}
                         title={tvShow.title}
+                        seriesName={tvShow.title}
                         className="w-full h-full"
                         contentType="episode"
                         contentId="episode-1" // Start with episode 1 to ensure skip intro appears
