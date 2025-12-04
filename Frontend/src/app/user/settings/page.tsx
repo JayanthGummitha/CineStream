@@ -62,12 +62,7 @@ interface ActiveSession {
   current: boolean;
 }
 
-interface LoginHistoryEntry {
-  id: string;
-  timestamp: string;
-  device: string;
-  location: string;
-}
+
 
 const defaultSettings: PlaybackSettings = {
   videoQuality: '1080p',
@@ -125,39 +120,9 @@ const detectDevice = (): string => {
 // Initial mock sessions (will be updated with real current session)
 const initialMockSessions: ActiveSession[] = [
   { id: '1', device: 'Loading...', location: 'Detecting...', lastActive: 'Now', current: true },
- ];
+];
 
-// Helper to format login history timestamp
-const formatLoginTimestamp = (timestamp: string): string => {
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / 86400000);
-  
-  // Format time as "10:30 AM"
-  const timeStr = date.toLocaleTimeString('en-US', { 
-    hour: 'numeric', 
-    minute: '2-digit',
-    hour12: true 
-  });
-  
-  // Format date part
-  if (diffDays === 0) {
-    return `Today, ${timeStr}`;
-  } else if (diffDays === 1) {
-    return `Yesterday, ${timeStr}`;
-  } else {
-    const dateStr = date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-    return `${dateStr}, ${timeStr}`;
-  }
-};
 
-const LOGIN_HISTORY_KEY = 'cinestream_login_history';
-const MAX_LOGIN_HISTORY = 10;
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<PlaybackSettings>(defaultSettings);
@@ -165,22 +130,24 @@ export default function SettingsPage() {
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(defaultNotificationSettings);
   const [privacySettings, setPrivacySettings] = useState<PrivacySettings>(defaultPrivacySettings);
   const [sessions, setSessions] = useState<ActiveSession[]>(initialMockSessions);
-  const [loginHistory, setLoginHistory] = useState<LoginHistoryEntry[]>([]);
   const [saved, setSaved] = useState(false);
 
-  // Detect real device and location for current session + record login history
+  // Detect real device and location for current session
   useEffect(() => {
     const detectCurrentSession = async () => {
       // Detect device
       const device = detectDevice();
       
-      // Detect location using IP geolocation API
+      // Detect location using IP geolocation API (with city, state, country)
       let location = 'Unknown Location';
       try {
         const response = await fetch('https://ipapi.co/json/');
         if (response.ok) {
           const data = await response.json();
-          location = `${data.city || 'Unknown'}, ${data.country_code || 'Unknown'}`;
+          const city = data.city || 'Unknown';
+          const region = data.region || ''; // State/Province
+          const country = data.country_name || data.country_code || 'Unknown';
+          location = region ? `${city}, ${region}, ${country}` : `${city}, ${country}`;
         }
       } catch (error) {
         console.warn('Could not detect location:', error);
@@ -189,7 +156,10 @@ export default function SettingsPage() {
           const response = await fetch('https://ip-api.com/json/');
           if (response.ok) {
             const data = await response.json();
-            location = `${data.city || 'Unknown'}, ${data.countryCode || 'Unknown'}`;
+            const city = data.city || 'Unknown';
+            const region = data.regionName || ''; // State/Province
+            const country = data.country || data.countryCode || 'Unknown';
+            location = region ? `${city}, ${region}, ${country}` : `${city}, ${country}`;
           }
         } catch {
           location = 'Location unavailable';
@@ -202,34 +172,6 @@ export default function SettingsPage() {
           ? { ...session, device, location }
           : session
       ));
-      
-      // Load existing login history
-      const savedHistory = localStorage.getItem(LOGIN_HISTORY_KEY);
-      let history: LoginHistoryEntry[] = savedHistory ? JSON.parse(savedHistory) : [];
-      
-      // Check if we should record this as a new login (avoid duplicates within 5 minutes)
-      const now = new Date();
-      const lastLogin = history[0];
-      const shouldRecordLogin = !lastLogin || 
-        (now.getTime() - new Date(lastLogin.timestamp).getTime() > 5 * 60 * 1000);
-      
-      if (shouldRecordLogin) {
-        // Create new login entry
-        const newEntry: LoginHistoryEntry = {
-          id: `login-${Date.now()}`,
-          timestamp: now.toISOString(),
-          device,
-          location
-        };
-        
-        // Add to beginning and limit to MAX_LOGIN_HISTORY entries
-        history = [newEntry, ...history].slice(0, MAX_LOGIN_HISTORY);
-        
-        // Save to localStorage
-        localStorage.setItem(LOGIN_HISTORY_KEY, JSON.stringify(history));
-      }
-      
-      setLoginHistory(history);
     };
     
     detectCurrentSession();
@@ -275,14 +217,6 @@ export default function SettingsPage() {
 
   const handleLogoutSession = (sessionId: string) => {
     setSessions(prev => prev.filter(s => s.id !== sessionId));
-  };
-
-  // Handle logout from a specific device in history
-  const handleLogoutDevice = (device: string) => {
-    // Remove all entries for this device from login history
-    const updatedHistory = loginHistory.filter(entry => entry.device !== device);
-    setLoginHistory(updatedHistory);
-    localStorage.setItem(LOGIN_HISTORY_KEY, JSON.stringify(updatedHistory));
   };
 
   const handleChangePassword = () => {
@@ -444,7 +378,7 @@ export default function SettingsPage() {
             <div className="h-px bg-border" />
 
             {/* Active Sessions */}
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <IconDevices className="h-4 w-4 text-muted-foreground" />
                 <Label className="text-sm font-medium">Active Sessions</Label>
@@ -467,72 +401,25 @@ export default function SettingsPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             <div className="h-px bg-border" />
 
-            {/* Device History */}
+            {/* Registered Devices - Link to separate page */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <IconHistory className="h-4 w-4 text-muted-foreground" />
-                <Label className="text-sm font-medium">Device History</Label>
+                <Label className="text-sm font-medium">Registered Devices</Label>
               </div>
-              <div className="space-y-2 p-3 rounded-lg bg-muted/50">
-                {loginHistory.length > 0 ? (
-                  // Group by device and show last login for each
-                  (() => {
-                    const currentDevice = detectDevice();
-                    const groupedDevices = Object.values(
-                      loginHistory.reduce((acc, entry) => {
-                        if (!acc[entry.device] || new Date(entry.timestamp) > new Date(acc[entry.device].timestamp)) {
-                          acc[entry.device] = entry;
-                        }
-                        return acc;
-                      }, {} as Record<string, LoginHistoryEntry>)
-                    ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-                    return groupedDevices.map((entry) => {
-                      const isCurrentDevice = entry.device === currentDevice;
-                      return (
-                        <div key={entry.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-muted">
-                              <IconDevices className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium flex items-center gap-2">
-                                {entry.device}
-                                {isCurrentDevice && (
-                                  <span className="text-xs bg-green-500/20 text-green-500 px-2 py-0.5 rounded">This device</span>
-                                )}
-                              </p>
-                              <p className="text-xs text-muted-foreground">{entry.location}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="text-right">
-                              <p className="text-xs text-muted-foreground">Last active</p>
-                              <p className="text-xs font-medium">{formatLoginTimestamp(entry.timestamp)}</p>
-                            </div>
-                            {!isCurrentDevice && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleLogoutDevice(entry.device)}
-                                className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                              >
-                                Logout
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    });
-                  })()
-                ) : (
-                  <p className="text-xs text-muted-foreground">No device history available</p>
-                )}
-              </div>
+              <p className="text-xs text-muted-foreground">
+                Manage and monitor all devices connected to your account
+              </p>
+              <Link href="/user/register-devices">
+                <Button variant="outline" size="sm" className="w-full">
+                  <IconDevices className="h-4 w-4 mr-2" />
+                  Manage Devices
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
