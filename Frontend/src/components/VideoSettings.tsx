@@ -256,11 +256,11 @@ const VideoSettings = ({
                     <button
                       key={item.id}
                       onClick={() => handleSettingChange(activePanel, item.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${item.active ? 'bg-blue-600 text-white' : 'text-white/80 hover:bg-white/10'
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${item.active ? ' text-white' : 'text-white/80 hover:bg-white/10'
                         }`}
                     >
-                      <div className="flex justify-between w-full items-center">
-                        <span>{item.label}</span>
+                      <div className="flex  text-white justify-between w-full items-center">
+                        <span className=''>{item.label}</span>
                         {item.active && <Check size={16} className="text-white" />}
                       </div>
                     </button>
