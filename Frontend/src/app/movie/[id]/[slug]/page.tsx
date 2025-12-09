@@ -468,6 +468,8 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
                 </p>
               </div>
 
+          
+
               {/* Top Cast Section */}
               <div className="space-y-4">
                 <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border  hover:border-white/20 transition-colors ">
@@ -708,7 +710,44 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
 
 
             </div>
+          
           </div>
+              {/* Trailer Section */}
+              {/* {(trailerState.trailerSrc || trailerState.isLoading) && (
+                <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border hover:border-white/20 transition-colors">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 rounded-lg">
+                      <Play className="w-5 h-5 text-red-500" />
+                    </div>
+                    <h2 className="text-lg font-bold text-white">Official Trailer</h2>
+                    {trailerState.isLoading && (
+                      <div className="ml-auto">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-500"></div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {trailerState.isLoading ? (
+                    <div className="aspect-video bg-black/50 rounded-lg flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-red-500 mx-auto mb-3"></div>
+                        <p className="text-white/60 text-sm">Loading trailer...</p>
+                      </div>
+                    </div>
+                  ) : trailerState.trailerSrc ? (
+                    <div className="aspect-video rounded-lg overflow-hidden bg-black">
+                      <VideoPlayer
+                        src={trailerState.trailerSrc}
+                        poster={movie.backdrop}
+                        title={`${movie.title} - Official Trailer`}
+                        className="w-full h-full"
+                        contentType="movie"
+                        contentId={`${movie.id}-trailer`}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              )} */}
 
           {/* Similar Movies Section */}
           {relatedMovies.length > 0 && (
@@ -791,31 +830,7 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
 
       <Footer />
 
-      {/* Video Player - Hidden until triggered */}
-      {isPlayerOpen && movie && (
-        <div className="fixed inset-0 z-[9999] bg-black">
-          <VideoPlayer
-            src={videoSrc}
-            poster={movie.thumbnail}
-            title={movie.title}
-            className="w-full h-full"
-            contentType="movie"
-            contentId={movie.id.toString()}
-            onPlayingChange={(playing) => {
-            }}
-            onTimeUpdate={(currentTime, duration) => {
-            }}
-          />
-
-          {/* Close button */}
-          <button
-            onClick={() => setIsPlayerOpen(false)}
-            className="absolute top-4 right-4 z-[10000] text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-          >
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-      )}
+   
     </div >
   );
 }

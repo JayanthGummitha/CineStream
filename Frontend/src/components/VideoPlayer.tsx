@@ -200,6 +200,7 @@ export function VideoPlayerContent({
   }, [currentTitle]);
   const playerRef = useRef<MediaPlayerInstance>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMountedRef = useRef(true); // Track if component is mounted
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -218,7 +219,12 @@ export function VideoPlayerContent({
   const [isPiPSupported, setIsPiPSupported] = useState(false);
   const [isPiPActive, setIsPiPActive] = useState(false);
   const [currentVideoSrc, setCurrentVideoSrc] = useState(src);
+  const [isYouTubeSource, setIsYouTubeSource] = useState(false);
   const [pendingResume, setPendingResume] = useState<PendingResume | null>(null);
+  
+  // YouTube-specific caption state
+  const youtubePlayerRef = useRef<any>(null);
+  const [youtubeCaptions, setYoutubeCaptions] = useState<Array<{value: string; label: string; language: string; kind: string; src: string}>>([]);
 
   // Netflix-like features state
   const [introData, setIntroData] = useState<{ start: number; end: number } | null>({
@@ -992,6 +998,37 @@ export function VideoPlayerContent({
   const handleCaptionChange = (captionLanguage: string): void => {
     setActiveCaption(captionLanguage);
 
+    // Handle YouTube captions separately
+    if (isYouTubeSource && youtubePlayerRef.current) {
+      try {
+        const ytPlayer = (youtubePlayerRef.current as any)?.internal;
+        if (ytPlayer) {
+          if (captionLanguage === 'off') {
+            // Disable YouTube captions
+            if (typeof ytPlayer.unloadModule === 'function') {
+              ytPlayer.unloadModule('captions');
+            }
+            setCaptionsEnabled(false);
+            console.log('[YouTube] Captions disabled');
+          } else {
+            // Enable YouTube captions with specific language
+            if (typeof ytPlayer.loadModule === 'function') {
+              ytPlayer.loadModule('captions');
+            }
+            if (typeof ytPlayer.setOption === 'function') {
+              ytPlayer.setOption('captions', 'track', { languageCode: captionLanguage });
+              setCaptionsEnabled(true);
+              console.log('[YouTube] Captions enabled:', captionLanguage);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[YouTube] Error changing captions:', error);
+      }
+      return;
+    }
+
+    // Handle non-YouTube captions (existing logic)
     if (!playerRef.current) {
       console.error('[CAPTIONS] Player not available.');
       return;
@@ -2035,7 +2072,13 @@ export function VideoPlayerContent({
 
   // Comprehensive cleanup on component unmount
   useEffect(() => {
+    // Mark component as mounted
+    isMountedRef.current = true;
+    
     return () => {
+      // Mark component as unmounted to prevent state updates
+      isMountedRef.current = false;
+      
       // Clear all timeouts
       if (activityTimeoutRef.current) {
         clearTimeout(activityTimeoutRef.current);
@@ -2316,10 +2359,19 @@ export function VideoPlayerContent({
     return () => observer.disconnect();
   }, [isFullscreen, currentVideoSrc]);
 
-  // Enhanced fullscreen state monitoring
+  // Track previous fullscreen state to detect actual transitions
+  const prevFullscreenRef = useRef(isFullscreen);
+  
+  // Enhanced fullscreen state monitoring - only trigger on actual exit transitions
   useEffect(() => {
-    if (!isFullscreen && !isFullscreenTransitioning) {
-      // Exited fullscreen, ensure normal styles
+    const wasFullscreen = prevFullscreenRef.current;
+    const isNowFullscreen = isFullscreen;
+    
+    // Update the ref for next comparison
+    prevFullscreenRef.current = isNowFullscreen;
+    
+    // Only call handleFullscreenExit when we actually transition FROM fullscreen TO non-fullscreen
+    if (wasFullscreen && !isNowFullscreen && !isFullscreenTransitioning) {
       handleFullscreenExit();
     }
   }, [isFullscreen, isFullscreenTransitioning, handleFullscreenExit]);
@@ -2334,9 +2386,30 @@ export function VideoPlayerContent({
 
   // YouTube provider configuration for optimal trailer playback
   const handleProviderChange = useCallback((provider: MediaProviderAdapter | null) => {
+    // Prevent state updates if component is unmounted
+    if (!isMountedRef.current) return;
+    
     if (isYouTubeProvider(provider)) {
       // Configure YouTube provider for better performance and GDPR compliance
       provider.cookies = false; // GDPR-compliant by default
+      // YouTube embeds don't support Picture-in-Picture or quality selection
+      setIsPiPSupported(false);
+      setIsYouTubeSource(true);
+      // Clear quality options for YouTube (quality is managed by YouTube)
+      setAvailableQualities([]);
+      
+      // Note: YouTube captions cannot be controlled via custom UI
+      // Vidstack's YouTubeProvider doesn't expose the internal YT.Player instance
+      // Users must use YouTube's native CC button inside the iframe
+      youtubePlayerRef.current = null;
+      setYoutubeCaptions([]);
+      
+    } else if (provider) {
+      // Re-enable features for non-YouTube providers
+      setIsPiPSupported('pictureInPictureEnabled' in document);
+      setIsYouTubeSource(false);
+      youtubePlayerRef.current = null;
+      setYoutubeCaptions([]);
     }
   }, []);
 
@@ -2427,7 +2500,9 @@ export function VideoPlayerContent({
     // Responsive video scaling
     '[&_video]:w-full [&_video]:h-full [&_video]:object-contain',
     '[&_video]:max-h-[60vh] sm:[&_video]:max-h-[70vh] md:[&_video]:max-h-[80vh] lg:[&_video]:max-h-[90vh]',
-    isFullscreen && '[&_video]:max-h-screen'
+    isFullscreen && '[&_video]:max-h-screen',
+    // YouTube iframe styling - ensure controls can receive pointer events
+    '[&_iframe]:pointer-events-auto [&_iframe]:z-10'
   );
 
 
@@ -2569,8 +2644,14 @@ export function VideoPlayerContent({
     }
   }, [canPlay, activeCaption]);
 
-  // STEP 6: Update your captionsForUI to prevent defaults
+  // STEP 6: Update your captionsForUI to prevent defaults and include YouTube captions
   const captionsForUI = useMemo(() => {
+    // For YouTube sources, use YouTube captions if available
+    if (isYouTubeSource && youtubeCaptions.length > 0) {
+      return youtubeCaptions;
+    }
+    
+    // For non-YouTube sources, use textTracks
     if (!textTracks) return [];
 
     const seenLanguages = new Set();
@@ -2592,7 +2673,7 @@ export function VideoPlayerContent({
       type: 'vtt',
       default: false, // Force no defaults
     }));
-  }, [textTracks]);
+  }, [textTracks, isYouTubeSource, youtubeCaptions]);
 
   const BufferingIndicator = () => {
     const shouldShow = isQualityChanging || isBuffering;
@@ -2883,6 +2964,8 @@ export function VideoPlayerContent({
             seasonNumber={seasonNumber}
             episodeNumber={currentEpisodeIndex !== undefined ? currentEpisodeIndex + 1 : undefined}
             episodeTitle={currentEpisode?.title}
+            // YouTube source detection - hides unsupported features
+            isYouTubeSource={isYouTubeSource}
           />
         </MediaPlayer>
 

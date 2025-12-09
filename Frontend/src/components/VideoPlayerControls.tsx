@@ -160,14 +160,8 @@ interface VideoPlayerControlsProps {
   availableCaptions: CaptionOption[];
   canSetCaptions?: boolean; // Add this for caption state management
 
-
-
-
-
-
-
-
-
+  // YouTube source detection - hides unsupported features
+  isYouTubeSource?: boolean;
 }
 
 // Enhanced casting hook with better error handling and real device support
@@ -634,7 +628,9 @@ export function VideoPlayerControls({
   seriesName,
   seasonNumber,
   episodeNumber,
-  episodeTitle
+  episodeTitle,
+  // YouTube source detection
+  isYouTubeSource = false
 }: VideoPlayerControlsProps) {
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [showThumbnail, setShowThumbnail] = useState(false);
@@ -788,9 +784,10 @@ export function VideoPlayerControls({
     <TooltipProvider>
       <div className={cn(
         'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4 transition-all duration-300',
-        // Enhanced z-index and positioning for fullscreen
+        // Enhanced z-index - ensure controls are above YouTube iframe (z-10) and other overlays
+        'z-50',
         isFullscreen && 'z-[9999] fixed',
-        showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full'
+        showControls ? 'opacity-100 translate-y-0 pointer-events-auto cursor-default' : 'opacity-0 translate-y-full pointer-events-none'
       )}>
         {/* Enhanced Cast Menu Overlay */}
         {showCastMenu && (
@@ -974,7 +971,7 @@ export function VideoPlayerControls({
           <div className="flex items-center space-x-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <PlayButton className="text-white hover:bg-white/20 p-2 bg-transparent border-0 rounded-md transition-colors">
+                <PlayButton className="text-white hover:bg-white/20 p-2 bg-transparent border-0 rounded-md transition-colors cursor-pointer">
                   {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                 </PlayButton>
               </TooltipTrigger>
@@ -989,7 +986,7 @@ export function VideoPlayerControls({
                   variant="ghost"
                   size="sm"
                   onClick={() => onSkip(-10)}
-                  className="text-white hover:bg-white/20 p-2"
+                  className="text-white hover:bg-white/20 p-2 cursor-pointer"
                   aria-label="Skip backward 10 seconds"
                 >
                   <SkipBack className="w-4 h-4" />
@@ -1006,7 +1003,7 @@ export function VideoPlayerControls({
                   variant="ghost"
                   size="sm"
                   onClick={() => onSkip(10)}
-                  className="text-white hover:bg-white/20 p-2"
+                  className="text-white hover:bg-white/20 p-2 cursor-pointer"
                   aria-label="Skip forward 10 seconds"
                 >
                   <SkipForward className="w-4 h-4" />
@@ -1025,7 +1022,7 @@ export function VideoPlayerControls({
                     variant="ghost"
                     size="sm"
                     onClick={onMuteToggle}
-                    className="text-white hover:bg-white/20 p-2"
+                    className="text-white hover:bg-white/20 p-2 cursor-pointer"
                     aria-label={isMuted ? 'Unmute' : 'Mute'}
                   >
                     {isMuted || volume === 0 ? (
@@ -1103,16 +1100,17 @@ export function VideoPlayerControls({
                 <VideoSettings
                   setPlaybackRate={onPlaybackRateChange}
                   setCurrentQuality={onQualityChange}
-                  availableQualities={availableQualities}
-                  currentQuality={quality} // This is the display label from getCurrentQualityLabel()
-                  selectedQualityValue={selectedQualityValue} // Pass the actual selected value
-                  isAutoQuality={isAutoQuality} // Pass the auto quality state
+                  availableQualities={isYouTubeSource ? [] : availableQualities} // Hide quality options for YouTube
+                  currentQuality={isYouTubeSource ? 'Auto (YouTube)' : quality}
+                  selectedQualityValue={selectedQualityValue}
+                  isAutoQuality={isAutoQuality}
                   currentAudioTrack={currentAudioTrack}
-                  availableAudioTracks={availableAudioTracks}
+                  availableAudioTracks={isYouTubeSource ? [] : availableAudioTracks} // YouTube manages audio tracks
                   onAudioTrackChange={onAudioTrackChange}
-                  availableCaptions={availableCaptions}
+                  availableCaptions={isYouTubeSource ? [] : availableCaptions} // YouTube captions controlled via native CC button
                   currentCaption={activeCaption}
                   onCaptionChange={onCaptionChange}
+                  isYouTubeSource={isYouTubeSource}
                 />
               </TooltipTrigger>
               <TooltipContent>
@@ -1133,7 +1131,7 @@ export function VideoPlayerControls({
                     size="sm"
                     onClick={handleCastClick}
                     className={cn(
-                      "text-white hover:bg-white/20 p-2",
+                      "text-white hover:bg-white/20 p-2 cursor-pointer",
                       connectedDevice && "bg-green-600/20 text-green-400"
                     )}
                     aria-label={connectedDevice ? 'Disconnect casting' : 'Cast to device'}
@@ -1161,7 +1159,7 @@ export function VideoPlayerControls({
                     size="sm"
                     onClick={onPictureInPictureToggle}
                     className={cn(
-                      "text-white hover:bg-white/20 p-2",
+                      "text-white hover:bg-white/20 p-2 cursor-pointer",
                       isPiPActive && "bg-white/20"
                     )}
                     aria-label="Picture in Picture"
@@ -1182,7 +1180,7 @@ export function VideoPlayerControls({
                   size="sm"
                   onClick={onTheaterModeToggle}
                   className={cn(
-                    "text-white hover:bg-white/20 p-2",
+                    "text-white hover:bg-white/20 p-2 cursor-pointer",
                     isTheaterMode && "bg-white/20"
                   )}
                   aria-label="Theater mode"
@@ -1202,7 +1200,7 @@ export function VideoPlayerControls({
                   variant="ghost"
                   size="sm"
                   onClick={onFullscreenToggle}
-                  className="text-white hover:bg-white/20 p-2"
+                  className="text-white hover:bg-white/20 p-2 cursor-pointer"
                   aria-label="Fullscreen"
                 >
                   <Maximize className="w-4 h-4" />

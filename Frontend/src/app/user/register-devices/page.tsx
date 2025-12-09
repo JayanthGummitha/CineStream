@@ -106,10 +106,13 @@ export default function RegisterDevicesPage() {
     // Detect and register current device
     useEffect(() => {
         setIsClient(true);
+        let isMounted = true;
+        const abortController = new AbortController();
 
         const detectAndRegisterDevice = async () => {
             // Detect device
             const deviceInfo = detectDevice();
+            if (!isMounted) return;
             setCurrentDeviceName(deviceInfo.name);
 
             // Detect location using multiple fallback APIs
@@ -118,7 +121,8 @@ export default function RegisterDevicesPage() {
             // Try ipapi.co first (supports HTTPS, CORS-friendly)
             try {
                 const response = await fetch('https://ipapi.co/json/', {
-                    headers: { 'Accept': 'application/json' }
+                    headers: { 'Accept': 'application/json' },
+                    signal: abortController.signal
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -130,32 +134,17 @@ export default function RegisterDevicesPage() {
                     }
                 }
             } catch (error) {
-                console.warn('ipapi.co failed:', error);
-            }
-            
-            // Fallback to ip-api.com if first attempt failed
-            if (location === 'Unknown Location') {
-                try {
-                    // Note: ip-api.com free tier only works over HTTP, not HTTPS
-                    const response = await fetch('http://ip-api.com/json/?fields=status,city,regionName,country');
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.status === 'success' && data.city) {
-                            const city = data.city;
-                            const region = data.regionName || '';
-                            const country = data.country || '';
-                            location = region ? `${city}, ${region}, ${country}` : `${city}, ${country}`;
-                        }
-                    }
-                } catch (error) {
-                    console.warn('ip-api.com failed:', error);
+                if ((error as Error).name !== 'AbortError') {
+                    console.warn('ipapi.co failed:', error);
                 }
             }
             
-            // Fallback to ipinfo.io
-            if (location === 'Unknown Location') {
+            // Fallback to ipinfo.io (HTTPS, more reliable than ip-api.com)
+            if (location === 'Unknown Location' && isMounted) {
                 try {
-                    const response = await fetch('https://ipinfo.io/json');
+                    const response = await fetch('https://ipinfo.io/json', {
+                        signal: abortController.signal
+                    });
                     if (response.ok) {
                         const data = await response.json();
                         if (data.city) {
@@ -166,9 +155,14 @@ export default function RegisterDevicesPage() {
                         }
                     }
                 } catch (error) {
-                    console.warn('ipinfo.io failed:', error);
+                    if ((error as Error).name !== 'AbortError') {
+                        console.warn('ipinfo.io failed:', error);
+                    }
                 }
             }
+
+            // Check if component is still mounted before updating state
+            if (!isMounted) return;
 
             // Load existing devices
             const savedDevices = localStorage.getItem(DEVICES_STORAGE_KEY);
@@ -217,11 +211,21 @@ export default function RegisterDevicesPage() {
 
             // Save to localStorage
             localStorage.setItem(DEVICES_STORAGE_KEY, JSON.stringify(devices));
-            setRegisteredDevices(devices);
-            setIsLoading(false);
+            
+            // Only update state if still mounted
+            if (isMounted) {
+                setRegisteredDevices(devices);
+                setIsLoading(false);
+            }
         };
 
         detectAndRegisterDevice();
+
+        // Cleanup function
+        return () => {
+            isMounted = false;
+            abortController.abort();
+        };
     }, []);
 
     const getDeviceIcon = (type: string) => {

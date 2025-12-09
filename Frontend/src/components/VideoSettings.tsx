@@ -52,6 +52,7 @@ interface VideoSettingsProps {
   availableCaptions?: CaptionOption[];
   currentCaption?: string;
   onCaptionChange?: (language: string) => void;
+  isYouTubeSource?: boolean; // Hide unsupported features for YouTube
 }
 
 const VideoSettings = ({
@@ -67,6 +68,7 @@ const VideoSettings = ({
   availableCaptions = [],
   currentCaption = 'off',
   onCaptionChange,
+  isYouTubeSource = false,
 }: VideoSettingsProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activePanel, setActivePanel] = useState<keyof SettingsState | null>(null);
