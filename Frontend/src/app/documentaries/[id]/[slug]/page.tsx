@@ -241,7 +241,7 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
                       {documentary.contentRating}
                     </Badge>
                     <span className="text-white/70">•</span>
-                    <span className="text-white/80">{Math.floor(documentary.duration / 60)}h {documentary.duration % 60}m</span>
+                    <span className="text-white/80">{documentary.duration ? `${Math.floor(documentary.duration / 60)}h ${documentary.duration % 60}m` : 'N/A'}</span>
                     <span className="text-white/70">•</span>
                     <Badge className="bg-emerald-600 text-xs">Documentary</Badge>
                     <span className="text-white/70">•</span>
@@ -468,7 +468,7 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
                       <span className="text-sm">Duration</span>
                     </div>
                     <span className="text-white font-medium text-sm">
-                      {Math.floor(documentary.duration / 60)}h {documentary.duration % 60}m
+                      {documentary.duration ? `${Math.floor(documentary.duration / 60)}h ${documentary.duration % 60}m` : 'N/A'}
                     </span>
                   </div>
 

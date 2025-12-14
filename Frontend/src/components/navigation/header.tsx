@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Search, User, Menu, X, LogOutIcon, Settings, CreditCard, LayoutDashboard, Users } from 'lucide-react';
+import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
+import { Search, User, Menu, X, LogOutIcon, Settings, CreditCard, LayoutDashboard, Users, Film, Tv, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSearch } from '@/components/ui/responsive-search';
+import { useSearch } from '@/hooks/useSearch';
+import { getContentTypeRoute } from '@/lib/search-service';
+import { createDetailUrl } from '@/lib/url-utils';
 import {
   ProfileMenu,
   ProfileMenuContent,
@@ -57,6 +61,7 @@ export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }:
   // Use auth hook to get real authentication state
   const { isAuthenticated: hookIsAuthenticated, user: hookUser, logout } = useAuth();
   const { activeProfile, profiles } = useProfiles();
+  const router = useRouter();
 
   // Use prop values if provided, otherwise use hook values
   const isAuthenticated = propIsAuthenticated ?? hookIsAuthenticated;
@@ -65,6 +70,9 @@ export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }:
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const pathname = usePathname();
+  
+  // Search hook for live suggestions
+  const { query: searchQuery, setQuery: setSearchQuery, results: searchResults, isLoading: isSearchLoading, clearSearch } = useSearch(300);
 
   // Get active profile avatar URL
   const profileAvatarUrl = activeProfile?.avatar
@@ -143,7 +151,7 @@ export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }:
         </nav>
 
         {/* Right Side Actions */}
-        <div className="flex items-center gap-responsive">
+        <div className="flex justify-between   ">
           {/* Search */}
           <Button
             variant="ghost"
@@ -156,26 +164,7 @@ export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }:
           </Button>
 
           {/* Language Selector */}
-          {/* <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white/70 hover:text-white"
-              >
-                <Globe className="h-4 w-4 mr-1" />
-                <span className="text-sm">EN</span>
-                <ChevronDown className="h-3 w-3 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>English</DropdownMenuItem>
-              <DropdownMenuItem>Spanish</DropdownMenuItem>
-              <DropdownMenuItem>French</DropdownMenuItem>
-              <DropdownMenuItem>German</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu> */}
-
+         
           {
             isAuthenticated && user
 
@@ -305,45 +294,147 @@ export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }:
       {/* Search Overlay */}
       {isSearchOpen && (
         <div
-          className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-60 p-4 sm:p-6 md:p-8"
+          className="fixed inset-0 bg-black/95 backdrop-blur-md  justify-between items-center z-60 p-4 sm:p-6 md:p-8 gap-2 pt-16 sm:pt-20"
           role="dialog"
           aria-modal="true"
           aria-label="Search movies and shows"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsSearchOpen(false);
+              clearSearch();
+            }
+          }}
         >
-          <div className="responsive-container max-w-3xl">
+          {/* Close Button */}
+          <button
+            onClick={() => {
+              setIsSearchOpen(false);
+              clearSearch();
+            }}
+            className="absolute top-1 md:top-1/12 right-0 p-0 text-white/60 hover:text-white transition-colors"
+            aria-label="Close search"
+          >
+            <X className="h-10 w-8" />
+          </button>
+
+          <div className="w-full pr-5 max-w-2xl">
             <ResponsiveSearch
-              placeholder="Search movies, TV shows, documentaries, actors..."
+              placeholder="Search movies, TV shows, documentaries..."
               variant="overlay"
               size="lg"
               autoFocus={true}
+              value={searchQuery}
+              onChange={(value) => setSearchQuery(value)}
               onSubmit={(value) => {
-                // Add search logic here
-                setIsSearchOpen(false);
+                if (value.trim().length >= 2) {
+                  router.push(`/search?q=${encodeURIComponent(value.trim())}`);
+                  setIsSearchOpen(false);
+                  clearSearch();
+                }
               }}
               onClear={() => {
-                // Clear search logic
+                clearSearch();
               }}
               className="w-full"
             />
 
-            {/* Search Suggestions */}
-            <div className="mt-6 sm:mt-8 text-center">
-              <p className="text-white/60 text-sm sm:text-base mb-4">Popular Searches</p>
-              <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
-                {['Action Movies', 'Netflix Series', 'Marvel', 'Comedy Shows', 'Documentaries'].map((term) => (
-                  <button
-                    key={term}
-                    className="touch-target px-3 py-2 sm:px-4 sm:py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white/70 hover:text-white hover:bg-white/20 active:bg-white/30 transition-all duration-300 text-xs sm:text-sm focus:ring-2 focus:ring-white/20"
-                    onClick={() => {
-                      // Add search logic here
-                      setIsSearchOpen(false);
-                    }}
-                  >
-                    {term}
-                  </button>
-                ))}
+            {/* Live Search Results */}
+            {searchQuery.length >= 2 && (
+              <div className="mt-4 bg-neutral-900/95 border border-white/10 rounded-xl overflow-hidden">
+                {isSearchLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-white/50" />
+                    <span className="ml-2 text-white/50">Searching...</span>
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  <>
+                    <div className="divide-y divide-white/10">
+                      {searchResults.map((result) => (
+                        <Link
+                          key={`${result.type}-${result.id}`}
+                          href={createDetailUrl(
+                            result.type === 'tv' ? 'tv-shows' : 'movie',
+                            result.id,
+                            result.title
+                          )}
+                          onClick={() => {
+                            setIsSearchOpen(false);
+                            clearSearch();
+                          }}
+                          className="flex items-center gap-3 p-3 hover:bg-white/10 transition-colors"
+                        >
+                          <div className="relative w-12 h-16 rounded overflow-hidden bg-white/5 flex-shrink-0">
+                            <Image
+                              src={result.thumbnail}
+                              alt={result.title}
+                              fill
+                              className="object-cover"
+                              sizes="48px"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-white font-medium text-sm truncate">{result.title}</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className={cn(
+                                "px-1.5 py-0.5 rounded text-xs",
+                                result.type === 'tv' ? "bg-blue-500/20 text-blue-400" : "bg-red-500/20 text-red-400"
+                              )}>
+                                {result.type === 'tv' ? 'TV Show' : 'Movie'}
+                              </span>
+                              {result.releaseDate && (
+                                <span className="text-white/50 text-xs">
+                                  {new Date(result.releaseDate).getFullYear()}
+                                </span>
+                              )}
+                              <span className="text-yellow-400 text-xs">★ {result.rating.toFixed(1)}</span>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                    
+                    {/* View All Results */}
+                    <Link
+                      href={`/search?q=${encodeURIComponent(searchQuery)}`}
+                      onClick={() => {
+                        setIsSearchOpen(false);
+                        clearSearch();
+                      }}
+                      className="block text-center py-3 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors border-t border-white/10"
+                    >
+                      View all results for "{searchQuery}"
+                    </Link>
+                  </>
+                ) : (
+                  <div className="py-8 text-center">
+                    <Search className="h-8 w-8 text-white/20 mx-auto mb-2" />
+                    <p className="text-white/50 text-sm">No results found for "{searchQuery}"</p>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
+
+            {/* Popular Searches - Show when no query */}
+            {searchQuery.length < 2 && (
+              <div className="mt-6 sm:mt-8 text-center">
+                <p className="text-white/60 text-sm sm:text-base mb-4">Popular Searches</p>
+                <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+                  {['Action Movies', 'Sci-Fi', 'Marvel', 'Comedy', 'Thriller', 'Drama'].map((term) => (
+                    <button
+                      key={term}
+                      className="touch-target px-3 py-2 sm:px-4 sm:py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white/70 hover:text-white hover:bg-white/20 active:bg-white/30 transition-all duration-300 text-xs sm:text-sm focus:ring-2 focus:ring-white/20"
+                      onClick={() => {
+                        router.push(`/search?q=${encodeURIComponent(term)}`);
+                        setIsSearchOpen(false);
+                        clearSearch();
+                      }}
+                    >
+                      {term}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

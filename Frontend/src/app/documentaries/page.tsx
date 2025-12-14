@@ -412,7 +412,7 @@ function DocumentaryHeroSection({ featuredContent, isAuthenticated }: Documentar
                     </span>
                     <span className="text-white/60">|</span>
                     <span className="text-sm font-medium">
-                      {Math.floor(currentMovie.duration / 60)}h {currentMovie.duration % 60}m
+                      {currentMovie.duration ? `${Math.floor(currentMovie.duration / 60)}h ${currentMovie.duration % 60}m` : 'N/A'}
                     </span>
                   </div>
                 </div>

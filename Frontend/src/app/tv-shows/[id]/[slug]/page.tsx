@@ -420,7 +420,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                                             {tvShow.contentRating}
                                         </Badge>
                                         <span className="text-white/70">•</span>
-                                        <span className="text-white/80">{tvShow.duration}min episodes</span>
+                                        <span className="text-white/80">{tvShow.duration || 45}min episodes</span>
                                         <span className="text-white/70">•</span>
                                         <Badge className="bg-blue-600 text-xs">
                                             <Tv className="h-3 w-3 mr-1" />
@@ -675,7 +675,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                                             <Clock className="h-4 w-4" />
                                             <span className="text-sm">Episode Length</span>
                                         </div>
-                                        <span className="text-white font-medium text-sm">~{tvShow.duration}min</span>
+                                        <span className="text-white font-medium text-sm">~{tvShow.duration || 45}min</span>
                                     </div>
 
                                     <div className="h-px bg-white/10" />
@@ -853,7 +853,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                                                                     {episode.description}
                                                                 </p>
                                                                 <div className="flex items-center space-x-3 text-xs text-white/60">
-                                                                    <span>{episode.duration}min</span>
+                                                                    <span>{episode.duration || 45}min</span>
                                                                     <span>•</span>
                                                                     <div className="flex items-center space-x-1">
                                                                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />

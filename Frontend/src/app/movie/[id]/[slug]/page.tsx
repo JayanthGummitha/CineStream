@@ -385,7 +385,7 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
                       {movie.contentRating}
                     </Badge>
                     <span className="text-white/70">•</span>
-                    <span className="text-white/80">{Math.floor(movie.duration / 60)}h {movie.duration % 60}m</span>
+                    <span className="text-white/80">{movie.duration ? `${Math.floor(movie.duration / 60)}h ${movie.duration % 60}m` : 'N/A'}</span>
                     <span className="text-white/70">•</span>
                     <Badge className="bg-red-600 micro-text">Movie</Badge>
                     <span className="text-white/70">•</span>
@@ -623,7 +623,7 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
                       <span className="text-sm">Duration</span>
                     </div>
                     <span className="text-white font-medium text-sm">
-                      {Math.floor(movie.duration / 60)}h {movie.duration % 60}m
+                      {movie.duration ? `${Math.floor(movie.duration / 60)}h ${movie.duration % 60}m` : 'N/A'}
                     </span>
                   </div>
 

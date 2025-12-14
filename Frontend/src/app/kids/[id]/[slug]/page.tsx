@@ -285,7 +285,7 @@ export default function KidsDetailPage({ params }: KidsDetailPageProps) {
                       {kidsMovie.contentRating}
                     </Badge>
                     <span className="text-white/70">•</span>
-                    <span className="text-white/80">{Math.floor(kidsMovie.duration / 60)}h {kidsMovie.duration % 60}m</span>
+                    <span className="text-white/80">{kidsMovie.duration ? `${Math.floor(kidsMovie.duration / 60)}h ${kidsMovie.duration % 60}m` : 'N/A'}</span>
                     <span className="text-white/70">•</span>
                     <Badge className="bg-pink-600 text-xs">Kids & Family</Badge>
                     <span className="text-white/70">•</span>
@@ -525,7 +525,7 @@ export default function KidsDetailPage({ params }: KidsDetailPageProps) {
                       <span className="text-sm">Duration</span>
                     </div>
                     <span className="text-white font-medium text-sm">
-                      {Math.floor(kidsMovie.duration / 60)}h {kidsMovie.duration % 60}m
+                      {kidsMovie.duration ? `${Math.floor(kidsMovie.duration / 60)}h ${kidsMovie.duration % 60}m` : 'N/A'}
                     </span>
                   </div>
 
