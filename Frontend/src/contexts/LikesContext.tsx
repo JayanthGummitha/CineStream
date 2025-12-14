@@ -1,9 +1,15 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Movie } from '@/types';
+import { useProfiles } from '@/contexts/ProfileContext';
 
 const LIKES_STORAGE_KEY = 'cinestream_likes';
+
+/** Get profile-scoped storage key */
+function getStorageKey(profileId: string | undefined): string {
+  return profileId ? `${LIKES_STORAGE_KEY}_${profileId}` : LIKES_STORAGE_KEY;
+}
 
 interface LikesContextType {
   likes: Movie[];
@@ -17,25 +23,33 @@ interface LikesContextType {
 const LikesContext = createContext<LikesContextType | undefined>(undefined);
 
 export function LikesProvider({ children }: { children: ReactNode }) {
+  const { activeProfile } = useProfiles();
   const [likes, setLikes] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const profileId = activeProfile?.id;
+  const storageKey = getStorageKey(profileId);
 
-  // Load likes from localStorage on mount
+  // Load likes from localStorage when profile changes
   useEffect(() => {
+    setIsLoading(true);
     try {
-      const stored = localStorage.getItem(LIKES_STORAGE_KEY);
+      const stored = localStorage.getItem(storageKey);
       if (stored) {
         setLikes(JSON.parse(stored));
+      } else {
+        setLikes([]);
       }
     } catch (error) {
       console.error('Error loading likes:', error);
+      setLikes([]);
     } finally {
       setIsLoading(false);
     }
 
     // Listen for storage changes from other tabs/windows
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === LIKES_STORAGE_KEY && e.newValue) {
+      if (e.key === storageKey && e.newValue) {
         try {
           setLikes(JSON.parse(e.newValue));
         } catch (error) {
@@ -47,8 +61,8 @@ export function LikesProvider({ children }: { children: ReactNode }) {
     // Listen for custom events from same tab
     const handleCustomEvent = (e: Event) => {
       const customEvent = e as CustomEvent;
-      if (customEvent.detail) {
-        setLikes(customEvent.detail);
+      if (customEvent.detail?.profileId === profileId) {
+        setLikes(customEvent.detail.likes);
       }
     };
 
@@ -59,20 +73,20 @@ export function LikesProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('likesUpdated', handleCustomEvent);
     };
-  }, []);
+  }, [storageKey, profileId]);
 
   // Save likes to localStorage whenever it changes
   useEffect(() => {
     if (!isLoading) {
       try {
-        localStorage.setItem(LIKES_STORAGE_KEY, JSON.stringify(likes));
+        localStorage.setItem(storageKey, JSON.stringify(likes));
         // Dispatch custom event to notify other components
-        window.dispatchEvent(new CustomEvent('likesUpdated', { detail: likes }));
+        window.dispatchEvent(new CustomEvent('likesUpdated', { detail: { profileId, likes } }));
       } catch (error) {
         console.error('Error saving likes:', error);
       }
     }
-  }, [likes, isLoading]);
+  }, [likes, isLoading, storageKey, profileId]);
 
   const addLike = (movie: Movie) => {
     setLikes((prev) => {

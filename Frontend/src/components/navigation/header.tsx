@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, User, Menu, X, LogOutIcon, Settings, CreditCard, LayoutDashboard } from 'lucide-react';
+import { Search, User, Menu, X, LogOutIcon, Settings, CreditCard, LayoutDashboard, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSearch } from '@/components/ui/responsive-search';
 import {
@@ -20,7 +20,20 @@ import { Separator } from '@/components/ui/separator';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { NotificationDropdown } from '@/components/navigation/notification-dropdown';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfiles } from '@/contexts/ProfileContext';
 import { cn } from '@/lib/utils';
+
+// Avatar image mapping
+const AVATAR_IMAGES: Record<string, string> = {
+  'avatar-1': 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
+  'avatar-2': 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka',
+  'avatar-3': 'https://api.dicebear.com/7.x/avataaars/svg?seed=Milo',
+  'avatar-4': 'https://api.dicebear.com/7.x/avataaars/svg?seed=Luna',
+  'avatar-5': 'https://api.dicebear.com/7.x/avataaars/svg?seed=Max',
+  'avatar-6': 'https://api.dicebear.com/7.x/avataaars/svg?seed=Zoe',
+  'avatar-kids-1': 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=happy',
+  'avatar-kids-2': 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=cool',
+};
 
 
 interface HeaderProps {
@@ -43,6 +56,7 @@ const NAVIGATION_ITEMS = [
 export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }: HeaderProps) {
   // Use auth hook to get real authentication state
   const { isAuthenticated: hookIsAuthenticated, user: hookUser, logout } = useAuth();
+  const { activeProfile, profiles } = useProfiles();
 
   // Use prop values if provided, otherwise use hook values
   const isAuthenticated = propIsAuthenticated ?? hookIsAuthenticated;
@@ -51,6 +65,11 @@ export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }:
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const pathname = usePathname();
+
+  // Get active profile avatar URL
+  const profileAvatarUrl = activeProfile?.avatar
+    ? AVATAR_IMAGES[activeProfile.avatar] || AVATAR_IMAGES['avatar-1']
+    : undefined;
 
   // Close mobile menu when clicking outside or on escape
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
@@ -169,22 +188,40 @@ export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }:
                   <ProfileMenu className=''>
                     <ProfileMenuHeader>
                       <ProfileMenuHeaderContent className="flex flex-col">
-                        <div>Jayanth</div>
+                        <div>{activeProfile?.name || user.name}</div>
+                        {activeProfile?.isKids && (
+                          <span className="text-xs text-green-400">Kids</span>
+                        )}
                       </ProfileMenuHeaderContent>
                       <ProfileMenuTrigger>
-                        <div className="flex items-center justify-end">
-                          <Avatar className="">
+                        <div className="flex items-center justify-end p-1">
+                          <Avatar className="ring-1 ring-white/20 hover:ring-white/40 transition-all">
                             <AvatarImage
-                              src="https://avatars.githubusercontent.com/u/1?v=4"
-                              alt="MUI"
+                              src={profileAvatarUrl || user.avatar}
+                              alt={activeProfile?.name || user.name}
                             />
-                            <AvatarFallback>MUI</AvatarFallback>
+                            <AvatarFallback className="bg-gradient-to-br from-red-500 to-orange-500 text-white">
+                              {(activeProfile?.name || user.name).charAt(0).toUpperCase()}
+                            </AvatarFallback>
                           </Avatar>
                         </div>
                       </ProfileMenuTrigger>
                     </ProfileMenuHeader>
                     <ProfileMenuContent>
-                      <ProfileMenuGroup className="w-40">
+                      <ProfileMenuGroup className="w-48">
+                        {/* Profile Switcher */}
+                        {profiles.length > 1 && (
+                          <>
+                            <ProfileMenuItem asChild>
+                              <Link href="/profiles" className="flex items-center gap-2">
+                                <Users size={20} />
+                                Switch Profile
+                              </Link>
+                            </ProfileMenuItem>
+                            <Separator className="my-0.5" />
+                          </>
+                        )}
+
                         <ProfileMenuItem asChild>
                           <Link href="/user/dashboard" className="flex items-center gap-2">
                             <LayoutDashboard size={20} />
@@ -203,6 +240,13 @@ export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }:
                           <Link href="/user/settings" className="flex items-center gap-2">
                             <Settings size={20} />
                             Settings
+                          </Link>
+                        </ProfileMenuItem>
+
+                        <ProfileMenuItem asChild>
+                          <Link href="/profiles" className="flex items-center gap-2">
+                            <User size={20} />
+                            Manage Profiles
                           </Link>
                         </ProfileMenuItem>
 
@@ -368,33 +412,44 @@ export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }:
               {isAuthenticated && user && (
                 <div className="spacing-component margin-component">
                   <div className="flex items-center gap-responsive spacing-x-component rounded-xl">
-                    <Avatar className="h-12 w-12 sm:h-14 sm:w-14">
-                      <AvatarImage src={user.avatar} alt={user.name} />
+                    <Avatar className="h-12 w-12 sm:h-14 sm:w-14 ring-2 ring-white/20">
+                      <AvatarImage src={profileAvatarUrl || user.avatar} alt={activeProfile?.name || user.name} />
                       <AvatarFallback className="bg-gradient-to-br from-red-500 to-orange-500 text-white text-lg sm:text-xl">
-                        {user.name.charAt(0)}
+                        {(activeProfile?.name || user.name).charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="text-white font-medium text-base sm:text-lg">{user.name}</p>
+                      <p className="text-white font-medium text-base sm:text-lg">{activeProfile?.name || user.name}</p>
                       <p className="text-white/60 text-sm sm:text-base">{user.email}</p>
+                      {activeProfile?.isKids && (
+                        <span className="text-xs text-green-400">Kids Profile</span>
+                      )}
                     </div>
                   </div>
 
                   <div className="margin-element space-responsive-compact">
                     <Link
-                      href="/profile"
+                      href="/profiles"
+                      className="touch-target-large flex items-center gap-responsive spacing-x-element text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300"
+                      onClick={closeMobileMenu}
+                    >
+                      <Users className="h-5 w-5" />
+                      <span className="text-base sm:text-lg">Switch Profile</span>
+                    </Link>
+                    <Link
+                      href="/profiles"
                       className="touch-target-large flex items-center gap-responsive spacing-x-element text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300"
                       onClick={closeMobileMenu}
                     >
                       <User className="h-5 w-5" />
-                      <span className="text-base sm:text-lg">Profile</span>
+                      <span className="text-base sm:text-lg">Manage Profiles</span>
                     </Link>
                     <Link
-                      href="/subscription"
+                      href="/user/subscription"
                       className="touch-target-large flex items-center gap-responsive spacing-x-element text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300"
                       onClick={closeMobileMenu}
                     >
-                      <div className="h-5 w-5 bg-gradient-to-br from-red-500 to-orange-500 rounded"></div>
+                      <CreditCard className="h-5 w-5" />
                       <span className="text-base sm:text-lg">Subscription</span>
                     </Link>
                     <button
@@ -404,7 +459,7 @@ export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }:
                         logout();
                       }}
                     >
-                      <div className="h-5 w-5 border border-white/30 rounded"></div>
+                      <LogOutIcon className="h-5 w-5" />
                       <span className="text-base sm:text-lg">Log out</span>
                     </button>
                   </div>

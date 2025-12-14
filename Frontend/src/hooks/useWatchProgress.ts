@@ -10,10 +10,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfiles } from '@/contexts/ProfileContext';
 import {
   saveProgress as saveProgressToStorage,
   getProgress as getProgressFromStorage,
-  deleteProgress as deleteProgressFromStorage,
+  setActiveProfile,
 } from '@/lib/watch-progress-storage';
 import {
   WatchProgressData,
@@ -77,6 +78,7 @@ export function useWatchProgress(
   metadata: WatchProgressMetadata
 ): UseWatchProgressReturn {
   const { isAuthenticated, user } = useAuth();
+  const { activeProfile } = useProfiles();
   const [progress, setProgress] = useState<WatchProgressData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [resumePoint, setResumePoint] = useState<number | null>(null);
@@ -85,6 +87,11 @@ export function useWatchProgress(
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSaveTimeRef = useRef<number>(0);
   const isMountedRef = useRef(true);
+  
+  // Sync active profile with watch progress storage
+  useEffect(() => {
+    setActiveProfile(activeProfile?.id || null);
+  }, [activeProfile?.id]);
   
   /**
    * Load existing progress on mount
@@ -102,6 +109,9 @@ export function useWatchProgress(
       }
       
       try {
+        // Ensure active profile is set before loading
+        setActiveProfile(activeProfile?.id || null);
+        
         const existingProgress = await getProgressFromStorage(user.id, videoId);
         
         if (!isMountedRef.current) return;
@@ -115,6 +125,10 @@ export function useWatchProgress(
           ) {
             setResumePoint(existingProgress.currentTime);
           }
+        } else {
+          // Reset if no progress for this profile
+          setProgress(null);
+          setResumePoint(null);
         }
       } catch (error) {
         // Log error but don't break functionality
@@ -131,7 +145,7 @@ export function useWatchProgress(
     return () => {
       isMountedRef.current = false;
     };
-  }, [videoId, isAuthenticated, user]);
+  }, [videoId, isAuthenticated, user, activeProfile?.id]);
   
   /**
    * Save progress immediately (throttling handled by caller)

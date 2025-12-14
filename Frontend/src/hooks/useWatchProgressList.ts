@@ -14,9 +14,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfiles } from '@/contexts/ProfileContext';
 import {
   getAllProgress,
   deleteProgress,
+  setActiveProfile,
 } from '@/lib/watch-progress-storage';
 import {
   WatchProgressData,
@@ -38,11 +40,17 @@ import {
  */
 export function useWatchProgressList(): UseWatchProgressListReturn {
   const { isAuthenticated, user } = useAuth();
+  const { activeProfile } = useProfiles();
   const [progressList, setProgressList] = useState<WatchProgressData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastLoadTimeRef = useRef<number>(0);
+  
+  // Sync active profile with watch progress storage
+  useEffect(() => {
+    setActiveProfile(activeProfile?.id || null);
+  }, [activeProfile?.id]);
 
   /**
    * Load all progress entries for the current user
@@ -66,7 +74,10 @@ export function useWatchProgressList(): UseWatchProgressListReturn {
         setIsLoading(true);
       }
       
-      // Get all progress from storage
+      // Ensure active profile is set before loading
+      setActiveProfile(activeProfile?.id || null);
+      
+      // Get all progress from storage (profile-scoped)
       const allProgress = await getAllProgress(user.id);
       
       // Filter to only show 1-95% completion range
@@ -87,7 +98,7 @@ export function useWatchProgressList(): UseWatchProgressListReturn {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [isAuthenticated, user?.id, progressList.length]);
+  }, [isAuthenticated, user?.id, progressList.length, activeProfile?.id]);
 
   /**
    * Remove a progress entry with optimistic UI update

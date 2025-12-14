@@ -14,10 +14,12 @@ import {
     getTVShowDetails,
     getTVShowsByGenre,
     getTVShowWithSeasons,
+    getTVShowTrailer,
     TVShowFetchError,
     TVShowFetchErrorType,
     getUserFriendlyErrorMessage
 } from '@/lib/movie-service';
+import { TrailerButton } from '@/components/TrailerButton';
 import { createDetailUrl } from '@/lib/url-utils';
 import { Movie, Season, Episode } from '@/types';
 import Link from 'next/link';
@@ -29,6 +31,9 @@ import {
 import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { useLikes } from '@/hooks/useLikes';
 import { useMyList } from '@/hooks/useMyList';
+import { useParentalControls } from '@/hooks/useParentalControls';
+import { ContentRestrictionOverlay } from '@/components/parental/ContentRestrictionOverlay';
+import { ContentAccessResult } from '@/lib/parental-controls';
 
 interface TVShowDetailPageProps {
     params: Promise<{
@@ -52,6 +57,17 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
     const [episodeData, setEpisodeData] = useState<VideoPlayerEpisodeData | null>(null);
     const [currentEpisodeId, setCurrentEpisodeId] = useState<string | null>(null);
 
+    // Trailer state
+    const [trailerState, setTrailerState] = useState<{
+        trailerSrc: string | null;
+        isLoading: boolean;
+        hasError: boolean;
+    }>({
+        trailerSrc: null,
+        isLoading: false,
+        hasError: false
+    });
+
     // Use DASH video source for better streaming
     const videoSrc = 'https://files.vidstack.io/sprite-fight/dash/stream.mpd';
 
@@ -60,6 +76,8 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
 
     const { isLiked, toggleLike } = useLikes();
     const { isInList, toggleList } = useMyList();
+    const { canAccessContent, setPinVerified } = useParentalControls();
+    const [contentAccess, setContentAccess] = useState<ContentAccessResult>({ allowed: true });
 
     // Fetch TV show data with comprehensive error handling
     const fetchTVShowData = useCallback(async () => {
@@ -84,6 +102,32 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
 
             setTVShow(showData);
             setSeasons(realSeasons);
+
+            // Check parental controls access (including genre-based blocking)
+            const accessResult = canAccessContent(showData.id, showData.contentRating || 'TV-MA', showData.genres);
+            setContentAccess(accessResult);
+
+            // Fetch trailer asynchronously (non-blocking)
+            setTrailerState(prev => ({ ...prev, isLoading: true, hasError: false }));
+            getTVShowTrailer(resolvedParams.id)
+                .then(trailerUrl => {
+                    setTrailerState({
+                        trailerSrc: trailerUrl,
+                        isLoading: false,
+                        hasError: trailerUrl === null
+                    });
+                    if (trailerUrl) {
+                        console.log(`[TV Show Page] Trailer loaded: ${trailerUrl}`);
+                    }
+                })
+                .catch(err => {
+                    console.error('[TV Show Page] Failed to load trailer:', err);
+                    setTrailerState({
+                        trailerSrc: null,
+                        isLoading: false,
+                        hasError: true
+                    });
+                });
 
             // Get related TV shows based on the first genre
             if (showData.genres.length > 0) {
@@ -298,6 +342,26 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
     const totalSeasons = seasons.length;
     const totalEpisodes = seasons.reduce((total, season) => total + season.episodes.length, 0);
 
+    // Handle PIN verification for restricted content
+    const handlePinVerified = () => {
+        setPinVerified(true);
+        setContentAccess({ allowed: true });
+    };
+
+    // Show restriction overlay if content is not accessible
+    if (!contentAccess.allowed && tvShow) {
+        return (
+            <div className="min-h-screen bg-background">
+                <Header isAuthenticated={isAuthenticated} />
+                <ContentRestrictionOverlay
+                    accessResult={contentAccess}
+                    contentTitle={tvShow.title}
+                    onPinVerified={handlePinVerified}
+                />
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-background">
             <Header isAuthenticated={isAuthenticated} />
@@ -386,12 +450,14 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                                             </Link>
                                         )}
 
-                                        <Link href={`/watch/${tvShow.id}?fullscreen=true&autoplay=true&trailer=true&type=tv`}>
-                                            <Button size="sm" className="bg-white text-black hover:bg-white/90">
-                                                <Play className="mr-2 h-5 w-5" />
-                                                Watch Trailer
-                                            </Button>
-                                        </Link>
+                                        <TrailerButton
+                                            trailerSrc={trailerState.trailerSrc}
+                                            isLoading={trailerState.isLoading}
+                                            hasError={trailerState.hasError}
+                                            movieId={tvShow.id}
+                                            movieTitle={tvShow.title}
+                                            size="sm"
+                                        />
 
                                         {isAuthenticated && tvShow && (
                                             <>

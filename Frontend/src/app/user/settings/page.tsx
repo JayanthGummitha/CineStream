@@ -24,6 +24,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import Link from 'next/link';
+import { useProfiles } from '@/contexts/ProfileContext';
+import { PinModal } from '@/components/parental/PinModal';
 
 interface PlaybackSettings {
   videoQuality: string;
@@ -179,6 +181,12 @@ export default function SettingsPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
   const [deleteConfirm, setDeleteConfirm] = useState('');
+  
+  // Parental Controls state
+  const { accountProfiles, setMasterPin, verifyMasterPin } = useProfiles();
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinModalMode, setPinModalMode] = useState<'set' | 'change' | 'verify'>('set');
+  const hasMasterPin = !!accountProfiles?.masterPin;
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -608,6 +616,127 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Parental Controls */}
+        <Card className='border-2'>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <IconLock className="h-5 w-5" />
+              Parental Controls
+            </CardTitle>
+            <CardDescription>
+              Set up PIN protection for content restrictions
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Master PIN */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Master PIN</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {hasMasterPin 
+                      ? 'PIN is set. Use it to unlock restricted content or manage profiles.'
+                      : 'Set a 4-digit PIN to protect restricted content and manage parental controls.'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {hasMasterPin && (
+                    <span className="text-xs bg-green-500/20 text-green-500 px-2 py-1 rounded">
+                      Active
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                {hasMasterPin ? (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setPinModalMode('change');
+                      setShowPinModal(true);
+                    }}
+                  >
+                    Change PIN
+                  </Button>
+                ) : (
+                  <Button 
+                    size="sm"
+                    className="bg-red-600 hover:bg-red-700"
+                    onClick={() => {
+                      setPinModalMode('set');
+                      setShowPinModal(true);
+                    }}
+                  >
+                    Set Up PIN
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="h-px bg-border" />
+
+            {/* Manage Profiles Link */}
+            <div className="space-y-3">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium">Profile Restrictions</Label>
+                <p className="text-xs text-muted-foreground">
+                  Configure content restrictions and PIN requirements for each profile.
+                </p>
+              </div>
+              <Link href="/profiles">
+                <Button variant="outline" size="sm" className="w-full">
+                  Manage Profiles
+                </Button>
+              </Link>
+            </div>
+
+            {hasMasterPin && (
+              <>
+                <div className="h-px bg-border" />
+                
+                {/* Content Rating Info */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Content Ratings Guide</Label>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2 bg-muted/50 rounded">
+                      <span className="font-medium text-green-400">TV-Y, G</span>
+                      <p className="text-muted-foreground">All ages</p>
+                    </div>
+                    <div className="p-2 bg-muted/50 rounded">
+                      <span className="font-medium text-blue-400">TV-Y7, PG</span>
+                      <p className="text-muted-foreground">7+ years</p>
+                    </div>
+                    <div className="p-2 bg-muted/50 rounded">
+                      <span className="font-medium text-yellow-400">TV-PG, PG-13</span>
+                      <p className="text-muted-foreground">Parental guidance</p>
+                    </div>
+                    <div className="p-2 bg-muted/50 rounded">
+                      <span className="font-medium text-red-400">TV-MA, R, NC-17</span>
+                      <p className="text-muted-foreground">Adults only</p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* PIN Modal */}
+        <PinModal
+          open={showPinModal}
+          onOpenChange={setShowPinModal}
+          onVerified={() => {
+            setShowPinModal(false);
+          }}
+          mode={pinModalMode}
+          title={pinModalMode === 'set' ? 'Set Master PIN' : 'Change Master PIN'}
+          description={pinModalMode === 'set' 
+            ? 'Create a 4-digit PIN to protect parental controls.'
+            : 'Enter a new 4-digit PIN.'}
+        />
 
         <Card className='border-2 '>
           <CardHeader>

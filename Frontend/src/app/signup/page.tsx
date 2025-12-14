@@ -113,13 +113,18 @@ export default function SignUpPage() {
             setIsSuccess(true);
             toast.success('Account created successfully! Welcome to CineStream!');
 
+            // Set owner session - user signed up with credentials, can access all profiles without PIN
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('cinestream_owner_session', 'true');
+            }
+
             // Show redirecting state after success
             setTimeout(() => {
                 setIsRedirecting(true);
 
-                // Redirect to home page
+                // Redirect to profiles page to create/select profile
                 setTimeout(() => {
-                    router.push('/');
+                    router.push('/profiles');
                 }, 1000);
             }, 1000);
         } catch (err) {

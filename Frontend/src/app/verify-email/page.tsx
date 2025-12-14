@@ -52,13 +52,18 @@ export default function VerifyEmailPage() {
         // Verification successful
         setIsVerified(true);
         
+        // Set owner session - user logged in with credentials, can access all profiles without PIN
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('cinestream_owner_session', 'true');
+        }
+        
         // Show redirecting state after 1 second
         setTimeout(() => {
           setIsRedirecting(true);
           
-          // Redirect to home after another second
+          // Redirect to profiles page to select profile after another second
           setTimeout(() => {
-            router.push('/');
+            router.push('/profiles');
           }, 1000);
         }, 1000);
       } else {

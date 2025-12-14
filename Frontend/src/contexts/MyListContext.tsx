@@ -1,9 +1,15 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Movie } from '@/types';
+import { useProfiles } from '@/contexts/ProfileContext';
 
 const MY_LIST_STORAGE_KEY = 'cinestream_my_list';
+
+/** Get profile-scoped storage key */
+function getStorageKey(profileId: string | undefined): string {
+  return profileId ? `${MY_LIST_STORAGE_KEY}_${profileId}` : MY_LIST_STORAGE_KEY;
+}
 
 interface MyListContextType {
   myList: Movie[];
@@ -17,25 +23,33 @@ interface MyListContextType {
 const MyListContext = createContext<MyListContextType | undefined>(undefined);
 
 export function MyListProvider({ children }: { children: ReactNode }) {
+  const { activeProfile } = useProfiles();
   const [myList, setMyList] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const profileId = activeProfile?.id;
+  const storageKey = getStorageKey(profileId);
 
-  // Load list from localStorage on mount
+  // Load list from localStorage when profile changes
   useEffect(() => {
+    setIsLoading(true);
     try {
-      const stored = localStorage.getItem(MY_LIST_STORAGE_KEY);
+      const stored = localStorage.getItem(storageKey);
       if (stored) {
         setMyList(JSON.parse(stored));
+      } else {
+        setMyList([]);
       }
     } catch (error) {
       console.error('Error loading my list:', error);
+      setMyList([]);
     } finally {
       setIsLoading(false);
     }
 
     // Listen for storage changes from other tabs/windows
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === MY_LIST_STORAGE_KEY && e.newValue) {
+      if (e.key === storageKey && e.newValue) {
         try {
           setMyList(JSON.parse(e.newValue));
         } catch (error) {
@@ -47,8 +61,8 @@ export function MyListProvider({ children }: { children: ReactNode }) {
     // Listen for custom events from same tab
     const handleCustomEvent = (e: Event) => {
       const customEvent = e as CustomEvent;
-      if (customEvent.detail) {
-        setMyList(customEvent.detail);
+      if (customEvent.detail?.profileId === profileId) {
+        setMyList(customEvent.detail.list);
       }
     };
 
@@ -59,20 +73,20 @@ export function MyListProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('myListUpdated', handleCustomEvent);
     };
-  }, []);
+  }, [storageKey, profileId]);
 
   // Save list to localStorage whenever it changes
   useEffect(() => {
     if (!isLoading) {
       try {
-        localStorage.setItem(MY_LIST_STORAGE_KEY, JSON.stringify(myList));
+        localStorage.setItem(storageKey, JSON.stringify(myList));
         // Dispatch custom event to notify other components
-        window.dispatchEvent(new CustomEvent('myListUpdated', { detail: myList }));
+        window.dispatchEvent(new CustomEvent('myListUpdated', { detail: { profileId, list: myList } }));
       } catch (error) {
         console.error('Error saving my list:', error);
       }
     }
-  }, [myList, isLoading]);
+  }, [myList, isLoading, storageKey, profileId]);
 
   const addToList = (movie: Movie) => {
     setMyList((prev) => {

@@ -9,13 +9,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Play, Plus, Share, Download, Star, Clock, Calendar, ChevronLeft, ChevronRight, Heart, Save } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getMovieDetails, getMoviesByGenre } from '@/lib/movie-service';
+import { getMovieDetails, getMoviesByGenre, getMovieTrailer } from '@/lib/movie-service';
 import { searchPersonImage } from '@/lib/tmdb';
 import { createDetailUrl } from '@/lib/url-utils';
 import { Movie } from '@/types';
 import Link from 'next/link';
 import { useLikes } from '@/hooks/useLikes';
 import { useMyList } from '@/hooks/useMyList';
+import { TrailerButton } from '@/components/TrailerButton';
+import { useParentalControls } from '@/hooks/useParentalControls';
+import { ContentRestrictionOverlay } from '@/components/parental/ContentRestrictionOverlay';
+import { ContentAccessResult } from '@/lib/parental-controls';
 
 interface DocumentaryDetailPageProps {
   params: Promise<{
@@ -29,9 +33,20 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
   const [relatedDocs, setRelatedDocs] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [directorImage, setDirectorImage] = useState<string | null>(null);
+  const [trailerState, setTrailerState] = useState<{
+    trailerSrc: string | null;
+    isLoading: boolean;
+    hasError: boolean;
+  }>({
+    trailerSrc: null,
+    isLoading: false,
+    hasError: false
+  });
   
   const { isLiked, toggleLike } = useLikes();
   const { isInList, toggleList } = useMyList();
+  const { canAccessContent, setPinVerified } = useParentalControls();
+  const [contentAccess, setContentAccess] = useState<ContentAccessResult>({ allowed: true });
 
   // Auto-login for development if not authenticated
   useEffect(() => {
@@ -60,6 +75,8 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
   const videoSrc = 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_with_multiple_tiled_thumbnails.mpd';
 
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchDocumentaryData() {
       try {
         const movieData = await getMovieDetails(resolvedParams.id);
@@ -69,30 +86,62 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
           return;
         }
 
+        if (!isMounted) return;
         setDocumentary(movieData);
+
+        // Check parental controls access (including genre-based blocking)
+        const accessResult = canAccessContent(movieData.id, movieData.contentRating || 'TV-MA', movieData.genres);
+        setContentAccess(accessResult);
 
         // Fetch director image from TMDB (non-blocking)
         if (movieData.director && movieData.director !== 'Unknown') {
           searchPersonImage(movieData.director).then(imageUrl => {
-            setDirectorImage(imageUrl);
+            if (isMounted) setDirectorImage(imageUrl);
           });
         }
+
+        // Fetch trailer asynchronously (non-blocking)
+        if (isMounted) setTrailerState(prev => ({ ...prev, isLoading: true, hasError: false }));
+        getMovieTrailer(resolvedParams.id)
+          .then(trailerUrl => {
+            if (isMounted) {
+              setTrailerState({
+                trailerSrc: trailerUrl,
+                isLoading: false,
+                hasError: trailerUrl === null
+              });
+            }
+          })
+          .catch(err => {
+            console.error('[Documentary Page] Failed to load trailer:', err);
+            if (isMounted) {
+              setTrailerState({
+                trailerSrc: null,
+                isLoading: false,
+                hasError: true
+              });
+            }
+          });
 
         // Get related documentaries based on the first genre
         if (movieData.genres.length > 0) {
           const related = await getMoviesByGenre(movieData.genres[0]);
           const filtered = related.filter(m => m.id !== movieData.id).slice(0, 10);
-          setRelatedDocs(filtered);
+          if (isMounted) setRelatedDocs(filtered);
         }
       } catch (error) {
         console.error('Error fetching documentary data:', error);
         notFound();
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     }
 
     fetchDocumentaryData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [resolvedParams.id]);
 
   if (loading) {
@@ -112,6 +161,26 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
 
   if (!documentary) {
     notFound();
+  }
+
+  // Handle PIN verification for restricted content
+  const handlePinVerified = () => {
+    setPinVerified(true);
+    setContentAccess({ allowed: true });
+  };
+
+  // Show restriction overlay if content is not accessible
+  if (!contentAccess.allowed) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header isAuthenticated={isAuthenticated} />
+        <ContentRestrictionOverlay
+          accessResult={contentAccess}
+          contentTitle={documentary.title}
+          onPinVerified={handlePinVerified}
+        />
+      </div>
+    );
   }
 
   return (
@@ -195,10 +264,14 @@ export default function DocumentaryDetailPage({ params }: DocumentaryDetailPageP
                       </Link>
                     )}
 
-                    <Button size="sm" className="bg-white text-black hover:bg-white/90">
-                      <Play className="mr-2 h-5 w-5" />
-                      Watch Trailer
-                    </Button>
+                    <TrailerButton
+                      trailerSrc={trailerState.trailerSrc}
+                      isLoading={trailerState.isLoading}
+                      hasError={trailerState.hasError}
+                      movieId={documentary.id}
+                      movieTitle={documentary.title}
+                      size="sm"
+                    />
 
                     {isAuthenticated && documentary && (
                       <>

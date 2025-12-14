@@ -24,6 +24,9 @@ import { TrailerButton } from '@/components/TrailerButton';
 import { useTrailerPerformance } from '@/hooks/useTrailerPerformance';
 import { useMyList } from '@/hooks/useMyList';
 import { useLikes } from '@/hooks/useLikes';
+import { useParentalControls } from '@/hooks/useParentalControls';
+import { ContentRestrictionOverlay } from '@/components/parental/ContentRestrictionOverlay';
+import { ContentAccessResult } from '@/lib/parental-controls';
 
 interface MovieDetailPageProps {
   params: Promise<{
@@ -57,6 +60,8 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
 
   const { isInList, toggleList, myList } = useMyList();
   const { isLiked, toggleLike, likes } = useLikes();
+  const { canAccessContent, setPinVerified } = useParentalControls();
+  const [contentAccess, setContentAccess] = useState<ContentAccessResult>({ allowed: true });
   const resolvedParams = use(params);
 
   // Force re-render when myList or likes changes
@@ -209,6 +214,10 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
 
         setMovie(movieData);
 
+        // Check parental controls access (including genre-based blocking)
+        const accessResult = canAccessContent(movieData.id, movieData.contentRating || 'TV-MA', movieData.genres);
+        setContentAccess(accessResult);
+
         // Fetch director image from TMDB (non-blocking)
         if (movieData.director && movieData.director !== 'Unknown') {
           searchPersonImage(movieData.director).then(imageUrl => {
@@ -279,6 +288,26 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
 
   if (!movie) {
     notFound();
+  }
+
+  // Handle PIN verification for restricted content
+  const handlePinVerified = () => {
+    setPinVerified(true);
+    setContentAccess({ allowed: true });
+  };
+
+  // Show restriction overlay if content is not accessible
+  if (!contentAccess.allowed && movie) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header isAuthenticated={isAuthenticated} />
+        <ContentRestrictionOverlay
+          accessResult={contentAccess}
+          contentTitle={movie.title}
+          onPinVerified={handlePinVerified}
+        />
+      </div>
+    );
   }
 
   return (

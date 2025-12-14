@@ -194,6 +194,11 @@ export function simulateLogin(formData: {
 export function logout(): void {
   clearAuthState();
   
+  // Clear owner session - user is no longer authenticated
+  if (isBrowser) {
+    sessionStorage.removeItem('cinestream_owner_session');
+  }
+  
   // Redirect to home page or login page if needed
   if (isBrowser && window.location.pathname !== '/') {
     window.location.href = '/';

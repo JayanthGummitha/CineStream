@@ -522,6 +522,50 @@ export async function searchTVShows(query: string, page: number = 1): Promise<TM
   return response.json();
 }
 
+// Fetch TV show videos (trailers, teasers, etc.)
+export async function fetchTVShowVideos(tvId: number): Promise<TMDBVideosResponse> {
+  try {
+    // Validate TV show ID
+    if (!tvId || tvId <= 0) {
+      throw new Error(`Invalid TV show ID: ${tvId}`);
+    }
+
+    const response = await fetch(`${TMDB_BASE_URL}/tv/${tvId}/videos`, apiOptions);
+    
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      console.error(`[TMDB API] Failed to fetch videos for TV show ${tvId}:`, {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
+      
+      if (response.status === 404) {
+        throw new Error(`TV show with ID ${tvId} not found`);
+      } else if (response.status === 401) {
+        throw new Error('TMDB API authentication failed - check API key');
+      } else if (response.status === 429) {
+        throw new Error('TMDB API rate limit exceeded - please try again later');
+      } else if (response.status >= 500) {
+        throw new Error('TMDB API server error - please try again later');
+      } else {
+        throw new Error(`Failed to fetch TV show videos: ${response.status} ${response.statusText}`);
+      }
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`[TMDB API] Error fetching videos for TV show ${tvId}:`, error);
+    
+    if (error instanceof Error) {
+      throw new Error(`TMDB API error for TV show ${tvId}: ${error.message}`);
+    } else {
+      throw new Error(`Unknown error fetching videos for TV show ${tvId}`);
+    }
+  }
+}
+
 // Helper functions for image URLs
 export function getImageUrl(path: string | null, size: 'w200' | 'w300' | 'w400' | 'w500' | 'w780' | 'w1280' | 'original' = 'w500'): string {
   if (!path) return '/movie-poster-1.svg'; // fallback to placeholder

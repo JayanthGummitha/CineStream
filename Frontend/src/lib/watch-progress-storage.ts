@@ -16,18 +16,37 @@ import {
 const PROGRESS_KEY_PREFIX = 'watch_progress';
 const INDEX_KEY_PREFIX = 'watch_progress_index';
 
+// Profile ID for scoped storage (set via setActiveProfile)
+let activeProfileId: string | null = null;
+
 /**
- * Generate storage key for a specific video progress
+ * Set the active profile for scoped watch progress storage
  */
-function getProgressKey(userId: string, videoId: string): string {
-  return `${PROGRESS_KEY_PREFIX}_${userId}_${videoId}`;
+export function setActiveProfile(profileId: string | null): void {
+  activeProfileId = profileId;
 }
 
 /**
- * Generate storage key for user's progress index
+ * Get the active profile ID
+ */
+export function getActiveProfile(): string | null {
+  return activeProfileId;
+}
+
+/**
+ * Generate storage key for a specific video progress (profile-scoped)
+ */
+function getProgressKey(userId: string, videoId: string): string {
+  const profileSuffix = activeProfileId ? `_${activeProfileId}` : '';
+  return `${PROGRESS_KEY_PREFIX}_${userId}${profileSuffix}_${videoId}`;
+}
+
+/**
+ * Generate storage key for user's progress index (profile-scoped)
  */
 function getIndexKey(userId: string): string {
-  return `${INDEX_KEY_PREFIX}_${userId}`;
+  const profileSuffix = activeProfileId ? `_${activeProfileId}` : '';
+  return `${INDEX_KEY_PREFIX}_${userId}${profileSuffix}`;
 }
 
 /**

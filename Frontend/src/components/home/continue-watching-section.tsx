@@ -110,9 +110,9 @@ function ContinueWatchingCard({ progressData, onRemove }: ContinueWatchingCardPr
   const isMovie = progressData.contentType === 'movie';
   const isTVShow = progressData.contentType === 'tv-show';
   
-  // For consistency with other sections, we should use backdrop if available
-  // Since progressData only has thumbnail, we'll use it as backdrop for aspect-video display
   const displayTitle = progressData.title;
+  // Use thumbnail from progress data, or placeholder if missing
+  // Note: Thumbnails should be saved when watch progress is recorded
   const displayImage = progressData.thumbnail || '/placeholder-movie.jpg';
 
   // Handle remove with undo toast

@@ -23,6 +23,7 @@ import {
   fetchTVShowCredits,
   fetchTVGenres,
   fetchTVShowsByGenre,
+  fetchTVShowVideos,
   convertTMDBTVShowToMovie,
   convertTMDBTVShowDetailsToMovie,
   TMDBGenre,
@@ -1369,6 +1370,69 @@ export async function getMovieTrailer(movieId: string): Promise<string | null> {
     
     // Cache the unexpected error to avoid repeated failures
     trailerCache.set(movieId, null);
+    return null;
+  }
+}
+
+// TV Show trailer cache
+const tvShowTrailerCache = new TrailerCache();
+
+// Get TV show trailer URL
+export async function getTVShowTrailer(tvShowId: string): Promise<string | null> {
+  try {
+    // Validate TV show ID
+    if (!tvShowId || tvShowId.trim() === '') {
+      console.error('[TV Show Trailer Service] Invalid TV show ID provided');
+      return null;
+    }
+
+    const parsedTVShowId = parseInt(tvShowId);
+    if (isNaN(parsedTVShowId) || parsedTVShowId <= 0) {
+      console.error(`[TV Show Trailer Service] Invalid TV show ID format: ${tvShowId}`);
+      return null;
+    }
+
+    // Check cache first
+    const cachedUrl = tvShowTrailerCache.get(tvShowId);
+    if (cachedUrl !== undefined) {
+      return cachedUrl;
+    }
+
+    // Fetch videos
+    let videos;
+    try {
+      videos = await fetchTVShowVideos(parsedTVShowId);
+    } catch (error) {
+      console.error(`[TV Show Trailer Service] Failed to fetch videos for TV show ${tvShowId}:`, error);
+      tvShowTrailerCache.set(tvShowId, null);
+      return null;
+    }
+
+    // Process trailer URL
+    try {
+      if (!videos.results || videos.results.length === 0) {
+        tvShowTrailerCache.set(tvShowId, null);
+        return null;
+      }
+
+      const trailerUrl = getTrailerUrl(videos.results);
+      
+      if (trailerUrl) {
+        tvShowTrailerCache.set(tvShowId, trailerUrl);
+        return trailerUrl;
+      } else {
+        tvShowTrailerCache.set(tvShowId, null);
+        return null;
+      }
+    } catch (processingError) {
+      console.error(`[TV Show Trailer Service] Error processing trailer URL for TV show ${tvShowId}:`, processingError);
+      tvShowTrailerCache.set(tvShowId, null);
+      return null;
+    }
+    
+  } catch (error) {
+    console.error(`[TV Show Trailer Service] Unexpected error fetching trailer for TV show ${tvShowId}:`, error);
+    tvShowTrailerCache.set(tvShowId, null);
     return null;
   }
 }
