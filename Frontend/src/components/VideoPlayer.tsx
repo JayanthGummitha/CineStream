@@ -2274,7 +2274,7 @@ export function VideoPlayerContent({
     if (!video) return;
 
     if ((isFullscreen || forceFullscreen) && !isFullscreenTransitioning) {
-      // Fullscreen styles
+      // Fullscreen styles - use contain to show full video
       Object.assign(video.style, {
         width: '100vw',
         height: '100vh',
@@ -2287,11 +2287,11 @@ export function VideoPlayerContent({
         maxHeight: 'none',
       });
     } else {
-      // Normal view styles
+      // Normal view styles - use cover to fill container and match controls width
       Object.assign(video.style, {
         width: '100%',
         height: '100%',
-        objectFit: 'contain',
+        objectFit: 'cover',
         position: 'relative',
         top: 'auto',
         left: 'auto',
@@ -2485,24 +2485,23 @@ export function VideoPlayerContent({
 
 
   const containerClasses = cn(
-    'relative w-full bg-black rounded-lg overflow-hidden shadow-2xl transition-all duration-300',
+    'relative w-full h-full bg-black overflow-hidden transition-all duration-300',
     isTheaterMode && 'max-w-none mx-auto',
-    !isTheaterMode && 'max-w-4xl mx-auto',
-    // Responsive container sizing
-    'max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl 2xl:max-w-7xl',
+    !isTheaterMode && 'max-w-full mx-auto',
     className
   );
 
   const playerClasses = cn(
-    'w-full bg-black transition-all duration-300',
-    !isFullscreen && (isTheaterMode ? 'aspect-[21/9]' : 'aspect-video'),
-    isFullscreen && 'fixed inset-0 z-50 h-screen w-screen',
-    // Responsive video scaling
+    'relative w-full h-[540px] p-2 bg-black transition-all duration-300',
+    isFullscreen && 'p-0 fixed inset-0 z-50 h-screen w-screen',
+    // Ensure MediaProvider fills the player
+    '[&_[data-media-provider]]:absolute [&_[data-media-provider]]:inset-0 [&_[data-media-provider]]:w-full [&_[data-media-provider]]:h-full',
+    // Use object-contain for both normal and fullscreen to show full video without cropping
     '[&_video]:w-full [&_video]:h-full [&_video]:object-contain',
-    '[&_video]:max-h-[60vh] sm:[&_video]:max-h-[70vh] md:[&_video]:max-h-[80vh] lg:[&_video]:max-h-[90vh]',
-    isFullscreen && '[&_video]:max-h-screen',
+    // Ensure video element takes full space
+    '[&_video]:absolute [&_video]:inset-0',
     // YouTube iframe styling - ensure controls can receive pointer events
-    '[&_iframe]:pointer-events-auto [&_iframe]:z-10'
+    '[&_iframe]:pointer-events-auto [&_iframe]:z-10 [&_iframe]:absolute [&_iframe]:inset-0'
   );
 
 

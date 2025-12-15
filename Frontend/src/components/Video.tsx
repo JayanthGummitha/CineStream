@@ -74,11 +74,8 @@ function Video({ autoFullscreen = false, autoPlay = false, title = "Untitled", s
   // };
 
   return (
-    <div className="w-screen h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="w-[100vw] h-[99vh]  flex items-center justify-center p-2">
-
-
-
+    <div className="w-screen h-screen bg-black">
+      <div className="w-[95vw] h-full mx-auto flex items-center justify-center">
         <VideoPlayerClient
           src={videoSrc}
           poster={poster}
@@ -87,7 +84,7 @@ function Video({ autoFullscreen = false, autoPlay = false, title = "Untitled", s
           autoPlay={autoPlay}
           title={title}
           seriesName={seriesName}
-          className="w-99% m-0 p-0 h-full max-w-none"
+          className="w-full h-full"
           contentType={contentType === 'tv' ? 'episode' : 'movie'}
           contentId={contentId || contentIdResult.contentId}
           seriesId={seriesId}
