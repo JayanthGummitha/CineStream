@@ -8,13 +8,15 @@ interface MovieGridProps {
   isAuthenticated: boolean;
   variant?: 'default' | 'compact' | 'featured';
   className?: string;
+  contentType?: 'movie' | 'tv-shows' | 'kids' | 'documentaries';
 }
 
 export function MovieGrid({ 
   movies, 
   isAuthenticated, 
   variant = 'default',
-  className 
+  className,
+  contentType = 'movie'
 }: MovieGridProps) {
   const gridClasses = cn(
     "grid gap-4 sm:gap-6 md:gap-8",
@@ -41,6 +43,7 @@ export function MovieGrid({
           movie={movie}
           isAuthenticated={isAuthenticated}
           variant={variant}
+          contentType={movie.contentType || contentType}
         />
       ))}
     </div>

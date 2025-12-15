@@ -113,7 +113,7 @@ function ContinueWatchingCard({ progressData, onRemove }: ContinueWatchingCardPr
   const displayTitle = progressData.title;
   // Use thumbnail from progress data, or placeholder if missing
   // Note: Thumbnails should be saved when watch progress is recorded
-  const displayImage = progressData.thumbnail || '/placeholder-movie.jpg';
+  const displayImage = progressData.thumbnail || '/movie-backdrop-1.svg';
 
   // Handle remove with undo toast
   const handleRemove = (e: React.MouseEvent) => {

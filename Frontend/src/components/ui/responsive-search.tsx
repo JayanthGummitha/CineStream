@@ -112,6 +112,7 @@ const ResponsiveSearch = React.forwardRef<HTMLDivElement, ResponsiveSearchProps>
             responsive={false} // We're handling responsive sizing manually
             className={cn(
               'w-full rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-ring/20',
+              '[&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden', // Hide browser's default clear button
               variantClasses[variant],
               currentSize.input,
               variant === 'overlay' && 'focus:border-white/40 focus:bg-white/15',

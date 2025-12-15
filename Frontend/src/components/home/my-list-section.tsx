@@ -99,8 +99,16 @@ interface MyListCardProps {
 }
 
 function MyListCard({ item }: MyListCardProps) {
+  // Determine the correct route based on content type
+  const getRouteType = () => {
+    if (item.contentType === 'tv' || item.contentType === 'tv-shows') return 'tv-shows';
+    if (item.contentType === 'documentary' || item.contentType === 'documentaries') return 'documentaries';
+    if (item.contentType === 'kids') return 'kids';
+    return 'movie';
+  };
+  
   return (
-    <Link href={createDetailUrl('movie', item.id, item.title)}>
+    <Link href={createDetailUrl(getRouteType(), item.id, item.title)}>
       <div className="group w-full cursor-pointer transition-all duration-300 hover:scale-105">
         
         {/* Movie Card Image */}

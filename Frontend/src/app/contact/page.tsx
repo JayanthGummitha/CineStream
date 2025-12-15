@@ -13,7 +13,7 @@ import { CONTACT_INFO, FOOTER_LINKS } from '@/lib/constants';
 import { toast } from 'sonner';
 
 export default function ContactPage() {
-  const isAuthenticated = false;
+  const isAuthenticated = true;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -31,16 +31,18 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-background/95">
       <Header isAuthenticated={isAuthenticated} />
 
-      <main className="container max-w-screen-2xl px-4 py-12">
+      <main className="container max-w-screen-2xl px-4 py-12 mt-32">
         {/* Header Section */}
         <div className="text-center space-y-6 mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold">
-            Get in Touch
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <div className="inline-block">
+            <h1 className="text-4xl md:text-6xl font-bold ">
+              Get in Touch
+            </h1>
+          </div>
+          <p className="text-muted-foreground text-xl text-shadow-xs max-w-3xl mx-auto leading-relaxed">
             Have questions about CineStream? Need help with your account?
             We're here to help you get the most out of your streaming experience.
           </p>
@@ -49,14 +51,23 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Send us a Message</CardTitle>
-                <CardDescription>
+            <div className="relative w-full rounded-xl border bg-card dark:bg-transparent p-1.5 shadow-sm backdrop-blur-xl">
+              {/* Glass effect gradient */}
+              <div
+                aria-hidden="true"
+                className="-z-10 absolute inset-x-0 top-0 h-48 rounded-[inherit]"
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 40%, rgba(0,0,0,0) 100%)",
+                }}
+              />
+              <div className="relative mb-4 rounded-xl border bg-muted/50 p-6 shadow">
+                <h2 className="text-2xl font-bold mb-2">Send us a Message</h2>
+                <p className="text-muted-foreground text-xs">
                   Fill out the form below and we'll get back to you as soon as possible.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                </p>
+              </div>
+              <div className="space-y-6 p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -143,7 +154,7 @@ export default function ContactPage() {
 
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full h-12 text-base font-semibold shadow bg-gradient-to-b from-red-500 to-red-600 shadow-red-500 transition-all duration-300"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? 'Sending...' : 'Send Message'}
@@ -153,23 +164,31 @@ export default function ContactPage() {
                     We typically respond within {CONTACT_INFO.responseTime}
                   </p>
                 </form>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* Contact Information */}
           <div className="space-y-6">
             {/* Contact Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
-                <CardDescription>
+            <div className="relative w-full rounded-xl border bg-card dark:bg-transparent p-1.5 shadow-sm backdrop-blur-xl">
+              <div
+                aria-hidden="true"
+                className="-z-10 absolute inset-x-0 top-0 h-48 rounded-[inherit]"
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 40%, rgba(0,0,0,0) 100%)",
+                }}
+              />
+              <div className="relative mb-4 rounded-xl border bg-muted/50 p-4 shadow">
+                <h3 className="text-xl font-bold mb-1">Contact Information</h3>
+                <p className="text-muted-foreground text-xs">
                   Reach out to us through any of these channels
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+                </p>
+              </div>
+              <div className="space-y-4 p-4">
                 <div className="flex items-center space-x-3">
-                  <Mail className="h-5 w-5 text-primary" />
+                  <Mail className="h-5 w-5 text-red-800 " />
                   <div>
                     <p className="font-medium">Email</p>
                     <p className="text-sm text-muted-foreground">{CONTACT_INFO.email}</p>
@@ -177,7 +196,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <Phone className="h-5 w-5 text-primary" />
+                  <Phone className="h-5 w-5 text-red-800 " />
                   <div>
                     <p className="font-medium">Phone</p>
                     <p className="text-sm text-muted-foreground">{CONTACT_INFO.phone}</p>
@@ -185,7 +204,7 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <Clock className="h-5 w-5 text-primary" />
+                  <Clock className="h-5 w-5 text-red-800 " />
                   <div>
                     <p className="font-medium">Support Hours</p>
                     <p className="text-sm text-muted-foreground">{CONTACT_INFO.supportHours}</p>
@@ -193,43 +212,59 @@ export default function ContactPage() {
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <MapPin className="h-5 w-5 text-primary" />
+                  <MapPin className="h-5 w-5 shadow text-red-800 " />
                   <div>
                     <p className="font-medium">Address</p>
                     <p className="text-sm text-muted-foreground">{CONTACT_INFO.address}</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Live Chat */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Need Immediate Help?</CardTitle>
-                <CardDescription>
+            <div className="relative w-full rounded-xl border bg-card dark:bg-transparent p-1.5 shadow-sm backdrop-blur-xl">
+              <div
+                aria-hidden="true"
+                className="-z-10 absolute inset-x-0 top-0 h-48 rounded-[inherit]"
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 40%, rgba(0,0,0,0) 100%)",
+                }}
+              />
+              <div className="relative mb-4 rounded-xl border bg-muted/50 p-4 shadow">
+                <h3 className="text-xl font-bold mb-1">Need Immediate Help?</h3>
+                <p className="text-muted-foreground text-xs">
                   Chat with our support team in real-time
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button className="w-full" variant="outline">
+                </p>
+              </div>
+              <div className="p-4">
+                <Button className="w-full h-11 shadow bg-gradient-to-b from-red-500 to-red-600 shadow-red-500 text-white">
                   <MessageCircle className="mr-2 h-4 w-4" />
                   Start Live Chat
                 </Button>
                 <p className="text-xs text-muted-foreground mt-2 text-center">
                   Available 24/7 for premium subscribers
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Social Media */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Follow Us</CardTitle>
-                <CardDescription>
+            <div className="relative w-full rounded-xl border bg-card dark:bg-transparent p-1.5 shadow-sm backdrop-blur-xl">
+              <div
+                aria-hidden="true"
+                className="-z-10 absolute inset-x-0 top-0 h-48 rounded-[inherit]"
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 40%, rgba(0,0,0,0) 100%)",
+                }}
+              />
+              <div className="relative mb-4 rounded-xl border bg-muted/50 p-4 shadow">
+                <h3 className="text-xl font-bold mb-1">Follow Us</h3>
+                <p className="text-muted-foreground text-xs">
                   Stay connected on social media
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                </p>
+              </div>
+              <div className="p-4">
                 <div className="grid grid-cols-2 gap-3">
                   {FOOTER_LINKS.social.map((social) => {
                     const iconMap = {
@@ -260,58 +295,66 @@ export default function ContactPage() {
                     );
                   })}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* FAQ Link */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Frequently Asked Questions</CardTitle>
-                <CardDescription>
+            <div className="relative w-full rounded-xl border bg-card dark:bg-transparent p-1.5 shadow-sm backdrop-blur-xl">
+              <div
+                aria-hidden="true"
+                className="-z-10 absolute inset-x-0 top-0 h-48 rounded-[inherit]"
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 40%, rgba(0,0,0,0) 100%)",
+                }}
+              />
+              <div className="relative mb-4 rounded-xl border bg-muted/50 p-4 shadow">
+                <h3 className="text-xl font-bold mb-1">Frequently Asked Questions</h3>
+                <p className="text-muted-foreground text-xs">
                   Find quick answers to common questions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="outline" className="w-full" asChild>
+                </p>
+              </div>
+              <div className="p-4">
+                <Button variant="outline" className="w-full h-11 border-2 hover:bg-accent/50 bg-gradient-to-b from-red-500 to-red-600 " asChild>
                   <a href="/help">
                     Visit Help Center
                   </a>
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Additional Information */}
-        <div className="mt-16 text-center space-y-6">
-          <h2 className="text-2xl font-bold">Other Ways to Reach Us</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="p-6 bg-card rounded-lg">
-              <h3 className="font-semibold mb-2">Account Issues</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+        <div className="mt-16 text-center space-y-8">
+          <h2 className="text-3xl font-bold">Other Ways to Reach Us</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div className="p-8 bg-card/50 backdrop-blur-sm rounded-xl border-2 border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <h3 className="font-bold text-lg mb-3">Account Issues</h3>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
                 Problems with login, billing, or subscription management
               </p>
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" className="border-2 hover:bg-accent/50 bg-gradient-to-b from-red-500 to-red-600" asChild>
                 <a href="/account">Manage Account</a>
               </Button>
             </div>
 
-            <div className="p-6 bg-card rounded-lg">
-              <h3 className="font-semibold mb-2">Technical Support</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+            <div className="p-8 bg-card/50 backdrop-blur-sm rounded-xl border-2 border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <h3 className="font-bold text-lg mb-3">Technical Support</h3>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
                 Streaming issues, app problems, or device compatibility
               </p>
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" className="border-2 hover:bg-accent/50 bg-gradient-to-b from-red-500 to-red-600 " asChild>
                 <a href="/help/technical">Technical Help</a>
               </Button>
             </div>
 
-            <div className="p-6 bg-card rounded-lg">
-              <h3 className="font-semibold mb-2">Business Inquiries</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+            <div className="p-8 bg-card/50 backdrop-blur-sm rounded-xl border-2 border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <h3 className="font-bold text-lg mb-3">Business Inquiries</h3>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
                 Partnerships, content licensing, or media requests
               </p>
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" className="border-2 hover:bg-accent/50 bg-gradient-to-b from-red-500 to-red-600 " asChild>
                 <a href="mailto:business@cinestream.com">Contact Business</a>
               </Button>
             </div>

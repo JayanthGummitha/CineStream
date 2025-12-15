@@ -12,6 +12,14 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect } from 'react';
 
+// Helper to get correct route type based on content type
+function getRouteType(contentType?: string): string {
+  if (contentType === 'tv' || contentType === 'tv-shows') return 'tv-shows';
+  if (contentType === 'documentary' || contentType === 'documentaries') return 'documentaries';
+  if (contentType === 'kids') return 'kids';
+  return 'movie';
+}
+
 export default function MyListPage() {
   const { myList, isLoading, removeFromList } = useMyList();
   const isAuthenticated = true;
@@ -102,7 +110,7 @@ export default function MyListPage() {
                       className="m-0 group h-[55vh] relative   @container/card bg-gradient-to-b p-1 from-neutral-800 to-neutral-900/90 border-neutral-900/50  shadow-lg border-4 transition-all duration-300 hover:shadow-xl overflow-hidden">
               
                 {/* Movie Poster - Takes 70% of card height */}
-                <Link href={createDetailUrl('movie', movie.id, movie.title)} className="flex-[0_0_60%]">
+                <Link href={createDetailUrl(getRouteType(movie.contentType), movie.id, movie.title)} className="flex-[0_0_60%]">
                   <div className="relative w-full h-full overflow-hidden">
                     <Image
                       src={movie.thumbnail}
@@ -133,7 +141,7 @@ export default function MyListPage() {
                 {/* Movie Info - Takes 40% of card height */}
                 <CardContent className="flex-[0_0_40%] w-full  flex gap-2 flex-col justify-between">
                   <div className="space-y-1 h-full grid ">
-                    <Link href={createDetailUrl('movie', movie.id, movie.title)}>
+                    <Link href={createDetailUrl(getRouteType(movie.contentType), movie.id, movie.title)}>
                       <h3 className="flex text-white font-bold text-sm line-clamp-2 group-hover:text-red-400 transition-colors">
                         {movie.title}
                       </h3>

@@ -1,8 +1,11 @@
 import { IconHelp, IconSearch } from "@tabler/icons-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Header } from "@/components/navigation/header"
+import { Footer } from "@/components/navigation/footer"
 
 export default function HelpPage() {
+  const isAuthenticated = true;
   const helpTopics = [
     {
       title: "Getting Started",
@@ -27,7 +30,9 @@ export default function HelpPage() {
   ]
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="min-h-screen bg-background">
+      <Header isAuthenticated={isAuthenticated} />
+      <div className="flex flex-col gap-6 p-6 container max-w-screen-2xl mx-auto pt-24">
       <div className="flex items-center gap-3">
         <div className="p-3 rounded-lg bg-blue-500/20">
           <IconHelp className="h-6 w-6 text-blue-400" />
@@ -82,6 +87,8 @@ export default function HelpPage() {
           </p>
         </CardContent>
       </Card>
+      </div>
+      <Footer />
     </div>
   )
 }

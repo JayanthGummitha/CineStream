@@ -130,7 +130,7 @@ export function MovieCarousel({
                             movie={movie}
                             isAuthenticated={isAuthenticated}
                             variant={variant}
-                            contentType={contentType}
+                            contentType={movie.contentType || contentType}
                         />
                     </div>
                 ))}

@@ -453,20 +453,20 @@ export const NAVIGATION_ITEMS = [
 export const FOOTER_LINKS = {
   company: [
     { name: "About Us", href: "/about" },
-    { name: "Careers", href: "/careers" },
+    // { name: "Careers", href: "/careers" },
     { name: "Press", href: "/press" },
     { name: "Blog", href: "/blog" },
   ],
   support: [
     { name: "Help Center", href: "/help" },
     { name: "Contact Us", href: "/contact" },
-    { name: "Account", href: "/account" },
-    { name: "Redeem Gift Cards", href: "/gift-cards" },
+    { name: "Account", href: "/user/profile" },
+    // { name: "Redeem Gift Cards", href: "/gift-cards" },
   ],
   legal: [
     { name: "Privacy Policy", href: "/privacy" },
     { name: "Terms of Service", href: "/terms" },
-    { name: "Cookie Policy", href: "/cookies" },
+    // { name: "Cookie Policy", href: "/cookies" },
     { name: "Content Guidelines", href: "/guidelines" },
   ],
   social: [

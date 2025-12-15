@@ -143,7 +143,7 @@ export function HeroSection({ featuredContent, isAuthenticated = false }: HeroSe
                 <div className="flex items-center space-x-2">
                   
                   <Link
-                    href={`/watch/${currentMovie.id}?fullscreen=true&autoplay=true&title=${encodeURIComponent(currentMovie.title)}&src=${videoSrc}`}
+                    href={`/watch/${currentMovie.id}?fullscreen=true&autoplay=true&title=${encodeURIComponent(currentMovie.title)}&src=${videoSrc}&poster=${encodeURIComponent(currentMovie.backdrop)}`}
                   >
                     <Button size="lg"
                       className="h-12 p-3 gap-2  flex items-center  text-auto text-white font-semibold rounded-2xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300"

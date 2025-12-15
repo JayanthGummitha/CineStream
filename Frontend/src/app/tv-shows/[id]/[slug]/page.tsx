@@ -441,7 +441,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                                     <div className="flex flex-wrap items-center gap-4">
                                         {(isAuthenticated || true) && (
                                             <Link
-                                                href={`/watch/${tvShow.id}?fullscreen=true&autoplay=true&title=${encodeURIComponent(tvShow.title)}&src=${videoSrc}&type=tv&season=${selectedSeason}${currentEpisodeId ? `&episode=${currentEpisodeId}` : ''}`}
+                                                href={`/watch/${tvShow.id}?fullscreen=true&autoplay=true&title=${encodeURIComponent(tvShow.title)}&src=${videoSrc}&poster=${encodeURIComponent(tvShow.backdrop)}&type=tv&season=${selectedSeason}${currentEpisodeId ? `&episode=${currentEpisodeId}` : ''}`}
                                             >
                                                 <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
                                                     <Play className="mr-2 h-5 w-5" />
@@ -826,7 +826,7 @@ export default function TVShowDetailPage({ params }: TVShowDetailPageProps) {
                                                 ).map((episode, index) => (
                                                     <Link
                                                         key={`${episode.id}-${index}`}
-                                                        href={`/watch/${tvShow.id}?fullscreen=true&autoplay=true&title=${encodeURIComponent(episode.title)}&src=${videoSrc}&type=tv&season=${selectedSeason}&episode=${episode.id}`}
+                                                        href={`/watch/${tvShow.id}?fullscreen=true&autoplay=true&title=${encodeURIComponent(episode.title)}&src=${videoSrc}&poster=${encodeURIComponent(episode.thumbnail || tvShow.backdrop)}&type=tv&season=${selectedSeason}&episode=${episode.id}`}
                                                         className="block"
                                                     >
                                                         <div className="flex items-start space-x-4 p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer group">

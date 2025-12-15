@@ -708,6 +708,7 @@ export function convertTMDBTVShowToMovie(tmdbTVShow: TMDBTVShow, genres: TMDBGen
     isNew: new Date(tmdbTVShow.first_air_date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // released in last 30 days
     isTrending: tmdbTVShow.popularity > 100,
     isPopular: tmdbTVShow.vote_count > 1000 && tmdbTVShow.vote_average > 7,
+    contentType: 'tv-shows', // Mark as TV show for correct routing
   };
 }
 
@@ -748,5 +749,6 @@ export function convertTMDBTVShowDetailsToMovie(
     isNew: new Date(tmdbTVShow.first_air_date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
     isTrending: tmdbTVShow.popularity > 100,
     isPopular: tmdbTVShow.vote_count > 1000 && tmdbTVShow.vote_average > 7,
+    contentType: 'tv-shows', // Mark as TV show for correct routing
   };
 }

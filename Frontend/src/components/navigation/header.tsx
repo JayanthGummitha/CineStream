@@ -183,8 +183,8 @@ export function Header({ isAuthenticated: propIsAuthenticated, user: propUser }:
                         )}
                       </ProfileMenuHeaderContent>
                       <ProfileMenuTrigger>
-                        <div className="flex items-center justify-end p-1">
-                          <Avatar className="ring-1 ring-white/20 hover:ring-white/40 transition-all">
+                        <div className="flex items-center justify-end h-10 w-14 pr-1">
+                          <Avatar className=" h-9 w-9 ring-2 ring-white/20 hover:ring-white/40 transition-all">
                             <AvatarImage
                               src={profileAvatarUrl || user.avatar}
                               alt={activeProfile?.name || user.name}
