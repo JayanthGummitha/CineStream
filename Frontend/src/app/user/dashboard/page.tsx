@@ -1,5 +1,6 @@
 import { SectionCards } from "../components/section-cards"
 import { ChartAreaInteractive } from "../components/chart-area-interactive"
+import { StatsCards } from "../components/stats-cards"
 
 export default function DashboardPage() {
   return (
@@ -12,6 +13,8 @@ export default function DashboardPage() {
       </div>
 
       <SectionCards />
+      {/* <StatsCards /> */}
+    
 
       {/* <div className="mt-4">
         <ChartAreaInteractive />

@@ -169,7 +169,7 @@ export function HeroSection({ featuredContent, isAuthenticated = false }: HeroSe
                   <Button
                     size="lg"
                     variant="ghost"
-                    className="h-14 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-white/20 hover:border-white/30 font-semibold rounded-2xl transition-all duration-300"
+                    // className="h-14 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-white/20 hover:border-white/30 font-semibold rounded-2xl transition-all duration-300"
 
                   // className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all duration-300 touch-target-large"
                   >

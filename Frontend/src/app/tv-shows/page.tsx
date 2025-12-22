@@ -461,7 +461,7 @@ function TVShowsHeroSection({ featuredShows, isAuthenticated }: TVShowsHeroSecti
                   <Button
                     size="lg"
                     variant="ghost"
-                                        className="h-14 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-white/20 hover:border-white/30 font-semibold rounded-2xl transition-all duration-300"
+                                        // className="h-14 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-white/20 hover:border-white/30 font-semibold rounded-2xl transition-all duration-300"
 
                     // className="h-14 w-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all duration-300"
                     asChild

@@ -419,46 +419,34 @@ function KidsHeroSection({ featuredContent, isAuthenticated }: KidsHeroSectionPr
                                     <Button
                                         size="lg"
                                         variant="ghost"
-                                        className="h-14 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-white/20 hover:border-white/30 font-semibold rounded-2xl transition-all duration-300"
-
-                                        // className="h-14 w-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all duration-300"
+                                        // className="h-14                                        // className="h-14 w-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all duration-300"
                                         asChild
                                     >
                                         <Link href={createDetailUrl('kids', currentMovie.id, currentMovie.title)}>
                                             <EllipsisVertical />
-                                        </Link>
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right Side - Reserved space for carousel */}
+                                      </Button>
+                                </    </div>
+                        </div>ide - Reserved space for carousel */}
                         <div className="hidden lg:block lg:col-span-4 xl:col-span-5">
                             {/* This space is reserved for the absolutely positioned movie carousel */}
-                        </div>
-                    </div>
+                        </div>             </div>
                 </div>
             </div>
-
-            {/* Bottom Right - Movie Navigation Carousel */}
+       {/* Bottom Right - Movie Navigation Carousel */}
             <div className="absolute bottom-12 right-8 z-20">
                 {/* Carousel Container */}
-                <div className="rounded-3xl p-6">
+                <div clasame="rounded-3xl p-6">
                     {/* Carousel Movies */}
                     <div className="flex space-x-3">
-                        {carouselMovies.map(({ movie, originalIndex }, carouselIndex) => (
+                        {uselMovies.map(({ movie, originalIndex }, carouselIndex) => (
                             <div
                                 key={movie.id}
-                                className="group cursor-pointer transition-all duration-300 flex-shrink-0"
+                          className="group cursor-pointer transition-all duration-300 flex-shrink-0"
                                 onClick={() => setCurrentIndex(originalIndex)}
                             >
-                                <div className="relative w-[100px] h-[140px] rounded-2xl overflow-hidden border transition-all duration-300">
+                            <div className="relative w-[100px] h-[140px] rounded-2xl overflow-hidden border transition-all duration-300">
                                     {/* Movie Poster */}
-                                    <Image
-                                        src={movie.thumbnail}
-                                        alt={movie.title}
-                                        fill
-                                        sizes="100px"
+                       s="100px"
                                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                                     />
 

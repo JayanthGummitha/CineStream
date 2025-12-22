@@ -96,8 +96,9 @@ export default function MovieDetailPage({ params }: MovieDetailPageProps) {
     logPerformanceInsights
   } = useTrailerPerformance(resolvedParams.id);
 
-  // Sample video URL - replace with actual movie video source
-  const videoSrc = 'https://files.vidstack.io/sprite-fight/720p.mp4';
+  // Sample video URL - using local DASH manifest from public folder
+  const videoSrc = 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd'
+  
 
   const isAuthenticated = true;
 

@@ -50,6 +50,29 @@ self.addEventListener('fetch', (event) => {
   // Skip chrome-extension and other non-http(s) requests
   if (!url.protocol.startsWith('http')) return;
 
+  // Skip video/audio streaming requests - they use partial responses (206) which can't be cached
+  if (request.destination === 'video' || request.destination === 'audio') {
+    return; // Let browser handle normally
+  }
+
+  // Skip range requests (partial content) - these can't be cached
+  if (request.headers.get('range')) {
+    return; // Let browser handle normally
+  }
+
+  // Skip common video/streaming URLs
+  if (
+    url.pathname.endsWith('.mp4') ||
+    url.pathname.endsWith('.m3u8') ||
+    url.pathname.endsWith('.mpd') ||
+    url.pathname.endsWith('.ts') ||
+    url.pathname.endsWith('.m4s') ||
+    url.pathname.includes('/video/') ||
+    url.pathname.includes('/stream/')
+  ) {
+    return; // Let browser handle normally
+  }
+
   // Handle API requests differently
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(networkFirst(request));
@@ -77,8 +100,9 @@ async function networkFirst(request) {
   try {
     const response = await fetch(request);
     
-    // Cache successful responses
-    if (response.ok) {
+    // Cache successful responses (but NOT partial responses - status 206)
+    // Partial responses are used for video streaming and can't be cached
+    if (response.ok && response.status !== 206) {
       const cache = await caches.open(CACHE_NAME);
       cache.put(request, response.clone());
     }
@@ -106,7 +130,8 @@ async function cacheFirst(request, cacheName) {
   try {
     const response = await fetch(request);
     
-    if (response.ok) {
+    // Only cache complete responses (not partial 206 responses)
+    if (response.ok && response.status !== 206) {
       const cache = await caches.open(cacheName);
       cache.put(request, response.clone());
     }

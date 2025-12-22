@@ -996,6 +996,9 @@ export function VideoPlayerContent({
 
   // STEP 1: Replace your existing handleCaptionChange method
   const handleCaptionChange = (captionLanguage: string): void => {
+    // Set ref immediately to prevent race conditions with auto-disable
+    userSelectedCaptionRef.current = captionLanguage !== 'off' ? captionLanguage : null;
+    
     setActiveCaption(captionLanguage);
 
     // Handle YouTube captions separately
@@ -1065,6 +1068,7 @@ export function VideoPlayerContent({
             if (track && track.language === captionLanguage) {
               track.mode = 'showing';
               setCaptionsEnabled(true);
+              console.log('[CAPTIONS] Enabled caption track:', captionLanguage);
               return;
             }
           }
@@ -2079,6 +2083,12 @@ export function VideoPlayerContent({
       // Mark component as unmounted to prevent state updates
       isMountedRef.current = false;
       
+      // Clear loading timeout
+      if ((window as any).__videoLoadingTimeout) {
+        clearTimeout((window as any).__videoLoadingTimeout);
+        (window as any).__videoLoadingTimeout = null;
+      }
+      
       // Clear all timeouts
       if (activityTimeoutRef.current) {
         clearTimeout(activityTimeoutRef.current);
@@ -2090,16 +2100,14 @@ export function VideoPlayerContent({
         clearTimeout(qualityChangeTimeoutRef.current);
       }
 
-      // Clean up player event listeners
+      // Properly destroy the player to prevent SourceBuffer errors
       if (playerRef.current) {
-        const player = playerRef.current;
-
-        // Remove all custom event listeners
-        const events = ['ended', 'waiting', 'stalled', 'loadstart', 'canplaythrough', 'playing', 'loadedmetadata', 'texttrackchange'];
-        events.forEach(eventType => {
-          // Note: We can't remove specific handlers without references, 
-          // but Vidstack will handle cleanup when the component unmounts
-        });
+        try {
+          // Pause playback first to stop buffer operations
+          playerRef.current.pause();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
       }
 
     };
@@ -2260,6 +2268,18 @@ export function VideoPlayerContent({
   const handleLoadStart = () => {
     setIsLoading(true);
     setError(null);
+    
+    // Add a loading timeout - if video doesn't load within 15 seconds, show error
+    const loadingTimeout = setTimeout(() => {
+      if (isLoading && !canPlay) {
+        console.error('[VideoPlayer] Loading timeout - video failed to load within 15 seconds');
+        setIsLoading(false);
+        setError('Video is taking too long to load. The source may be unavailable or blocked by CORS.');
+      }
+    }, 15000);
+    
+    // Store timeout ID to clear it when video loads
+    (window as any).__videoLoadingTimeout = loadingTimeout;
   };
 
   // Helper function to get video element from container
@@ -2268,14 +2288,23 @@ export function VideoPlayerContent({
     return containerRef.current.querySelector('video');
   };
 
+  // Helper function to get iframe element (for YouTube)
+  const getIframeElement = (): HTMLIFrameElement | null => {
+    if (!containerRef.current) return null;
+    return containerRef.current.querySelector('iframe');
+  };
+
   // Apply consistent video styling
   const applyVideoStyles = (forceFullscreen = false) => {
     const video = getVideoElement();
-    if (!video) return;
+    const iframe = getIframeElement();
+    const element = video || iframe;
+    
+    if (!element) return;
 
     if ((isFullscreen || forceFullscreen) && !isFullscreenTransitioning) {
       // Fullscreen styles - use contain to show full video
-      Object.assign(video.style, {
+      Object.assign(element.style, {
         width: '100vw',
         height: '100vh',
         objectFit: 'contain',
@@ -2288,7 +2317,7 @@ export function VideoPlayerContent({
       });
     } else {
       // Normal view styles - use cover to fill container and match controls width
-      Object.assign(video.style, {
+      Object.assign(element.style, {
         width: '100%',
         height: '100%',
         objectFit: 'cover',
@@ -2307,10 +2336,13 @@ export function VideoPlayerContent({
 
     setIsFullscreenTransitioning(true);
 
-    // Force normal styles immediately
+    // Force normal styles immediately for both video and iframe
     const video = getVideoElement();
-    if (video) {
-      Object.assign(video.style, {
+    const iframe = getIframeElement();
+    const element = video || iframe;
+    
+    if (element) {
+      Object.assign(element.style, {
         width: '100%',
         height: '100%',
         objectFit: 'contain',
@@ -2378,6 +2410,16 @@ export function VideoPlayerContent({
 
 
   const handleError = (err: any) => {
+    // Ignore errors during unmount/cleanup
+    if (!isMountedRef.current) return;
+    
+    // Ignore SourceBuffer errors during navigation - these are expected
+    const errorMessage = err?.message || err?.detail?.message || String(err);
+    if (errorMessage.includes('SourceBuffer') || errorMessage.includes('removed from the parent media source')) {
+      console.warn('[VideoPlayer] SourceBuffer cleanup error (safe to ignore):', errorMessage);
+      return;
+    }
+    
     setIsLoading(false);
     setIsQualityChanging(false);
     setError('Failed to load video. Please check the URL and try again.');
@@ -2411,6 +2453,40 @@ export function VideoPlayerContent({
       youtubePlayerRef.current = null;
       setYoutubeCaptions([]);
     }
+  }, []);
+
+  // DASH event listeners for error handling and debugging
+  useEffect(() => {
+    if (!playerRef.current) return;
+    
+    const player = playerRef.current;
+    
+    const handleDashError = (event: any) => {
+      console.error('[DASH] Error:', event.detail);
+      setError('Failed to load DASH stream. The video source may be unavailable.');
+      setIsLoading(false);
+    };
+    
+    const handleDashLibLoadError = (event: any) => {
+      console.error('[DASH] Library load error:', event.detail);
+      setError('Failed to load video streaming library.');
+      setIsLoading(false);
+    };
+    
+    const handleDashManifestLoaded = () => {
+      console.log('[DASH] Manifest loaded successfully');
+    };
+    
+    // Add DASH event listeners
+    player.addEventListener('dash-error', handleDashError);
+    player.addEventListener('dash-lib-load-error', handleDashLibLoadError);
+    player.addEventListener('dash-manifest-loaded', handleDashManifestLoaded);
+    
+    return () => {
+      player.removeEventListener('dash-error', handleDashError);
+      player.removeEventListener('dash-lib-load-error', handleDashLibLoadError);
+      player.removeEventListener('dash-manifest-loaded', handleDashManifestLoaded);
+    };
   }, []);
 
   const handleSeek = (time: number) => {
@@ -2506,7 +2582,7 @@ export function VideoPlayerContent({
 
 
   // STEP 2: Add this function to force disable captions
-  const disableAllCaptions = () => {
+  const disableAllCaptions = useCallback(() => {
     if (!playerRef.current) return;
 
     try {
@@ -2523,6 +2599,7 @@ export function VideoPlayerContent({
         }
 
         if (disabledCount > 0) {
+          console.log('[CAPTIONS] Disabled', disabledCount, 'auto-enabled caption tracks');
           setActiveCaption('off');
           setCaptionsEnabled(false);
         }
@@ -2530,12 +2607,18 @@ export function VideoPlayerContent({
     } catch (error) {
       console.error('[CAPTIONS] Error disabling captions:', error);
     }
-  };
+  }, []);
 
   // STEP 3: Replace your existing handleCanPlay method
   const handleCanPlay = async () => {
     setIsLoading(false);
     setIsQualityChanging(false);
+    
+    // Clear loading timeout
+    if ((window as any).__videoLoadingTimeout) {
+      clearTimeout((window as any).__videoLoadingTimeout);
+      (window as any).__videoLoadingTimeout = null;
+    }
 
     // Apply styles immediately when video is ready
     applyVideoStyles();
@@ -2599,49 +2682,90 @@ export function VideoPlayerContent({
   };
 
   // STEP 4: Add this useEffect for event-based caption control
+  // Use a ref to track user-initiated caption changes to avoid race conditions
+  const userSelectedCaptionRef = useRef<string | null>(null);
+  
   useEffect(() => {
     if (!playerRef.current) return;
 
     const player = playerRef.current;
 
     const handleLoadedMetadata = () => {
-      setTimeout(() => {
+      // Disable captions immediately when metadata loads (only if user hasn't selected one)
+      if (activeCaption === 'off' && !userSelectedCaptionRef.current) {
         disableAllCaptions();
-      }, 100);
+        // Also try again after a short delay to catch late-loading tracks
+        setTimeout(disableAllCaptions, 100);
+        setTimeout(disableAllCaptions, 300);
+      }
     };
 
     const handleTextTrackChange = () => {
       // Only auto-disable if user hasn't explicitly selected a caption
-      if (activeCaption === 'off') {
-        setTimeout(() => {
-          disableAllCaptions();
-        }, 50);
+      // Check both state and ref to handle race conditions
+      if (activeCaption === 'off' && !userSelectedCaptionRef.current) {
+        // Immediate disable
+        disableAllCaptions();
       }
     };
 
-    // Add event listeners
+    // Listen for text tracks being added (Vidstack fires this when tracks are discovered)
+    const handleTextTracksChange = () => {
+      if (activeCaption === 'off' && !userSelectedCaptionRef.current) {
+        // Disable any newly added tracks that might be auto-enabled
+        disableAllCaptions();
+      }
+    };
+
+    // Add event listeners for both native and Vidstack events
     player.addEventListener('loadedmetadata', handleLoadedMetadata);
     player.addEventListener('texttrackchange', handleTextTrackChange);
+    
+    // Listen to the textTracks list for changes
+    if (player.textTracks) {
+      player.textTracks.addEventListener('add', handleTextTracksChange);
+      player.textTracks.addEventListener('mode-change', handleTextTrackChange);
+    }
 
     return () => {
       player.removeEventListener('loadedmetadata', handleLoadedMetadata);
       player.removeEventListener('texttrackchange', handleTextTrackChange);
+      if (player.textTracks) {
+        player.textTracks.removeEventListener('add', handleTextTracksChange);
+        player.textTracks.removeEventListener('mode-change', handleTextTrackChange);
+      }
     };
-  }, [activeCaption]);
+  }, [activeCaption, disableAllCaptions]);
 
-  // STEP 5: Add this useEffect for multiple disable attempts
+  // STEP 5: Add this useEffect for multiple disable attempts on initial load
   useEffect(() => {
-    if (canPlay && activeCaption === 'off') {
+    if (canPlay && activeCaption === 'off' && !userSelectedCaptionRef.current) {
       // Multiple attempts to ensure captions stay disabled
-      const timeouts = [200, 500, 1000].map(delay =>
+      // This catches tracks that load asynchronously from HLS/DASH manifests
+      const timeouts = [100, 200, 500, 1000, 2000].map(delay =>
         setTimeout(() => {
-          disableAllCaptions();
+          // Double-check ref hasn't changed during timeout
+          if (!userSelectedCaptionRef.current) {
+            disableAllCaptions();
+          }
         }, delay)
       );
 
       return () => timeouts.forEach(clearTimeout);
     }
-  }, [canPlay, activeCaption]);
+  }, [canPlay, activeCaption, disableAllCaptions]);
+  
+  // STEP 5b: Also disable captions when textTracks state changes
+  useEffect(() => {
+    if (activeCaption === 'off' && !userSelectedCaptionRef.current && textTracks && textTracks.length > 0) {
+      // Check if any track is showing and disable it
+      const hasShowingTrack = Array.from(textTracks).some(track => track.mode === 'showing');
+      if (hasShowingTrack) {
+        console.log('[CAPTIONS] Detected showing track in textTracks state, disabling...');
+        disableAllCaptions();
+      }
+    }
+  }, [textTracks, activeCaption, disableAllCaptions]);
 
   // STEP 6: Update your captionsForUI to prevent defaults and include YouTube captions
   const captionsForUI = useMemo(() => {
@@ -2786,14 +2910,14 @@ export function VideoPlayerContent({
           onAudioTrackChange={handlePlayerAudioTrackChange}
           onProviderChange={handleProviderChange}
           crossOrigin="anonymous"
-
         >
           <MediaProvider>
             {/* Captions are now automatically discovered from the manifest */}
 
           </MediaProvider>
 
-          <Captions className="vds-captions" />
+          {/* Only render Captions component when user has explicitly enabled captions */}
+          {captionsEnabled && <Captions className="vds-captions" />}
           <BufferingIndicator />
 
           {/* Netflix-like Features with Enhanced Integration */}

@@ -10,6 +10,12 @@ import { formatTime } from '@/lib/video-utils';
 import { cn } from '@/lib/utils';
 import VideoSettings from './VideoSettings';
 import VideoCaption from './VideoCaption';
+import { 
+  isAirPlaySupported as checkAirPlaySupport, 
+  showAirPlayPicker, 
+  onAirPlayStatusChange,
+  isConnectedToAirPlay
+} from '@/lib/airplay-support';
 
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 // VTT file URLs - using public URLs instead of imports
@@ -167,16 +173,19 @@ interface VideoPlayerControlsProps {
 // Enhanced casting hook with better error handling and real device support
 const useCasting = () => {
   const [mounted, setMounted] = useState(false);
-  const [isCastSupported, setIsCastSupported] = useState(false);
+  const [isCastSupported, setIsCastSupported] = useState(true); // Default to true to show button
+  const [isAirPlaySupported, setIsAirPlaySupported] = useState(false);
   const [availableDevices, setAvailableDevices] = useState<CastDevice[]>([]);
   const [connectedDevice, setConnectedDevice] = useState<CastDevice | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [castSession, setCastSession] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isAirPlayConnected, setIsAirPlayConnected] = useState(false);
 
   const scanTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initRetryRef = useRef<number>(0);
+  const videoElementRef = useRef<HTMLVideoElement | null>(null);
 
 
 
@@ -189,29 +198,38 @@ const useCasting = () => {
   useEffect(() => {
     const checkCastSupport = async () => {
       try {
+        // Check for AirPlay (Safari/iOS) FIRST
+        const hasAirPlay = checkAirPlaySupport();
+        setIsAirPlaySupported(hasAirPlay);
+
+        if (hasAirPlay) {
+          console.log('✅ AirPlay supported (Safari/iOS detected)');
+          // Set cast supported to true if AirPlay is available
+          setIsCastSupported(true);
+        }
+
         // Check for Google Cast API
         const hasChromecast = !!(window as any).chrome?.cast;
 
-        // Check for WebRTC casting capabilities
-        const hasWebRTC = !!(window as any).RTCPeerConnection;
-
-        // Check for AirPlay (Safari)
-        const hasAirPlay = !!(window as any).WebKitPlaybackTargetAvailabilityEvent;
-
-        // Check for DLNA/UPnP capabilities
-        const hasDLNA = navigator.userAgent.includes('DLNA') ||
-          navigator.userAgent.includes('UPnP');
-
-        const isSupported = hasChromecast || hasWebRTC || hasAirPlay || hasDLNA;
-        setIsCastSupported(isSupported);
-
-        if (isSupported) {
+        if (hasChromecast) {
+          console.log('🔍 Chromecast API detected, initializing...');
           await initializeCastAPI();
+          setIsCastSupported(true);
+        } else if (!hasAirPlay) {
+          // Only set to false if neither AirPlay nor Chromecast is available
+          console.log('ℹ️ No casting support detected - keeping button visible with message');
+          // Keep button visible but show helpful message when clicked
+          setIsCastSupported(true);
         }
       } catch (error) {
-        console.warn('Cast support check failed (this is normal if Cast API is not available):', error);
-        // Don't set error state for cast initialization failures as it's optional functionality
-        setIsCastSupported(false);
+        console.warn('Cast support check failed:', error);
+        // Keep AirPlay support even if Chromecast fails
+        if (isAirPlaySupported) {
+          console.log('✅ AirPlay still available despite Chromecast error');
+          setIsCastSupported(true);
+        } else {
+          setIsCastSupported(false);
+        }
       }
     };
 
@@ -297,7 +315,10 @@ const useCasting = () => {
       console.warn('Cast API initialization failed (this is normal if no Cast devices are available):', error);
       // Don't set error state for cast initialization failures as it's optional functionality
       setIsInitialized(false);
-      setIsCastSupported(false);
+      // Don't disable cast support if AirPlay is available
+      if (!isAirPlaySupported) {
+        setIsCastSupported(false);
+      }
     };
 
     if (mounted) {
@@ -307,8 +328,6 @@ const useCasting = () => {
 
   // Enhanced device scanning with better error handling
   const scanForDevices = useCallback(async () => {
-    if (!isCastSupported) return;
-
     setIsScanning(true);
     setError(null);
 
@@ -318,79 +337,202 @@ const useCasting = () => {
         clearTimeout(scanTimeoutRef.current);
       }
 
-      // Enhanced mock devices with more realistic data
-      const mockDevices: CastDevice[] = [
-        {
-          id: 'chromecast-living-room',
-          name: 'Living Room TV',
-          type: 'chromecast',
-          status: 'available',
-          icon: <Tv className="w-4 h-4" />,
-          capabilities: ['video_out', 'audio_out']
-        },
-        {
-          id: 'airplay-bedroom',
-          name: 'Bedroom Apple TV',
-          type: 'airplay',
-          status: 'available',
-          icon: <Monitor className="w-4 h-4" />,
-          capabilities: ['video_out', 'audio_out', 'airplay']
-        },
-        {
-          id: 'dlna-kitchen',
-          name: 'Kitchen Smart Display',
-          type: 'dlna',
-          status: 'available',
-          icon: <Smartphone className="w-4 h-4" />,
-          capabilities: ['video_out', 'audio_out', 'dlna']
-        }
-      ];
+      // Clear previous devices
+      setAvailableDevices([]);
 
-      // Simulate realistic scanning time
-      scanTimeoutRef.current = setTimeout(() => {
-        setAvailableDevices(mockDevices);
-        setIsScanning(false);
-      }, 1500);
-
-      // Attempt real Chromecast discovery if available
-      if (isInitialized && (window as any).chrome?.cast?.isAvailable) {
-        try {
-          const cast = (window as any).chrome.cast;
-
-          // Request session to trigger device discovery
-          cast.requestSession(
-            (session: any) => {
-              // Don't automatically connect, just add to available devices
-              setAvailableDevices(prev => [
-                ...prev.filter(d => d.id !== session.sessionId),
-                {
-                  id: session.sessionId,
-                  name: session.receiver.friendlyName,
-                  type: 'chromecast',
-                  status: 'available',
-                  icon: <Cast className="w-4 h-4" />,
-                  capabilities: session.receiver.capabilities || []
-                }
-              ]);
-            },
-            (error: any) => {
-              // Only log errors that aren't expected user cancellations or no devices found
-              if (error.code !== 'cancel' && error.code !== 'receiver_unavailable') {
-                console.warn('Cast device discovery failed (this is normal if no devices are available):', error.code || 'unknown');
+      // Handle AirPlay (Safari/iOS)
+      if (isAirPlaySupported) {
+        console.log('🍎 AirPlay supported - showing native picker');
+        
+        // Get video element from the page
+        const videoElement = document.querySelector('video') as HTMLVideoElement;
+        
+        if (videoElement) {
+          videoElementRef.current = videoElement;
+          
+          // Show AirPlay picker (native iOS/macOS menu)
+          const success = showAirPlayPicker(videoElement);
+          
+          if (success) {
+            console.log('✅ AirPlay picker shown');
+            
+            // Listen for AirPlay connection status
+            const cleanup = onAirPlayStatusChange(videoElement, (isConnected, deviceName) => {
+              if (isConnected) {
+                console.log('✅ Connected to AirPlay device');
+                setIsAirPlayConnected(true);
+                setConnectedDevice({
+                  id: 'airplay-device',
+                  name: deviceName || 'AirPlay Device',
+                  type: 'airplay',
+                  status: 'connected',
+                  icon: <Monitor className="w-4 h-4" />,
+                  capabilities: ['video', 'audio']
+                });
+                setError(null);
+              } else {
+                console.log('ℹ️ Disconnected from AirPlay');
+                setIsAirPlayConnected(false);
+                setConnectedDevice(null);
               }
-            }
-          );
-        } catch (error) {
-          console.error('Cast discovery failed:', error);
+            });
+            
+            // Store cleanup function
+            setIsScanning(false);
+            return cleanup;
+          } else {
+            setError('AirPlay not available. Make sure you have AirPlay devices nearby.');
+          }
+        } else {
+          setError('Video player not ready. Please try again.');
         }
+        
+        setIsScanning(false);
+        return;
       }
+
+      // Check if we're on Chrome/Edge
+      const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge|Edg/.test(navigator.userAgent);
+      const isEdge = /Edge|Edg/.test(navigator.userAgent);
+      
+      if (!isChrome && !isEdge) {
+        setIsScanning(false);
+        setError('Chromecast requires Chrome or Edge browser. For Apple devices, use Safari for AirPlay.');
+        return;
+      }
+
+      // Try to load Cast SDK if not available
+      if (!(window as any).chrome?.cast?.isAvailable) {
+        console.log('🔄 Loading Google Cast SDK...');
+        
+        // Check if script already exists
+        const existingScript = document.querySelector('script[src*="cast_sender"]');
+        if (!existingScript) {
+          const script = document.createElement('script');
+          script.src = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
+          script.async = true;
+          document.head.appendChild(script);
+        }
+        
+        // Wait for Cast API to be ready
+        let attempts = 0;
+        const maxAttempts = 30; // 3 seconds
+        
+        const waitForCast = () => {
+          attempts++;
+          
+          if ((window as any).chrome?.cast?.isAvailable) {
+            console.log('✅ Cast SDK loaded successfully');
+            initAndRequestSession();
+          } else if (attempts < maxAttempts) {
+            setTimeout(waitForCast, 100);
+          } else {
+            console.log('⚠️ Cast SDK failed to load');
+            setIsScanning(false);
+            setError('Cast not available. Use Chrome menu (⋮) → Cast... instead.');
+          }
+        };
+        
+        waitForCast();
+        return;
+      }
+
+      // Cast API is available, request session
+      initAndRequestSession();
 
     } catch (error) {
       console.error('Device scanning failed:', error);
-      setError('Device scanning failed');
+      setError('Scanning failed. Use Chrome menu (⋮) → Cast...');
       setIsScanning(false);
     }
-  }, [isCastSupported, isInitialized]);
+    
+    function initAndRequestSession() {
+      try {
+        const cast = (window as any).chrome.cast;
+        
+        // Initialize if needed
+        if (!isInitialized) {
+          const sessionRequest = new cast.SessionRequest(cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID);
+          const apiConfig = new cast.ApiConfig(
+            sessionRequest,
+            (session: any) => {
+              // Session listener
+              console.log('✅ Session started:', session.receiver.friendlyName);
+              handleSessionConnected(session);
+            },
+            (availability: string) => {
+              console.log('📡 Receiver availability:', availability);
+            }
+          );
+          
+          cast.initialize(
+            apiConfig,
+            () => {
+              console.log('✅ Cast API initialized');
+              setIsInitialized(true);
+              requestCastSession();
+            },
+            (err: any) => {
+              console.warn('Cast init error:', err);
+              requestCastSession(); // Try anyway
+            }
+          );
+        } else {
+          requestCastSession();
+        }
+      } catch (err) {
+        console.error('Cast init failed:', err);
+        setIsScanning(false);
+        setError('Cast failed. Use Chrome menu (⋮) → Cast...');
+      }
+    }
+    
+    function requestCastSession() {
+      try {
+        const cast = (window as any).chrome.cast;
+        console.log('🔍 Requesting cast session...');
+        
+        cast.requestSession(
+          (session: any) => {
+            console.log('✅ Connected to:', session.receiver.friendlyName);
+            handleSessionConnected(session);
+          },
+          (err: any) => {
+            setIsScanning(false);
+            if (err.code === 'cancel') {
+              setError(null);
+            } else if (err.code === 'receiver_unavailable') {
+              setError('No Chromecast found. Make sure it\'s on the same WiFi.');
+            } else {
+              console.warn('Cast error:', err);
+              setError('No devices found. Use Chrome menu (⋮) → Cast...');
+            }
+          }
+        );
+      } catch (err) {
+        console.error('Request session failed:', err);
+        setIsScanning(false);
+        setError('Cast failed. Use Chrome menu (⋮) → Cast...');
+      }
+    }
+    
+    function handleSessionConnected(session: any) {
+      const device: CastDevice = {
+        id: session.sessionId,
+        name: session.receiver.friendlyName,
+        type: 'chromecast',
+        status: 'connected',
+        icon: <Cast className="w-4 h-4" />,
+        capabilities: ['video', 'audio']
+      };
+      
+      setCastSession(session);
+      setConnectedDevice(device);
+      setAvailableDevices([device]);
+      setIsScanning(false);
+      setError(null);
+    }
+  }, [isAirPlaySupported, isInitialized]);
 
   // Enhanced device connection with better error handling
   const connectToDevice = useCallback(async (device: CastDevice) => {
@@ -573,8 +715,20 @@ const useCasting = () => {
     };
   }, []);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('🔍 Cast Support Status:', {
+      isCastSupported,
+      isAirPlaySupported,
+      isInitialized,
+      finalValue: isCastSupported || isAirPlaySupported
+    });
+  }, [isCastSupported, isAirPlaySupported, isInitialized]);
+
   return {
-    isCastSupported,
+    isCastSupported: isCastSupported || isAirPlaySupported,
+    isAirPlaySupported,
+    isAirPlayConnected,
     availableDevices,
     connectedDevice,
     isScanning,
@@ -647,6 +801,7 @@ export function VideoPlayerControls({
   // Use enhanced casting functionality
   const {
     isCastSupported,
+    isAirPlaySupported,
     availableDevices,
     connectedDevice,
     isScanning,
@@ -657,6 +812,11 @@ export function VideoPlayerControls({
     disconnectFromDevice,
     castMedia
   } = useCasting();
+
+  // Debug: Log cast support in component
+  useEffect(() => {
+    console.log('📺 VideoPlayerControls - Cast Support:', isCastSupported);
+  }, [isCastSupported]);
 
 
   const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -794,10 +954,17 @@ export function VideoPlayerControls({
           <div className="absolute bottom-full left-0 right-0 mb-4 flex justify-center">
             <div className="bg-black/95 backdrop-blur-sm rounded-lg p-4 border border-white/20 max-w-md w-full mx-4 shadow-xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-white font-semibold flex items-center">
-                  <Cast className="w-5 h-5 mr-2" />
-                  Cast to Device
-                </h3>
+                <div>
+                  <h3 className="text-white font-semibold flex items-center">
+                    <Cast className="w-5 h-5 mr-2" />
+                    Cast to Device
+                  </h3>
+                  <p className="text-white/60 text-xs mt-1">
+                    {isAirPlaySupported && 'AirPlay available (Safari)'}
+                    {isInitialized && !isAirPlaySupported && 'Chromecast available (Chrome/Edge)'}
+                    {!isInitialized && !isAirPlaySupported && 'Use Chrome/Edge or Safari'}
+                  </p>
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -810,8 +977,8 @@ export function VideoPlayerControls({
 
               {/* Cast error display */}
               {castError && (
-                <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
-                  <p className="text-red-300 text-sm">{castError}</p>
+                <div className="mb-4 p-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg">
+                  <p className="text-white text-sm">{castError}</p>
                 </div>
               )}
 
@@ -867,8 +1034,20 @@ export function VideoPlayerControls({
                 <div className="text-center py-8">
                   <Wifi className="w-12 h-12 text-white/50 mx-auto mb-4" />
                   <p className="text-white/70 mb-2">No cast devices found</p>
-                  {!isInitialized && (
-                    <p className="text-white/50 text-sm mb-4">Cast API not initialized</p>
+                  {!isInitialized && !isAirPlaySupported && (
+                    <p className="text-white/50 text-sm mb-4">
+                      Chromecast not available. Use Chrome/Edge for Chromecast or Safari for AirPlay.
+                    </p>
+                  )}
+                  {isAirPlaySupported && (
+                    <p className="text-white/50 text-sm mb-4">
+                      Click "Scan Again" to open AirPlay menu
+                    </p>
+                  )}
+                  {isInitialized && !isAirPlaySupported && (
+                    <p className="text-white/50 text-sm mb-4">
+                      Make sure your Chromecast is on the same WiFi network
+                    </p>
                   )}
                   <Button
                     variant="outline"
