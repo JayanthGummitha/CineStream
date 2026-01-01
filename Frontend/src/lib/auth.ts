@@ -194,13 +194,53 @@ export function simulateLogin(formData: {
 export function logout(): void {
   clearAuthState();
   
-  // Clear owner session - user is no longer authenticated
-  if (isBrowser) {
+  if (!isBrowser) return;
+  
+  // Clear all user-related data from localStorage and sessionStorage
+  try {
+    // Auth data
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(USER_STORAGE_KEY);
+    
+    // Session data
     sessionStorage.removeItem('cinestream_owner_session');
+    
+    // User settings
+    localStorage.removeItem('cinestream_playback_settings');
+    localStorage.removeItem('cinestream_security_settings');
+    localStorage.removeItem('cinestream_notification_settings');
+    localStorage.removeItem('cinestream_privacy_settings');
+    
+    // Subscription data
+    localStorage.removeItem('cinestream_subscription');
+    
+    // Registered devices
+    localStorage.removeItem('cinestream_registered_devices');
+    
+    // Profile data - clear all profile-related keys
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (
+        key.startsWith('cinestream_profiles_') ||
+        key.startsWith('cinestream_active_profile') ||
+        key.startsWith('cinestream_mylist_') ||
+        key.startsWith('cinestream_likes_') ||
+        key.startsWith('watch_progress_') ||
+        key.startsWith('watch_progress_index_') ||
+        key.startsWith('parental_pin_attempts_') ||
+        key.startsWith('parental_pin_lockout_')
+      ) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    console.log('✅ All user data cleared from storage');
+  } catch (error) {
+    console.error('Failed to clear all storage data:', error);
   }
   
-  // Redirect to home page or login page if needed
-  if (isBrowser && window.location.pathname !== '/') {
+  // Redirect to home page
+  if (window.location.pathname !== '/') {
     window.location.href = '/';
   }
 }

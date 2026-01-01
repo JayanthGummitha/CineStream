@@ -21,7 +21,7 @@ import { PricingCard } from './PricingCard';
 import { Header } from '@/components/navigation/header';
 import { Footer } from '@/components/navigation/footer';
 import { isAuthenticated } from '@/lib/auth';
-import { SUBSCRIPTION_PLANS } from '@/constants/pricingPlans';
+import { SUBSCRIPTION_PLANS, pricingPlans } from '@/constants/pricingPlans';
 import { PricingSection } from '@/app/subscription/pricing-section';
 import { Button } from '../ui/button';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -51,11 +51,11 @@ export function ResponsivePricingPage({
     );
 
     /**
-     * Handle plan selection and initiate checkout
-     * Updates local state and triggers Stripe checkout
+     * Handle plan selection and redirect to checkout
+     * Updates local state and redirects to checkout page with plan details
      * Memoized with useCallback to prevent unnecessary re-renders
      */
-    const handlePlanSelect = useCallback(async (planId: string) => {
+    const handlePlanSelect = useCallback((planId: string) => {
         // Don't process if this is the active plan
         if (planId === activePlanId) {
             return;
@@ -68,46 +68,32 @@ export function ResponsivePricingPage({
             onPlanSelect(planId, billingCycle);
         }
 
-        // Log for debugging/tracking
-
-        // Initiate Stripe checkout
-        try {
-            const response = await fetch('/api/create-checkout-session', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    planId,
-                    billingCycle,
-                    userId: 'demo_user_123', // Replace with actual user ID
-                }),
-            });
-
-            // Check if response is OK
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('API Error:', response.status, errorText);
-                alert(`Failed to create checkout session: ${response.status}`);
-                return;
-            }
-
-            const data = await response.json();
-
-            if (data.url) {
-                // Redirect to checkout page
-                window.location.href = data.url;
-            } else if (data.error) {
-                console.error('Checkout error:', data.error);
-                alert(`Error: ${data.error}`);
-            } else {
-                console.error('No checkout URL returned');
-                alert('Failed to create checkout session. Please try again.');
-            }
-        } catch (error) {
-            console.error('Error creating checkout session:', error);
-            alert('An unexpected error occurred. Please check the console for details.');
+        // Find the selected plan details from pricingPlans (which has monthlyPrice/yearlyPrice)
+        const selectedPlanDetails = pricingPlans.find(p => p.id === planId);
+        
+        if (!selectedPlanDetails) {
+            console.error('Plan not found:', planId);
+            return;
         }
+
+        // Get the correct price based on billing cycle
+        const price = billingCycle === 'annual' 
+            ? selectedPlanDetails.yearlyPrice 
+            : selectedPlanDetails.monthlyPrice;
+
+        // Get currency from SUBSCRIPTION_PLANS (fallback to USD)
+        const planCurrency = SUBSCRIPTION_PLANS.find(p => p.id === planId)?.currency || 'USD';
+
+        // Build checkout URL with plan details as query parameters
+        const checkoutUrl = new URL('/subscription/checkout', window.location.origin);
+        checkoutUrl.searchParams.set('planId', planId);
+        checkoutUrl.searchParams.set('planName', selectedPlanDetails.name);
+        checkoutUrl.searchParams.set('price', price.toString());
+        checkoutUrl.searchParams.set('billingCycle', billingCycle);
+        checkoutUrl.searchParams.set('currency', planCurrency);
+
+        // Redirect to checkout page
+        window.location.href = checkoutUrl.toString();
     }, [billingCycle, activePlanId, onPlanSelect]);
 
     /**
