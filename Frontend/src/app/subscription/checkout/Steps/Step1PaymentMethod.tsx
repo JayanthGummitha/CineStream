@@ -70,17 +70,17 @@ const Step1PaymentMethod: React.FC<Step1Props> = ({ data, updateData, planDetail
     <div className="space-y-6 animate-fadeIn">
       {/* Plan Summary Card */}
       {planDetails && (
-        <div className=" rounded-xl p-5">
+        <div className=" rounded-xl p-5 @container/card bg-gradient-to-b from-black/90 to-black/90 border-black/80  shadow-lg border-1 transition-all duration-300 hover:shadow-xl overflow-hidden">
           <div className="flex items-start justify-between">
             <div>
-              <h4 className="font-semibold text-gray-900 text-lg mb-1">
+              <h4 className="font-semibold text-white text-lg mb-1">
                 {planDetails.planName}
               </h4>
               <p className="text-sm text-gray-600 mb-3">
                 {planDetails.billingCycle === 'annual' ? 'Billed annually' : 'Billed monthly'}
               </p>
               <div className="flex items-baseline space-x-2">
-                <span className="text-3xl font-bold text-gray-900">
+                <span className="text-3xl font-bold text-white">
                   {planDetails.currency === 'INR' ? '₹' : '$'}{planDetails.price.toFixed(2)}
                 </span>
                 <span className="text-sm text-gray-600">
@@ -111,7 +111,7 @@ const Step1PaymentMethod: React.FC<Step1Props> = ({ data, updateData, planDetail
               value={option.value}
               checked={data.paymentMethod === option.value}
               onChange={() => updateData({ paymentMethod: option.value })}
-              className="mr-3 w-4 h-4 appearance-none rounded-full border-2 border-gray-300 checked:border-green-500 checked:border-[5px] checked:bg-white focus:ring-2 focus:ring-green-500 focus:ring-offset-2 cursor-pointer transition-all flex-shrink-0"
+              className="mr-3 w-4 h-4 appearance-none rounded-full border-2 border-gray-300 checked:bg-green-500 checked:border-green-500 relative cursor-pointer transition-all flex-shrink-0 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 before:content-[''] before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-white before:opacity-0 checked:before:opacity-100"
             />
             <div className="flex items-center space-x-3 flex-1">
               <div className="text-gray-600 flex-shrink-0">{option.icon}</div>

@@ -9,9 +9,17 @@ const SilkCanvas: React.FC = () => {
   useEffect(() => {
     if (!mountRef.current) return;
 
-    // Dimensions
-    const width = mountRef.current.clientWidth;
-    const height = mountRef.current.clientHeight;
+    // Get parent dimensions for proper sizing
+    const parent = mountRef.current.parentElement;
+    if (!parent) return;
+
+    const updateSize = () => {
+      const width = parent.clientWidth;
+      const height = parent.clientHeight;
+      return { width, height };
+    };
+
+    const { width, height } = updateSize();
 
     // Scene setup
     const scene = new THREE.Scene();
@@ -20,6 +28,12 @@ const SilkCanvas: React.FC = () => {
     
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    
+    // Style the canvas to fill container
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
+    renderer.domElement.style.display = 'block';
+    
     mountRef.current.appendChild(renderer.domElement);
 
     // Shader code
@@ -106,10 +120,14 @@ const SilkCanvas: React.FC = () => {
     animate();
 
     const handleResize = () => {
-      if (!mountRef.current) return;
-      const w = mountRef.current.clientWidth;
-      const h = mountRef.current.clientHeight;
+      if (!mountRef.current || !mountRef.current.parentElement) return;
+      
+      const parent = mountRef.current.parentElement;
+      const w = parent.clientWidth;
+      const h = parent.clientHeight;
+      
       renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     };
 
     window.addEventListener('resize', handleResize);

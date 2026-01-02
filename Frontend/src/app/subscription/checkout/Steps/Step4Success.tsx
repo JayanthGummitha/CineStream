@@ -8,9 +8,17 @@ interface Step4Props {
   data: FormData;
   planDetails: PlanDetails | null;
   onReset: () => void;
+  appliedCoupon?: { code: string; discount: number } | null;
+  calculatePrices?: () => {
+    basePrice: number;
+    discountAmount: number;
+    priceAfterDiscount: number;
+    tax: number;
+    total: number;
+  };
 }
 
-const Step4Success: React.FC<Step4Props> = ({ data, planDetails, onReset }) => {
+const Step4Success: React.FC<Step4Props> = ({ data, planDetails, onReset, appliedCoupon, calculatePrices }) => {
   const [showReceipt, setShowReceipt] = useState(true);
 
   const fireConfetti = () => {
@@ -42,10 +50,15 @@ const Step4Success: React.FC<Step4Props> = ({ data, planDetails, onReset }) => {
   
   const nextBilling = nextMonth.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-  // Calculate amounts
-  const subtotal = planDetails?.price || 99.00;
-  const tax = subtotal * 0.09;
-  const total = subtotal + tax;
+  // Calculate amounts with discount
+  const prices = calculatePrices ? calculatePrices() : {
+    basePrice: planDetails?.price || 99.00,
+    discountAmount: 0,
+    priceAfterDiscount: planDetails?.price || 99.00,
+    tax: (planDetails?.price || 99.00) * 0.09,
+    total: (planDetails?.price || 99.00) * 1.09
+  };
+  
   const currencySymbol = planDetails?.currency === 'INR' ? '₹' : '$';
 
   return (
@@ -102,9 +115,17 @@ const Step4Success: React.FC<Step4Props> = ({ data, planDetails, onReset }) => {
                       {planDetails?.billingCycle === 'annual' ? 'Annual Plan' : 'Monthly Plan'}
                     </span>
                     <span className="text-gray-900 font-medium">
-                      {currencySymbol}{subtotal.toFixed(2)}
+                      {currencySymbol}{prices.basePrice.toFixed(2)}
                     </span>
                   </div>
+                  {appliedCoupon && (
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-green-600">Discount ({appliedCoupon.discount}%)</span>
+                      <span className="text-green-600 font-medium">
+                        -{currencySymbol}{prices.discountAmount.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-xs text-gray-500 mt-2">
                     <span>Next billing date: {nextBilling}</span>
                   </div>
@@ -113,15 +134,15 @@ const Step4Success: React.FC<Step4Props> = ({ data, planDetails, onReset }) => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="text-gray-900">{currencySymbol}{subtotal.toFixed(2)}</span>
+                    <span className="text-gray-900">{currencySymbol}{prices.priceAfterDiscount.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Tax (9%)</span>
-                    <span className="text-gray-900">{currencySymbol}{tax.toFixed(2)}</span>
+                    <span className="text-gray-900">{currencySymbol}{prices.tax.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm font-bold mt-3 pt-3 border-t border-gray-200 text-gray-900">
                     <span>Total</span>
-                    <span>{currencySymbol}{total.toFixed(2)}</span>
+                    <span>{currencySymbol}{prices.total.toFixed(2)}</span>
                   </div>
                 </div>
                 

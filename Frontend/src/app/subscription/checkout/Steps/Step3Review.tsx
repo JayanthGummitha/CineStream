@@ -6,9 +6,26 @@ interface Step3Props {
   data: FormData;
   updateData: (fields: Partial<FormData>) => void;
   planDetails: PlanDetails | null;
+  appliedCoupon?: { code: string; discount: number } | null;
+  calculatePrices?: () => {
+    basePrice: number;
+    discountAmount: number;
+    priceAfterDiscount: number;
+    tax: number;
+    total: number;
+  };
 }
 
-const Step3Review: React.FC<Step3Props> = ({ data, updateData, planDetails }) => {
+const Step3Review: React.FC<Step3Props> = ({ data, updateData, planDetails, appliedCoupon, calculatePrices }) => {
+  // Calculate prices with discount
+  const prices = calculatePrices ? calculatePrices() : {
+    basePrice: planDetails?.price || 0,
+    discountAmount: 0,
+    priceAfterDiscount: planDetails?.price || 0,
+    tax: (planDetails?.price || 0) * 0.09,
+    total: (planDetails?.price || 0) * 1.09
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Plan Details */}
@@ -25,15 +42,37 @@ const Step3Review: React.FC<Step3Props> = ({ data, updateData, planDetails }) =>
               <span className="font-medium text-gray-900 capitalize">{planDetails.billingCycle}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Amount</span>
+              <span className="text-gray-600">Base Amount</span>
               <span className="font-semibold text-gray-900">
-                {planDetails.currency === 'INR' ? '₹' : '$'}{planDetails.price.toFixed(2)}
+                {planDetails.currency === 'INR' ? '₹' : '$'}
+                {prices.basePrice.toFixed(2)}
               </span>
             </div>
+            
+            {/* Show discount if applied */}
+            {appliedCoupon && (
+              <div className="flex justify-between text-sm">
+                <span className="text-green-600">Discount ({appliedCoupon.discount}%)</span>
+                <span className="font-semibold text-green-600">
+                  -{planDetails.currency === 'INR' ? '₹' : '$'}
+                  {prices.discountAmount.toFixed(2)}
+                </span>
+              </div>
+            )}
+            
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Tax (9%)</span>
+              <span className="font-medium text-gray-900">
+                {planDetails.currency === 'INR' ? '₹' : '$'}
+                {prices.tax.toFixed(2)}
+              </span>
+            </div>
+            
             <div className="border-t border-blue-200 pt-3 flex justify-between">
-              <span className="text-gray-900 font-semibold">Total (incl. 9% tax)</span>
+              <span className="text-gray-900 font-semibold">Total Amount</span>
               <span className="font-bold text-lg text-gray-900">
-                {planDetails.currency === 'INR' ? '₹' : '$'}{(planDetails.price * 1.09).toFixed(2)}
+                {planDetails.currency === 'INR' ? '₹' : '$'}
+                {prices.total.toFixed(2)}
               </span>
             </div>
           </div>

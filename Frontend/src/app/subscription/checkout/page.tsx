@@ -1,25 +1,28 @@
 'use client';
 
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, lazy, Suspense, memo } from 'react';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import StepIndicator from './StepIndicator';
 import { Button } from '@/components/ui/button';
-import Step1PaymentMethod from './Steps/Step1PaymentMethod';
-import Step2BillingInfo from './Steps/Step2BillingInfo';
-import Step3Review from './Steps/Step3Review';
-import Step4Success from './Steps/Step4Success';
+import SimpleBg from './SimpleBg';
+import SilkCanvas from './SilkCanvas'
 
-// Lazy load the heavy SilkCanvas component
-const SilkCanvas = lazy(() => import('./SilkCanvas'));
+import { Label } from '@/components/ui/label';
+
+// Lazy load step components for better code splitting
+const Step1PaymentMethod = lazy(() => import('./Steps/Step1PaymentMethod'));
+const Step2BillingInfo = lazy(() => import('./Steps/Step2BillingInfo'));
+const Step3Review = lazy(() => import('./Steps/Step3Review'));
+const Step4Success = lazy(() => import('./Steps/Step4Success'));
 
 // Form data type definition
-export type PaymentMethod = 
-  | 'Credit card' 
-  | 'Debit card' 
-  | 'Apple Pay' 
-  | 'Google Pay' 
-  | 'PayPal' 
+export type PaymentMethod =
+  | 'Credit card'
+  | 'Debit card'
+  | 'Apple Pay'
+  | 'Google Pay'
+  | 'PayPal'
 //   | 'Affirm' 
 //   | 'ACH Bank Transfer';
 
@@ -63,6 +66,69 @@ const App: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(INITIAL_DATA);
   const [isProcessing, setIsProcessing] = useState(false);
   const [planDetails, setPlanDetails] = useState<PlanDetails | null>(null);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [couponError, setCouponError] = useState('');
+
+  // Suppress browser extension errors
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      if (event.message.includes('message channel closed')) {
+        event.preventDefault();
+        return true;
+      }
+    };
+
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  // Sample coupon codes (in production, validate these on the backend)
+  const validCoupons: Record<string, number> = {
+    'WELCOME10': 10,
+    'SAVE20': 20,
+    'SPECIAL25': 25,
+    'NEWYEAR15': 15,
+  };
+
+  const handleApplyCoupon = () => {
+    const code = couponCode.toUpperCase().trim();
+    if (!code) {
+      setCouponError('Please enter a coupon code');
+      return;
+    }
+
+    if (validCoupons[code]) {
+      setAppliedCoupon({ code, discount: validCoupons[code] });
+      setCouponError('');
+    } else {
+      setCouponError('Invalid coupon code');
+      setAppliedCoupon(null);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  };
+
+  // Calculate prices with discount
+  const calculatePrices = () => {
+    const basePrice = planDetails?.price || 99;
+    const discountAmount = appliedCoupon ? (basePrice * appliedCoupon.discount) / 100 : 0;
+    const priceAfterDiscount = basePrice - discountAmount;
+    const tax = priceAfterDiscount * 0.09;
+    const total = priceAfterDiscount + tax;
+
+    return {
+      basePrice,
+      discountAmount,
+      priceAfterDiscount,
+      tax,
+      total
+    };
+  };
 
   // Extract plan details from URL parameters
   useEffect(() => {
@@ -72,7 +138,8 @@ const App: React.FC = () => {
     const billingCycle = searchParams.get('billingCycle') as 'monthly' | 'annual';
     const currency = searchParams.get('currency');
 
-    if (planId && planName && price && billingCycle && currency) {
+    // Only update if we have all required params and planDetails is not already set
+    if (planId && planName && price && billingCycle && currency && !planDetails) {
       // Get plan features based on planId
       const getPlanFeatures = (id: string): string[] => {
         switch (id) {
@@ -125,9 +192,8 @@ const App: React.FC = () => {
         currency,
         features: getPlanFeatures(planId)
       });
-      console.log('Plan details loaded:', { planId, planName, price, billingCycle, currency });
     }
-  }, [searchParams]);
+  }, []); // Empty dependency array - only run once on mount
 
   const updateFormData = (fields: Partial<FormData>) => {
     setFormData((prev: FormData) => ({ ...prev, ...fields }));
@@ -165,16 +231,25 @@ const App: React.FC = () => {
   };
 
   const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return <Step1PaymentMethod data={formData} updateData={updateFormData} planDetails={planDetails} />;
-      case 2:
-        return <Step2BillingInfo data={formData} updateData={updateFormData} />;
-      case 3:
-        return <Step3Review data={formData} updateData={updateFormData} planDetails={planDetails} />;
-      default:
-        return null;
-    }
+    const stepProps = {
+      data: formData,
+      updateData: updateFormData,
+      planDetails,
+      appliedCoupon,
+      calculatePrices
+    };
+
+    return (
+      <Suspense fallback={
+        <div className="flex items-center justify-center py-12">
+          <div className="w-8 h-8 border-4 border-gray-300 border-t-black rounded-full animate-spin" />
+        </div>
+      }>
+        {currentStep === 1 && <Step1PaymentMethod {...stepProps} />}
+        {currentStep === 2 && <Step2BillingInfo data={formData} updateData={updateFormData} />}
+        {currentStep === 3 && <Step3Review {...stepProps} />}
+      </Suspense>
+    );
   };
 
   const getStepTitle = () => {
@@ -190,18 +265,25 @@ const App: React.FC = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8 font-geist relative">
-      {currentStep === 4 && <Step4Success data={formData} planDetails={planDetails} onReset={handleReset} />}
-      
+      {currentStep === 4 && (
+        <Suspense fallback={null}>
+          <Step4Success 
+            data={formData} 
+            planDetails={planDetails} 
+            onReset={handleReset}
+            appliedCoupon={appliedCoupon}
+            calculatePrices={calculatePrices}
+          />
+        </Suspense>
+      )}
+
       <div className={`w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[750px] transition-all duration-500 ${currentStep === 4 ? 'scale-95 opacity-50 blur-sm pointer-events-none' : ''}`}>
-        
+
         {/* Left Sidebar */}
-        <div className="w-full md:w-1/2 relative bg-gray-900 text-white flex flex-col overflow-hidden">
-          <Suspense fallback={
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900" />
-          }>
-            <SilkCanvas />
-          </Suspense>
-          
+        <div className="w-full md:w-1/2 relative bg-gray-600 backdrop-blur-[1px] text-white flex flex-col overflow-hidden">
+          {/* <SimpleBg /> */}
+          <SilkCanvas/>
+
           <div className="relative z-10 flex flex-col h-full p-8 md:p-12 bg-black/10 backdrop-blur-[1px]">
             <div className="mb-8 md:mb-12">
               <h1 className="text-3xl font-light tracking-tight mb-2">Order Summary</h1>
@@ -216,7 +298,7 @@ const App: React.FC = () => {
                 <StepIndicator stepNumber={3} currentStep={currentStep > 3 ? 3 : currentStep} label="Review & Confirm" />
               </div>
 
-              <div className="space-y-6">
+              <div className="mt-3 space-y-6">
                 {/* Product Details */}
                 <div className="bg-black/30 rounded-xl p-6 backdrop-blur-md border border-white/10">
                   <h3 className="font-medium mb-4 text-lg">
@@ -242,23 +324,80 @@ const App: React.FC = () => {
                       </span>
                       <span>
                         {planDetails?.currency === 'INR' ? '₹' : '$'}
-                        {planDetails?.price.toFixed(2) || '99.00'}
+                        {calculatePrices().basePrice.toFixed(2)}
                       </span>
                     </div>
+
+
+                    {/* Coupon Input */}
+                    <div className=" grid space-y-2">
+                      <Label>Discount: </Label>
+                      <div className="flex space-x-2">
+                        <input
+                          type="password"
+                          placeholder="Enter coupon code"
+                          value={couponCode}
+                          onChange={(e) => {
+                            setCouponCode(e.target.value);
+                            setCouponError('');
+                          }}
+                          disabled={!!appliedCoupon}
+                          className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                        <button
+                          onClick={appliedCoupon ? handleRemoveCoupon : handleApplyCoupon}
+                          className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white text-sm font-medium transition-colors"
+                        >
+                          {appliedCoupon ? 'Clear' : 'Apply'}
+                        </button>
+                      </div>
+                      {couponError && (
+                        <p className="text-red-400 text-xs mt-2">{couponError}</p>
+                      )}
+                      {appliedCoupon && (
+                        <p className="text-green-400 text-xs mt-2">
+                          ✓ Coupon code applied successfully!
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Discount */}
+                    {appliedCoupon && (
+                      <div className="flex justify-between text-green-400">
+                        <span className="flex items-center space-x-2">
+                          <span>Discount ({appliedCoupon.discount}%)</span>
+                          <button
+                            onClick={handleRemoveCoupon}
+                            className="text-xs cursor-pointer text-red-400 hover:text-red-300 underline"
+                          >
+                            Remove
+                          </button>
+                        </span>
+                        <span>
+                          -{planDetails?.currency === 'INR' ? '₹' : '$'}
+                          {calculatePrices().discountAmount.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+
                     <div className="flex justify-between">
                       <span className="text-gray-300">Tax (9%)</span>
                       <span>
                         {planDetails?.currency === 'INR' ? '₹' : '$'}
-                        {((planDetails?.price || 99) * 0.09).toFixed(2)}
+                        {calculatePrices().tax.toFixed(2)}
                       </span>
                     </div>
+
                     <div className="border-t border-white/20 pt-3 flex justify-between font-medium text-lg">
                       <span>Total</span>
                       <span>
                         {planDetails?.currency === 'INR' ? '₹' : '$'}
-                        {((planDetails?.price || 99) * 1.09).toFixed(2)}
+                        {calculatePrices().total.toFixed(2)}
                       </span>
                     </div>
+
+
                   </div>
                 </div>
               </div>
@@ -294,7 +433,7 @@ const App: React.FC = () => {
               ) : (
                 <div /> /* Spacer */
               )}
-              
+
               <Button variant="outline" onClick={handleNext} disabled={isProcessing} className="min-w-[140px] flex justify-center bg-black  text-white">
                 {isProcessing ? (
                   <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -314,3 +453,6 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+
+
